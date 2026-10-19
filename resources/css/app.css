@@ -5,7 +5,108 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/*
+|--------------------------------------------------------------------------
+| Tema Kedai Kopi Varya
+|--------------------------------------------------------------------------
+| Palet diambil langsung dari file desain di folder /design (sampling piksel),
+| bukan ditebak. Nilai hex ditulis sebagai komentar di sebelah kanan.
+|
+*/
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Typography */
+    --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
+    --font-mono: 'Space Mono', ui-monospace, 'Courier New', monospace;
+
+    /* Warna dasar */
+    --color-canvas: #f5f3f4; /* latar halaman        */
+    --color-surface: #ffffff; /* kartu / panel        */
+    --color-header: #faf9fa; /* latar header         */
+
+    /* Teks */
+    --color-ink: #1b1c1d; /* teks utama + border   */
+    --color-ink-soft: #545555; /* teks paragraf         */
+    --color-muted: #8d8d8e; /* teks sekunder         */
+
+    /* Garis */
+    --color-line: #e5e7eb; /* garis tipis           */
+    --color-line-strong: #c9c8c9; /* garis lebih tegas     */
+
+    /* Hijau Varya */
+    --color-varya: #2e6b47; /* hijau aksi / tombol   */
+    --color-varya-dark: #115231; /* hijau tua / ticker   */
+    --color-varya-light: #d4e4ce; /* hijau muda / stripe   */
+    --color-varya-muted: #869582; /* hijau keabu-abuan     */
+
+    /* Aksen */
+    --color-rust: #a53f18; /* stiker promo          */
+    --color-brown: #852800; /* badge stok habis     */
+
+    /* Footer */
+    --color-footer: #303031; /* footer gelap          */
+    --color-footer-bar: #e9e8e9; /* bar tengah footer    */
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background-color: var(--color-canvas);
+        color: var(--color-ink);
+        font-family: var(--font-serif);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Judul section memakai display font */
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-display);
+    }
+}
+
+@layer components {
+    /*
+    | Gaya neo-brutalist yang dipakai konsisten di desain:
+    | border tebal hitam + bayangansolid tanpa blur.
+    */
+    .brut {
+        border: 3px solid var(--color-ink);
+        border-radius: 14px;
+        box-shadow: 5px 5px 0 0 var(--color-ink);
+    }
+
+    .brut-sm {
+        border: 2px solid var(--color-ink);
+        border-radius: 999px;
+        box-shadow: 3px 3px 0 0 var(--color-ink);
+    }
+
+    /* Judul besar section */
+    .title-xl {
+        font-family: var(--font-display);
+        font-weight: 900;
+        letter-spacing: -0.01em;
+        line-height: 1.05;
+        text-transform: uppercase;
+    }
+
+    /* Label kecil monospace */
+    .tag {
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    /* Judul kartu produk */
+    .product-name {
+        font-family: var(--font-display);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+    }
 }
