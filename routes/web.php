@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\KasirController;
 use App\Http\Controllers\PelangganAController;
 use App\Http\Controllers\PelangganBController;
 use Illuminate\Support\Facades\Route;
@@ -39,4 +40,22 @@ Route::prefix('pesan')->name('pelanggan-b.')->group(function () {
     Route::get('/pembayaran', [PelangganBController::class, 'pembayaran'])->name('pembayaran');
 
     Route::get('/berhasil', [PelangganBController::class, 'berhasil'])->name('berhasil');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Kasir — tampilan front-end
+|--------------------------------------------------------------------------
+| Tahap ini hanya menyiapkan tampilan. Data menu dan pesanan masih berupa
+| data contoh di KasirController; autentikasi dan database menyusul.
+*/
+
+Route::prefix('kasir')->name('kasir.')->group(function () {
+    Route::redirect('/', '/kasir/pesanan/baru');
+
+    Route::get('/pesanan/baru', [KasirController::class, 'buatPesanan'])->name('pesanan.baru');
+
+    Route::get('/pesanan', [KasirController::class, 'pesananMasuk'])->name('pesanan.index');
+
+    Route::get('/menu', [KasirController::class, 'kelolaMenu'])->name('menu.index');
 });

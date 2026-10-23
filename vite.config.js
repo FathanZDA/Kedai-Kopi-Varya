@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/pelanggan-a.js',
                 'resources/js/pelanggan-b.js',
+                'resources/js/kasir.js',
             ],
             refresh: true,
         }),

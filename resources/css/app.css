@@ -47,6 +47,13 @@
     /* Footer */
     --color-footer: #303031; /* footer gelap          */
     --color-footer-bar: #e9e8e9; /* bar tengah footer    */
+
+    /* Area kasir */
+    --color-kasir-canvas: #f3f1e9; /* latar area kasir     */
+    --color-kasir-panel: #fbfaf5; /* panel / kartu kasir  */
+    --color-kasir-head: #e7efe4; /* kepala tabel kasir   */
+    --color-kasir-amber: #f2c66d; /* aksen peringatan     */
+    --color-kasir-amber-soft: #fff4d8; /* latar peringatan     */
 }
 
 @layer base {
@@ -108,5 +115,135 @@
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.01em;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Komponen area kasir
+    |--------------------------------------------------------------------------
+    */
+
+    .kasir-shell {
+        background-color: var(--color-kasir-canvas);
+    }
+
+    /* Garis diagonal hijau khas desain kasir. */
+    .kasir-stripes {
+        background-image: repeating-linear-gradient(
+            45deg,
+            var(--color-varya-dark) 0,
+            var(--color-varya-dark) 8px,
+            transparent 8px,
+            transparent 16px
+        );
+    }
+
+    .kasir-stripe-divider {
+        height: 12px;
+        background-image: repeating-linear-gradient(
+            115deg,
+            var(--color-varya-dark) 0,
+            var(--color-varya-dark) 9px,
+            transparent 9px,
+            transparent 16px
+        );
+        -webkit-mask-image: linear-gradient(to right, #000 0%, #000 76%, transparent 100%);
+        mask-image: linear-gradient(to right, #000 0%, #000 76%, transparent 100%);
+    }
+
+    .kasir-title {
+        font-family: var(--font-display);
+        font-weight: 900;
+        letter-spacing: 0.005em;
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    .kasir-card {
+        border: 2px solid var(--color-ink);
+        border-radius: 10px;
+        background-color: var(--color-kasir-panel);
+        box-shadow: 4px 4px 0 0 var(--color-ink);
+    }
+
+    .kasir-dialog {
+        width: calc(100% - 2rem);
+        max-width: 560px;
+        max-height: calc(100vh - 2rem);
+        margin: auto;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .kasir-dialog::backdrop {
+        background: rgb(16 22 18 / 62%);
+        backdrop-filter: blur(3px);
+    }
+
+    .kasir-dialog[open] .kasir-dialog-card {
+        animation: kasir-dialog-in 160ms ease-out;
+    }
+
+    .kasir-dialog-card {
+        overflow: hidden;
+        border: 2px solid var(--color-ink);
+        border-radius: 10px;
+        background-color: var(--color-kasir-panel);
+        box-shadow: 6px 6px 0 0 var(--color-ink);
+    }
+
+    .kasir-dialog-scroll {
+        max-height: calc(100vh - 10rem);
+        overflow-y: auto;
+    }
+
+    .payment-caret {
+        display: inline-block;
+        width: 2px;
+        height: 1.5rem;
+        margin-left: 3px;
+        background-color: currentColor;
+        animation: kasir-caret 1s steps(1) infinite;
+        vertical-align: -0.2rem;
+    }
+
+    .kasir-scrollbar {
+        scrollbar-color: var(--color-varya-muted) transparent;
+        scrollbar-width: thin;
+    }
+
+    .kasir-scrollbar::-webkit-scrollbar {
+        width: 7px;
+        height: 7px;
+    }
+
+    .kasir-scrollbar::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background-color: var(--color-varya-muted);
+    }
+
+    @keyframes kasir-dialog-in {
+        from {
+            opacity: 0;
+            transform: translateY(10px) scale(0.985);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes kasir-caret {
+        0%,
+        49% {
+            opacity: 1;
+        }
+        50%,
+        100% {
+            opacity: 0;
+        }
     }
 }
