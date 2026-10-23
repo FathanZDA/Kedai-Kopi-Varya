@@ -56,7 +56,7 @@
 
                         {{-- Stiker miring --}}
                         @if ($promo->badge_text && $index === 0)
-                            <span class="tag absolute top-8 right-6 rotate-6 border-2 border-ink bg-rust px-3 py-1.5 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] sm:top-14 sm:right-24">
+                            <span class="tag absolute top-2 right-4 rotate-6 border-2 border-ink bg-rust px-3 py-1.5 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] sm:top-14 sm:right-24">
                                 {{ $promo->badge_text }}
                             </span>
                         @endif

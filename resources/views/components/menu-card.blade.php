@@ -2,6 +2,10 @@
     'menu',
     /** true bila kartu tidak punya tombol pesan (halaman pelanggan A) */
     'readonly' => true,
+    /** URL halaman detail produk; null berarti kartu tidak bisa diklik */
+    'detailUrl' => null,
+    /** true untuk menampilkan kontrol pesan/stepper (mode Pelanggan B) */
+    'orderable' => false,
 ])
 
 @php
@@ -20,12 +24,26 @@
 @endphp
 
 <article @class([
-    'group relative flex flex-col overflow-hidden bg-surface transition-transform duration-200 hover:-translate-y-1',
+    'group relative flex h-full flex-col overflow-hidden bg-surface transition-transform duration-200 hover:-translate-y-1',
     'brut',
     'opacity-70' => ! $menu->is_available,
-])>
+])
+data-menu-card
+data-menu-id="{{ $menu->id }}"
+data-menu-slug="{{ $menu->slug }}"
+data-menu-name="{{ $menu->name }}"
+data-menu-price="{{ $menu->price }}"
+data-menu-image="{{ $menu->image ? asset($menu->image) : '' }}"
+data-menu-initial="{{ $initial }}">
+
     {{-- Foto produk --}}
-    <div class="relative aspect-[4/3] w-full overflow-hidden border-b-[3px] border-ink">
+    @if ($detailUrl)
+        <a href="{{ $detailUrl }}"
+           class="relative block aspect-[4/3] w-full overflow-hidden border-b-[3px] border-ink"
+           aria-label="Lihat detail {{ $menu->name }}">
+    @else
+        <div class="relative aspect-[4/3] w-full overflow-hidden border-b-[3px] border-ink">
+    @endif
         @if ($menu->image)
             <img src="{{ asset($menu->image) }}"
                  alt="{{ $menu->name }}"
@@ -47,11 +65,21 @@
                 Stok Habis
             </span>
         @endif
-    </div>
+    @if ($detailUrl)
+        </a>
+    @else
+        </div>
+    @endif
 
     {{-- Informasi produk --}}
     <div class="flex flex-1 flex-col gap-1.5 p-4">
-        <h3 class="product-name text-sm leading-snug">{{ $menu->name }}</h3>
+        @if ($detailUrl)
+            <a href="{{ $detailUrl }}" class="focus:outline-none focus-visible:underline">
+                <h3 class="product-name text-sm leading-snug">{{ $menu->name }}</h3>
+            </a>
+        @else
+            <h3 class="product-name text-sm leading-snug">{{ $menu->name }}</h3>
+        @endif
 
         <p class="font-display text-lg font-bold text-varya-dark">
             {{ $menu->formatted_price }}
@@ -59,6 +87,37 @@
 
         @if ($menu->description)
             <p class="font-serif text-[13px] leading-relaxed text-ink-soft">{{ $menu->description }}</p>
+        @endif
+
+        @if ($orderable)
+            <div class="mt-auto pt-3" data-order-control>
+                @if ($menu->is_available)
+                    <button type="button"
+                            data-add-to-cart
+                            class="tag flex w-full items-center justify-center gap-1.5 rounded-md border-2 border-ink bg-varya-dark px-3 py-2.5 text-[10px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                        <span class="text-sm leading-none" aria-hidden="true">+</span>
+                        Pesan
+                    </button>
+
+                    <div data-qty-stepper hidden class="flex items-stretch overflow-hidden rounded-md border-2 border-ink bg-surface shadow-[2px_2px_0_0_#1b1c1d]">
+                        <button type="button"
+                                data-qty-minus
+                                class="grid w-10 place-items-center border-r-2 border-ink text-lg font-bold transition-colors hover:bg-varya-light"
+                                aria-label="Kurangi jumlah {{ $menu->name }}">−</button>
+                        <span data-qty-value class="tag flex flex-1 items-center justify-center text-xs font-bold">0</span>
+                        <button type="button"
+                                data-qty-plus
+                                class="grid w-10 place-items-center border-l-2 border-ink bg-varya-dark text-lg font-bold text-white transition-colors hover:bg-varya"
+                                aria-label="Tambah jumlah {{ $menu->name }}">+</button>
+                    </div>
+                @else
+                    <button type="button"
+                            disabled
+                            class="tag flex w-full items-center justify-center rounded-md border-2 border-line-strong bg-[#efedee] px-3 py-2.5 text-[10px] font-bold text-muted">
+                        Habis Terjual
+                    </button>
+                @endif
+            </div>
         @endif
     </div>
 </article>

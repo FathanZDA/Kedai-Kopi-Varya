@@ -1,3 +1,7 @@
+@props([
+    'brandHref' => null,
+])
+
 <div class="mt-16 sm:mt-20">
     {{-- Garis aksen --}}
     <div class="h-2.5 bg-varya-light"></div>
@@ -13,7 +17,7 @@
     {{-- Footer utama --}}
     <footer class="bg-footer text-white">
         <div class="mx-auto flex max-w-[1280px] flex-col gap-6 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-            <x-public.brand variant="light" />
+            <x-public.brand variant="light" :href="$brandHref ?? route('pelanggan-a.beranda')" />
 
             <p class="font-serif text-sm text-white/70">
                 &copy; {{ date('Y') }} Kedai Kopi Varya. Hak cipta dilindungi undang-undang.
