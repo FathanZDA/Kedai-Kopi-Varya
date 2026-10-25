@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\PelangganAController;
 use App\Http\Controllers\PelangganBController;
@@ -58,4 +59,28 @@ Route::prefix('kasir')->name('kasir.')->group(function () {
     Route::get('/pesanan', [KasirController::class, 'pesananMasuk'])->name('pesanan.index');
 
     Route::get('/menu', [KasirController::class, 'kelolaMenu'])->name('menu.index');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin / Owner — tampilan front-end
+|--------------------------------------------------------------------------
+| Dashboard, kelola menu, laporan transaksi, iklan & promosi, dan informasi
+| toko. Data masih berupa contoh di AdminController dan localStorage browser.
+*/
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    Route::get('/menu', [AdminController::class, 'menus'])->name('menu.index');
+
+    Route::get('/menu/create', [AdminController::class, 'createMenu'])->name('menu.create');
+
+    Route::get('/menu/{menu}/edit', [AdminController::class, 'editMenu'])->name('menu.edit');
+
+    Route::get('/laporan', [AdminController::class, 'reports'])->name('reports');
+
+    Route::get('/promosi', [AdminController::class, 'promos'])->name('promos');
+
+    Route::get('/toko', [AdminController::class, 'store'])->name('store');
 });

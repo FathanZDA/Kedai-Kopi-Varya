@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/pelanggan-a.js',
                 'resources/js/pelanggan-b.js',
                 'resources/js/kasir.js',
+                'resources/js/admin.js',
             ],
             refresh: true,
         }),
