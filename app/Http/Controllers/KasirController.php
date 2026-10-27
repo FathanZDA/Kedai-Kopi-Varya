@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Kasir\StoreOrderRequest;
+use App\Http\Resources\OrderResource;
 use App\Models\Category;
 use App\Models\Menu;
+use App\Services\OrderService;
+use Illuminate\Http\JsonResponse;
 
 /**
  * Tampilan kasir (front-end).
  *
  * Catatan tahap pengerjaan:
  * - Menu dan kategori sudah dibaca dari database.
- * - Pesanan dan pembayaran masih data demo sampai slice backend tersedia.
- * - Interaksi keranjang, pembayaran tunai, dan status menu masih dijalankan
- *   di sisi klien melalui resources/js/kasir.js.
+ * - Pesanan tunai sudah disimpan ke database lewat storeOrder().
+ * - Pesanan masuk dan kelola menu masih data contoh sampai slice berikutnya.
  */
 class KasirController extends Controller
 {
@@ -41,6 +44,25 @@ class KasirController extends Controller
             'kasir' => $this->kasir(),
             'menus' => $this->menus(),
         ]);
+    }
+
+    /**
+     * Simpan transaksi tunai kasir.
+     *
+     * Nominal, harga, dan subtotal dihitung ulang di server. Input harga dari
+     * browser diabaikan. Respons berisi nomor antrean dan kembalian untuk
+     * ditampilkan pada dialog konfirmasi.
+     */
+    public function storeOrder(StoreOrderRequest $request, OrderService $orderService): JsonResponse
+    {
+        $order = $orderService->buatOrderTunai(
+            $request->validated(),
+            $request->user(),
+        );
+
+        return (new OrderResource($order))
+            ->response()
+            ->setStatusCode(201);
     }
 
     private function kasir(): array

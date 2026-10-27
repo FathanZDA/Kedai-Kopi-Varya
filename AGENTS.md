@@ -27,12 +27,12 @@ Per 27 Oktober 2026:
 
 - **Front-end publik Pelanggan A:** sudah memakai database (`categories`, `menus`, `promos`, `store_settings`, `store_hours`).
 - **Front-end Pelanggan B:** menu dan toko sudah dari database. Keranjang dan checkout masih `localStorage`/`sessionStorage`; simulasi pembayaran sudah dihapus, tetapi Midtrans belum aktif sehingga tidak ada pesanan yang ditandai lunas dari browser.
-- **Front-end kasir:** menu dan kategori sudah dari database. Pesanan dan transaksi masih data contoh di `KasirController` + `localStorage` (`resources/js/kasir.js`).
+- **Front-end kasir:** menu dan kategori sudah dari database. **Buat Pesanan sudah menyimpan order tunai ke database** lewat `POST /kasir/pesanan` (order + item + nomor antrean dalam satu transaksi), tetapi dialog kasir belum memanggil endpoint itu — `resources/js/kasir.js` masih menyimpan ke `localStorage`. Pesanan Masuk dan Kelola Menu masih data contoh.
 - **Front-end admin:** menu, kategori, promosi, dan informasi toko sudah dari database. Transaksi, laporan, dan aksi CRUD masih data contoh + `localStorage` (`resources/js/admin.js`).
 - **Login/role:** login bersama kasir/admin sudah aktif di `/login` dengan auth manual Laravel, password ter-hash, dan redirect sesuai role. Middleware `auth` + `role` melindungi seluruh area kasir/admin. Tampilan mengikuti `design/auth/`; tidak ada registrasi publik.
-- **Database:** tabel `users` (dengan `role`), `categories`, `menus` (soft delete), `promos`, `store_settings`, dan `store_hours` sudah ada. Tabel transaksi `orders`, `order_items`, `payments`, `payment_notifications`, dan `queue_counters` sudah dibuat lewat `2026_10_27_000001_buat_tabel_transaksi`, tetapi belum ada model, service, atau controller yang memakainya.
-- **Backend pesanan/pembayaran:** belum dimulai. Skema transaksi siap; Midtrans belum terpasang.
-- **Route:** route publik masih `GET`; auth memakai `GET/POST /login` dan `POST /logout`. Area kasir/admin memakai middleware `auth` + `role`. Belum ada `POST`/`PATCH` transaksi, webhook, atau rate limit checkout.
+- **Database:** tabel `users` (dengan `role`), `categories`, `menus` (soft delete), `promos`, `store_settings`, dan `store_hours` sudah ada. Tabel transaksi `orders`, `order_items`, `payments`, `payment_notifications`, dan `queue_counters` sudah dibuat lewat `2026_10_27_000001_buat_tabel_transaksi`. Model `Order`, `OrderItem`, `QueueCounter` dan enum status sudah dipakai `OrderService` untuk order tunai; `payments` dan `payment_notifications` belum dipakai kode.
+- **Backend pesanan/pembayaran:** order tunai kasir sudah jalan (`OrderService::buatOrderTunai`). Pembuatan order QRIS, webhook, laporan, dan CRUD admin belum ada. Midtrans belum terpasang.
+- **Route:** route publik masih `GET`; auth memakai `GET/POST /login` dan `POST /logout`; kasir punya `POST /kasir/pesanan` (tunai). Area kasir/admin memakai middleware `auth` + `role`. Belum ada webhook atau rate limit checkout.
 
 Data contoh di controller dan `localStorage` **bukan** sumber kebenaran. Data kanonik ada di `database/seeders/PelangganASeeder.php`: 5 kategori, 12 menu, 3 promo, dan 7 baris jam toko. Data transaksi demo harus lewat seeder database untuk local/testing, bukan browser storage.
 

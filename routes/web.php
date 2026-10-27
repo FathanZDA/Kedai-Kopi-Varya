@@ -66,8 +66,8 @@ Route::prefix('pesan')->name('pelanggan-b.')->group(function () {
 |--------------------------------------------------------------------------
 | Kasir — wajib login dengan role kasir
 |--------------------------------------------------------------------------
-| Menu dan kategori sudah dibaca dari database. Pesanan masih data contoh di
-| KasirController; transaksi database menyusul.
+| Menu dan kategori dibaca dari database. Transaksi tunai disimpan lewat
+| POST /kasir/pesanan. Pesanan masuk dan kelola menu masih data contoh.
 */
 
 Route::middleware(['auth', 'role:kasir'])->group(function () {
@@ -75,6 +75,8 @@ Route::middleware(['auth', 'role:kasir'])->group(function () {
 
     Route::prefix('kasir')->name('kasir.')->group(function () {
         Route::get('/pesanan/baru', [KasirController::class, 'buatPesanan'])->name('pesanan.baru');
+
+        Route::post('/pesanan', [KasirController::class, 'storeOrder'])->name('pesanan.store');
 
         Route::get('/pesanan', [KasirController::class, 'pesananMasuk'])->name('pesanan.index');
 

@@ -30,6 +30,7 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | GET | `/pesan/berhasil` | `pelanggan-b.berhasil` | `PelangganBController@berhasil` | Halaman tiket; menunggu backend |
 | ANY | `/kasir` | — | Redirect 301 ke `/kasir/pesanan/baru` | `auth` + `role:kasir` |
 | GET | `/kasir/pesanan/baru` | `kasir.pesanan.baru` | `KasirController@buatPesanan` | `auth` + `role:kasir`; menu dari DB |
+| POST | `/kasir/pesanan` | `kasir.pesanan.store` | `KasirController@storeOrder` | `auth` + `role:kasir`; order tunai langsung lunas + nomor antrean |
 | GET | `/kasir/pesanan` | `kasir.pesanan.index` | `KasirController@pesananMasuk` | `auth` + `role:kasir`; data contoh |
 | GET | `/kasir/menu` | `kasir.menu.index` | `KasirController@kelolaMenu` | `auth` + `role:kasir`; menu dari DB |
 | ANY | `/admin` | — | Redirect 301 ke `/admin/dashboard` | `auth` + `role:admin` |
@@ -43,7 +44,7 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 
 Belum ada:
 
-- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD.
+- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`.
 - Webhook Midtrans.
 - Rate limiting untuk checkout/status pesanan (login sudah dibatasi 5 percobaan/menit).
 
@@ -352,6 +353,15 @@ Error penting:
 
 Catatan: `catatan` per item opsional dan disimpan di `order_items.catatan`; order tunai juga mengisi `orders.cashier_id` dari sesi login.
 
+Status 27 Okt 2026: **sudah diimplementasikan** di `KasirController@storeOrder` + `App\Services\OrderService::buatOrderTunai` + `App\Http\Resources\OrderResource`.
+
+Hal yang perlu diketahui konsumen endpoint ini:
+
+- `nomor_antrean` dikirim sebagai string tiga digit (`"007"`), mengikuti contoh pada kontrak di atas.
+- Respons berisi field tambahan di luar contoh (`tipe_pesanan`, `catatan`, `sumber`, label status, `waktu_lunas`, `item`) agar dialog konfirmasi kasir tidak perlu request kedua. Semua field contoh tetap ada, jadi kontrak lama tetap terpenuhi.
+- Harga dan subtotal **tidak** dikirim klien dan diabaikan bila ada; server selalu memakai harga dari `menus.harga`.
+- Error `409` (menu berubah saat transaksi disimpan) **belum** bisa dihasilkan karena request tidak membawa harga pembanding. Saat ini menu yang hilang atau habis menghasilkan `422` dengan field `item`. Jika Anda ingin `409` aktif, request perlu ditambah harga acuan per item — keputusan ini menunggu persetujuan.
+
 ### 4.5 `GET /kasir/pesanan/poll`
 
 Query opsional: `?sejak=2026-10-25T21:00:00+07:00`
@@ -423,7 +433,7 @@ Aturan:
 | `/pesan/pembayaran` | `/pesanan/{kode_pesanan}` | Hapus halaman demo |
 | `/pesan/berhasil` | `/pesanan/{kode_pesanan}` | Hapus halaman demo |
 | Belum ada login | `/login`, `POST /login`, `POST /logout` | **Selesai** — auth manual + role redirect |
-| Hanya `GET` | `POST`/`PATCH`/`DELETE` | Tambah action |
+| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan` **selesai**; action lain menyusul |
 | Belum ada webhook | `/api/midtrans/notification` | Tambah route + CSRF exception |
 | Belum ada role | `auth` + `role:*` | **Selesai** — middleware `role` aktif di area kasir/admin |
 | Belum ada rate limit | `throttle:*` | Login selesai; checkout/status menyusul |
