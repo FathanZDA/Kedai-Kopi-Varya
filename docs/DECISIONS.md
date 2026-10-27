@@ -149,3 +149,4 @@ Catatan: O-16 bersifat operasional dan tidak menghambat pembuatan dokumen, migra
 | 25 Okt 2026 | `order_items.catatan` dan `orders.cashier_id` ditambahkan kembali ke MVP atas permintaan user | Agent |
 | 27 Okt 2026 | Dokumen dan skema inti difinalkan; front-end diselaraskan dengan PRD dan data kanonik | Agent |
 | 27 Okt 2026 | Auth manual diimplementasikan: login bersama `/login`, redirect per role, middleware `role`, logout, password hash, dan rate limit login. Akun seeder memakai email `@gmail.com` yang ditentukan user. | Agent |
+| 27 Okt 2026 | Skema transaksi dibuat lewat `2026_10_27_000001_buat_tabel_transaksi`: `queue_counters`, `orders`, `order_items`, `payments`, `payment_notifications`, lengkap dengan FK dan index sesuai `docs/DATABASE.md`. Belum ada model, service, controller, atau route transaksi. | Agent |

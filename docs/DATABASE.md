@@ -464,11 +464,11 @@ erDiagram
 | `promos` | Selesai | Field Indonesia + `mulai`/`berakhir`; `subtitle`/`badge_text` dihapus. |
 | `store_settings` | Selesai | Field PRD; `landmark`/`hours` JSON dihapus. |
 | Jam toko | Selesai | Tabel `store_hours` berisi 7 baris. |
-| `orders` | Belum | Belum dibuat; termasuk `cashier_id`. |
-| `order_items` | Belum | Belum dibuat; termasuk snapshot dan `catatan`. |
-| `payments` | Belum | Belum dibuat. |
-| `payment_notifications` | Belum | Belum dibuat. |
-| `queue_counters` | Belum | Belum dibuat. |
+| `orders` | Selesai | Dibuat di `2026_10_27_000001_buat_tabel_transaksi`; termasuk `cashier_id`. Belum ada model/controller. |
+| `order_items` | Selesai | Dibuat di migration yang sama; termasuk snapshot dan `catatan`. |
+| `payments` | Selesai | Dibuat di migration yang sama; belum ada integrasi Midtrans. |
+| `payment_notifications` | Selesai | Dibuat di migration yang sama; belum ada webhook. |
+| `queue_counters` | Selesai | Dibuat di migration yang sama; logika penomoran menyusul di backend. |
 | Engine database | Selesai | MySQL saja; SQLite tidak dipakai. |
 | Konfigurasi test | Selesai | `phpunit.xml` memakai MySQL `kedai_varya_test`. |
 | Data menu | Selesai | 12 menu kanonik; admin dan kasir membaca database. |
@@ -519,7 +519,7 @@ Catatan:
 - 1 baris `store_settings`.
 - 7 baris `store_hours`.
 
-Data demo order (menunggu, lunas, gagal, `perlu_diperiksa`) belum ada karena tabel order belum dibuat. Saat backend tersedia, data demo hanya untuk local/testing melalui `DemoOrderSeeder` dan tidak dijalankan di produksi. Data demo tetap disimpan di database, bukan `localStorage`.
+Data demo order (menunggu, lunas, gagal, `perlu_diperiksa`) belum ada. Tabel transaksi sudah dibuat, tetapi pembuatan order belum punya backend. Saat backend tersedia, data demo hanya untuk local/testing melalui `DemoOrderSeeder` dan tidak dijalankan di produksi. Data demo tetap disimpan di database, bukan `localStorage`.
 
 ---
 
@@ -539,3 +539,5 @@ Data demo order (menunggu, lunas, gagal, `perlu_diperiksa`) belum ada karena tab
 12. Tambah index/constraint yang belum dibuat.
 
 Jangan mengubah migration lama yang sudah dijalankan; buat migration baru. Jika database hanya berisi data demo dan sudah disetujui, `migrate:fresh --seed` boleh dipakai; jika ada data nyata, gunakan migration rename.
+
+Status 27 Okt 2026: langkah 1–6 selesai lewat `2026_10_25_000001_align_schema_with_prd`. Langkah 7–11 selesai lewat satu migration, `2026_10_27_000001_buat_tabel_transaksi`, dengan urutan `queue_counters` → `orders` → `order_items` → `payments` → `payment_notifications`. Langkah 12 (index/constraint susulan) tidak diperlukan karena semua index dan constraint sudah dibuat bersama tabelnya; sudah diverifikasi lewat `information_schema.STATISTICS` dan tidak ada index ganda pada kolom foreign key.

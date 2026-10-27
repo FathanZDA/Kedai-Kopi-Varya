@@ -30,8 +30,8 @@ Per 27 Oktober 2026:
 - **Front-end kasir:** menu dan kategori sudah dari database. Pesanan dan transaksi masih data contoh di `KasirController` + `localStorage` (`resources/js/kasir.js`).
 - **Front-end admin:** menu, kategori, promosi, dan informasi toko sudah dari database. Transaksi, laporan, dan aksi CRUD masih data contoh + `localStorage` (`resources/js/admin.js`).
 - **Login/role:** login bersama kasir/admin sudah aktif di `/login` dengan auth manual Laravel, password ter-hash, dan redirect sesuai role. Middleware `auth` + `role` melindungi seluruh area kasir/admin. Tampilan mengikuti `design/auth/`; tidak ada registrasi publik.
-- **Database:** tabel `users` (dengan `role`), `categories`, `menus` (soft delete), `promos`, `store_settings`, dan `store_hours` sudah ada. Tabel `orders`, `order_items`, `payments`, `payment_notifications`, dan `queue_counters` belum ada.
-- **Backend pesanan/pembayaran:** belum dimulai. Midtrans belum terpasang.
+- **Database:** tabel `users` (dengan `role`), `categories`, `menus` (soft delete), `promos`, `store_settings`, dan `store_hours` sudah ada. Tabel transaksi `orders`, `order_items`, `payments`, `payment_notifications`, dan `queue_counters` sudah dibuat lewat `2026_10_27_000001_buat_tabel_transaksi`, tetapi belum ada model, service, atau controller yang memakainya.
+- **Backend pesanan/pembayaran:** belum dimulai. Skema transaksi siap; Midtrans belum terpasang.
 - **Route:** route publik masih `GET`; auth memakai `GET/POST /login` dan `POST /logout`. Area kasir/admin memakai middleware `auth` + `role`. Belum ada `POST`/`PATCH` transaksi, webhook, atau rate limit checkout.
 
 Data contoh di controller dan `localStorage` **bukan** sumber kebenaran. Data kanonik ada di `database/seeders/PelangganASeeder.php`: 5 kategori, 12 menu, 3 promo, dan 7 baris jam toko. Data transaksi demo harus lewat seeder database untuk local/testing, bukan browser storage.
