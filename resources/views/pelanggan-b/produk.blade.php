@@ -8,11 +8,11 @@
         ['#8c8577', '#5b574d'], ['#6f6357', '#453d34'],
     ];
     $tone = $tones[crc32($menu->slug) % count($tones)];
-    $initial = mb_strtoupper(mb_substr(preg_replace('/[^A-Za-z0-9]/', '', $menu->name), 0, 1));
+    $initial = mb_strtoupper(mb_substr(preg_replace('/[^A-Za-z0-9]/', '', $menu->nama), 0, 1));
 @endphp
 
-<x-layouts.pelanggan-b :title="$menu->name"
-                       :description="$menu->description ?: 'Detail menu Kedai Kopi Varya.'">
+<x-layouts.pelanggan-b :title="$menu->nama"
+                       :description="$menu->deskripsi ?: 'Detail menu Kedai Kopi Varya.'">
     <div class="mx-auto max-w-[1280px] px-5 pt-6 sm:px-8">
         <nav class="flex flex-wrap items-center gap-2" aria-label="Breadcrumb">
             <a href="{{ route('pelanggan-b.beranda') }}#menu"
@@ -32,9 +32,9 @@
             <article class="brut overflow-hidden bg-surface">
                 <div class="p-3 sm:p-4">
                     <div class="relative aspect-[4/3] w-full overflow-hidden border-[3px] border-ink bg-canvas">
-                        @if ($menu->image)
-                            <img src="{{ asset($menu->image) }}"
-                                 alt="{{ $menu->name }}"
+                        @if ($menu->foto)
+                            <img src="{{ asset($menu->foto) }}"
+                                 alt="{{ $menu->nama }}"
                                  class="h-full w-full object-cover">
                         @else
                             <div class="flex h-full w-full items-center justify-center"
@@ -50,9 +50,9 @@
                                  stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
                         </a>
 
-                        @if ($menu->is_featured && $menu->is_available)
-                            <span class="tag absolute top-3 right-3 -rotate-6 rounded-full bg-varya-dark px-3 py-1 text-[10px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d]">
-                                Terlaris
+                        @if (! $menu->tersedia)
+                            <span class="tag absolute top-3 right-3 -rotate-6 rounded-full bg-brown px-3 py-1 text-[10px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d]">
+                                Habis
                             </span>
                         @endif
                     </div>
@@ -61,8 +61,8 @@
                 <div class="px-5 pb-6 sm:px-6">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <p class="tag text-[10px] text-varya">{{ $menu->category->name }}</p>
-                            <h1 class="product-name mt-1 text-3xl leading-tight sm:text-4xl">{{ $menu->name }}</h1>
+                            <p class="tag text-[10px] text-varya">{{ $menu->category->nama }}</p>
+                            <h1 class="product-name mt-1 text-3xl leading-tight sm:text-4xl">{{ $menu->nama }}</h1>
                         </div>
 
                         <p class="font-display text-2xl font-black text-varya-dark sm:text-3xl">
@@ -71,18 +71,18 @@
                     </div>
 
                     <p class="mt-4 rounded-lg bg-canvas p-4 font-serif text-[14px] leading-relaxed text-ink-soft sm:text-[15px]">
-                        {{ $menu->description ?: 'Menu pilihan Kedai Kopi Varya.' }}
+                        {{ $menu->deskripsi ?: 'Menu pilihan Kedai Kopi Varya.' }}
                     </p>
 
                     <div data-product-detail
                          data-menu-id="{{ $menu->id }}"
                          data-menu-slug="{{ $menu->slug }}"
-                         data-menu-name="{{ $menu->name }}"
-                         data-menu-price="{{ $menu->price }}"
-                         data-menu-image="{{ $menu->image ? asset($menu->image) : '' }}"
+                         data-menu-name="{{ $menu->nama }}"
+                         data-menu-price="{{ $menu->harga }}"
+                         data-menu-image="{{ $menu->foto ? asset($menu->foto) : '' }}"
                          data-menu-initial="{{ $initial }}"
                          class="mt-6 border-t-2 border-dashed border-line-strong pt-5">
-                        @if ($menu->is_available)
+                        @if ($menu->tersedia)
                             <div class="flex flex-col gap-3 sm:flex-row sm:items-stretch">
                                 <div class="flex shrink-0 items-stretch overflow-hidden rounded-md border-[3px] border-ink bg-surface shadow-[3px_3px_0_0_#1b1c1d]">
                                     <button type="button" data-product-minus

@@ -1,18 +1,17 @@
-// Interaksi Pelanggan B: keranjang sisi klien, checkout, pembayaran QRIS
-// (simulasi UI), dan tiket antrean. Tidak ada request ke server pada tahap ini.
+// Interaksi Pelanggan B: keranjang sisi klien, checkout, dan halaman pembayaran.
+// Tidak ada request ke server pada tahap ini.
 //
 // Alur data:
-//   menu card / detail produk -> localStorage (keranjang)
-//   checkout -> sessionStorage (pesanan menunggu pembayaran)
-//   simulasi pembayaran -> sessionStorage (pesanan lunas) + nomor antrean
+//   menu dari database -> kartu produk
+//   keranjang -> localStorage (sementara sampai slice backend tersedia)
+//   checkout -> sessionStorage (draft pesanan menunggu pembayaran)
 //
-// Saat backend Midtrans ditambahkan, ganti `simulatePayment()` dengan
-// pemanggilan Snap dan biarkan webhook yang mengubah status menjadi lunas.
+// Integrasi Midtrans belum aktif. Tidak ada simulasi yang menandai pesanan
+// lunas; status lunas hanya boleh berasal dari webhook Midtrans.
 
 const CART_KEY = 'varya_cart_v1';
 const PENDING_KEY = 'varya_pending_order_v1';
 const LAST_ORDER_KEY = 'varya_last_order_v1';
-const QUEUE_KEY = 'varya_queue_counter_v1';
 const PAYMENT_WINDOW_MS = 15 * 60 * 1000;
 
 const ROUTES = window.VARYA_ROUTES ?? {};
@@ -517,16 +516,14 @@ function productFromRoot(root) {
 /* -------------------------------------------------------------------------- */
 
 function makeOrderCode() {
-    const now = new Date();
-    const date = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
     const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let token = '';
 
-    for (let index = 0; index < 4; index += 1) {
+    for (let index = 0; index < 8; index += 1) {
         token += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
     }
 
-    return `ORD-${date}-${token}`;
+    return token;
 }
 
 function initCheckout() {
@@ -561,14 +558,14 @@ function initCheckout() {
         }
 
         const type = form.querySelector('[data-order-type]:checked')?.value ?? 'Makan di Tempat';
-        const notes = (form.querySelector('[data-notes]')?.value ?? '').trim();
+        const catatan = (form.querySelector('[data-catatan]')?.value ?? '').trim();
         const total = cartTotal(cart);
 
         const order = {
             code: makeOrderCode(),
             name,
             type,
-            notes,
+            catatan,
             items: cart,
             subtotal: total,
             total,
@@ -585,7 +582,7 @@ function initCheckout() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Pembayaran QRIS (simulasi)                                                 */
+/* Pembayaran QRIS (menunggu integrasi Midtrans)                              */
 /* -------------------------------------------------------------------------- */
 
 function initPaymentPage() {
@@ -606,7 +603,6 @@ function initPaymentPage() {
     if (empty) empty.hidden = true;
 
     syncPaymentMeta();
-    renderFakeQr(page.querySelector('[data-qr-sim]'), pending.code);
     startPaymentCountdown(page, pending);
 }
 
@@ -617,7 +613,6 @@ function startPaymentCountdown(page, pending) {
     const status = page.querySelector('[data-payment-status]');
     const statusText = page.querySelector('[data-payment-status-text]');
     const dot = page.querySelector('[data-payment-status-dot]');
-    const simulateButton = page.querySelector('[data-simulate-payment]');
 
     const tick = () => {
         const remaining = Number(pending.expiresAt) - Date.now();
@@ -633,7 +628,6 @@ function startPaymentCountdown(page, pending) {
                 dot.classList.remove('bg-varya');
                 dot.classList.add('bg-rust');
             }
-            if (simulateButton) simulateButton.disabled = true;
 
             window.clearInterval(paymentTimer);
             paymentTimer = null;
@@ -648,142 +642,6 @@ function startPaymentCountdown(page, pending) {
 
     tick();
     paymentTimer = window.setInterval(tick, 1000);
-}
-
-function makeSeed(text) {
-    let hash = 2166136261;
-
-    for (let index = 0; index < text.length; index += 1) {
-        hash ^= text.charCodeAt(index);
-        hash = Math.imul(hash, 16777619);
-    }
-
-    return hash >>> 0;
-}
-
-function mulberry32(seed) {
-    return () => {
-        let value = (seed += 0x6d2b79f5);
-        value = Math.imul(value ^ (value >>> 15), value | 1);
-        value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
-        return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-    };
-}
-
-/**
- * Menggambar pola mirip QR sebagai placeholder visual. Pola ini TIDAK bisa
- * dipindai; tombol simulasi di bawahnya yang menjalankan alur pembayaran.
- */
-function renderFakeQr(container, seed) {
-    if (!container) return;
-
-    const size = 29;
-    const random = mulberry32(makeSeed(String(seed || 'varya')));
-    const modules = Array.from({ length: size }, () => Array(size).fill(false));
-    const finders = [
-        [0, 0],
-        [size - 7, 0],
-        [0, size - 7],
-    ];
-
-    const finderValue = (x, y) => {
-        for (const [fx, fy] of finders) {
-            const localX = x - fx;
-            const localY = y - fy;
-
-            // Zona 9x9: satu sel putih sebagai pemisah di sekeliling finder.
-            if (localX >= -1 && localX <= 7 && localY >= -1 && localY <= 7) {
-                if (localX === -1 || localX === 7 || localY === -1 || localY === 7) {
-                    return false;
-                }
-
-                if (localX === 0 || localX === 6 || localY === 0 || localY === 6) {
-                    return true;
-                }
-
-                if (localX >= 2 && localX <= 4 && localY >= 2 && localY <= 4) {
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-        return null;
-    };
-
-    for (let y = 0; y < size; y += 1) {
-        for (let x = 0; x < size; x += 1) {
-            const finder = finderValue(x, y);
-
-            if (finder !== null) {
-                modules[y][x] = finder;
-                continue;
-            }
-
-            if (x === 6 || y === 6) {
-                modules[y][x] = (x + y) % 2 === 0;
-                continue;
-            }
-
-            modules[y][x] = random() > 0.52;
-        }
-    }
-
-    let rects = '';
-
-    for (let y = 0; y < size; y += 1) {
-        for (let x = 0; x < size; x += 1) {
-            if (modules[y][x]) {
-                rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="#1b1c1d"/>`;
-            }
-        }
-    }
-
-    container.innerHTML = `
-        <svg viewBox="0 0 ${size} ${size}" class="h-full w-full" shape-rendering="crispEdges"
-             role="img" aria-label="QRIS simulasi">
-            <rect width="${size}" height="${size}" fill="#ffffff"/>
-            ${rects}
-        </svg>
-    `;
-}
-
-function nextQueueNumber() {
-    const stored = Number(storage.get(QUEUE_KEY, 8));
-    const next = Number.isFinite(stored) && stored >= 0 ? stored + 1 : 9;
-
-    storage.set(QUEUE_KEY, next);
-
-    return next;
-}
-
-function simulatePayment() {
-    const pending = getPendingOrder();
-
-    if (!pending) {
-        showToast('Tidak ada transaksi aktif');
-        return;
-    }
-
-    if (Date.now() >= Number(pending.expiresAt)) {
-        showToast('Pembayaran sudah kedaluwarsa. Kembali ke checkout.');
-        return;
-    }
-
-    const paidOrder = {
-        ...pending,
-        queueNumber: nextQueueNumber(),
-        paidAt: new Date().toISOString(),
-        paymentStatus: 'lunas',
-        paymentChannel: 'QRIS · Midtrans Sandbox (simulasi)',
-    };
-
-    session.set(LAST_ORDER_KEY, paidOrder);
-    session.remove(PENDING_KEY);
-    storage.remove(CART_KEY);
-
-    window.location.href = ROUTES.success ?? '/pesan/berhasil';
 }
 
 /* -------------------------------------------------------------------------- */
@@ -850,11 +708,11 @@ function initSuccessPage() {
         element.textContent = type;
     });
 
-    const notesWrap = document.querySelector('[data-ticket-notes-wrap]');
-    const notes = document.querySelector('[data-ticket-notes]');
+    const catatanWrap = document.querySelector('[data-ticket-catatan-wrap]');
+    const catatan = document.querySelector('[data-ticket-catatan]');
 
-    if (notesWrap) notesWrap.hidden = !order.notes;
-    if (notes) notes.textContent = order.notes || '';
+    if (catatanWrap) catatanWrap.hidden = !order.catatan;
+    if (catatan) catatan.textContent = order.catatan || '';
 
     const itemList = document.querySelector('[data-ticket-items]');
     if (itemList) itemList.innerHTML = items.map(ticketItemRow).join('');
@@ -994,11 +852,6 @@ function handleClick(event) {
         productQty = 1;
         updateProductQty();
 
-        return;
-    }
-
-    if (event.target.closest('[data-simulate-payment]')) {
-        simulatePayment();
         return;
     }
 

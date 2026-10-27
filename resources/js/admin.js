@@ -7,9 +7,9 @@ const ROUTES = CONFIG.routes ?? {};
 const numberFormatter = new Intl.NumberFormat('id-ID');
 
 const STORAGE_KEYS = {
-    menus: 'varya.admin.menus.v1',
-    promos: 'varya.admin.promos.v1',
-    store: 'varya.admin.store.v1',
+    menus: 'varya.admin.menus.v2',
+    promos: 'varya.admin.promos.v2',
+    store: 'varya.admin.store.v2',
 };
 
 const EMPTY_IMAGE = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
@@ -308,11 +308,6 @@ function initDashboard() {
             pill: 'border-varya/30 bg-varya-light text-varya-dark',
             dot: 'bg-varya',
         },
-        siap_saji: {
-            label: 'Siap Saji',
-            pill: 'border-[#8a3b1d] bg-[#8a3b1d] text-white',
-            dot: 'bg-white',
-        },
         diproses: {
             label: 'Diproses',
             pill: 'border-[#b58a2b]/40 bg-kasir-amber-soft text-[#8a6415]',
@@ -431,9 +426,10 @@ function categoryLabel(slug) {
 function generateSku(category, menus) {
     const prefixes = {
         kopi: 'KOP',
-        'non-kopi': 'NON',
+        teh: 'TEH',
+        autentik: 'AUT',
         makanan: 'MKN',
-        camilan: 'CML',
+        cemilan: 'CML',
     };
 
     const prefix = prefixes[category] ?? 'SKU';
@@ -516,7 +512,6 @@ function initMenuList() {
             <td class="px-3 py-3">
                 <div class="flex flex-wrap items-center gap-2">
                     <p class="font-display text-[14px] leading-tight font-extrabold">${escapeHtml(menu.name)}</p>
-                    ${menu.featured ? '<span class="tag rounded bg-varya-dark px-1.5 py-0.5 text-[7px] font-bold text-white">Terlaris</span>' : ''}
                     ${!menu.available ? '<span class="tag rounded bg-brown px-1.5 py-0.5 text-[7px] font-bold text-white">Habis</span>' : ''}
                 </div>
                 <p class="mt-1 line-clamp-2 max-w-[390px] font-serif text-[11px] leading-relaxed text-ink-soft">${escapeHtml(menu.description)}</p>
@@ -683,7 +678,6 @@ function initMenuForm() {
         price: form.querySelector('[data-field="price"]'),
         available: form.querySelector('[data-field="available"]'),
         description: form.querySelector('[data-field="description"]'),
-        featured: form.querySelector('[data-field="featured"]'),
     };
 
     const imageInput = form.querySelector('[data-menu-image-input]');
@@ -701,7 +695,6 @@ function initMenuForm() {
         sku: root.querySelector('[data-preview-sku]'),
         description: root.querySelector('[data-preview-description]'),
         price: root.querySelector('[data-preview-price]'),
-        featured: root.querySelector('[data-preview-featured]'),
         unavailable: root.querySelector('[data-preview-unavailable]'),
     };
 
@@ -718,7 +711,6 @@ function initMenuForm() {
         if (fields.price) fields.price.value = storedMenu.price;
         if (fields.available) fields.available.value = storedMenu.available ? '1' : '0';
         if (fields.description) fields.description.value = storedMenu.description;
-        if (fields.featured) fields.featured.checked = Boolean(storedMenu.featured);
     }
 
     const setError = (name, message) => {
@@ -745,14 +737,12 @@ function initMenuForm() {
         const price = Number(fields.price?.value) || 0;
         const description = fields.description?.value.trim() || 'Deskripsi menu akan tampil di sini.';
         const available = fields.available?.value !== '0';
-        const featured = Boolean(fields.featured?.checked);
 
         if (preview.name) preview.name.textContent = name;
         if (preview.category) preview.category.textContent = category ? categoryLabel(category) : 'Kategori';
         if (preview.sku) preview.sku.textContent = current.sku ?? (category ? generateSku(category, menus) : 'SKU-BARU');
         if (preview.description) preview.description.textContent = description;
         if (preview.price) preview.price.textContent = rupiah(price);
-        if (preview.featured) preview.featured.classList.toggle('hidden', !featured);
         if (preview.unavailable) preview.unavailable.classList.toggle('hidden', available);
 
         const image = selectedImage ?? fallbackImage;
@@ -847,7 +837,6 @@ function initMenuForm() {
         const image = selectedImage ?? current.image ?? fallbackImage;
         const description = fields.description?.value.trim() ?? '';
         const available = fields.available?.value !== '0';
-        const featured = Boolean(fields.featured?.checked);
 
         if (mode === 'edit' && menuId) {
             const existing = allMenus.find((menu) => menu.id === menuId);
@@ -861,7 +850,6 @@ function initMenuForm() {
                     description,
                     image,
                     available,
-                    featured,
                     deleted: false,
                 });
             } else {
@@ -875,7 +863,6 @@ function initMenuForm() {
                     description,
                     image,
                     available,
-                    featured,
                     deleted: false,
                 });
             }
@@ -897,7 +884,6 @@ function initMenuForm() {
             description,
             image,
             available,
-            featured,
             deleted: false,
         });
 
@@ -1782,7 +1768,7 @@ function initStore() {
     const previewDescription = root.querySelector('[data-store-preview-description]');
     const previewPoints = root.querySelector('[data-store-preview-points]');
     const previewAddress = root.querySelector('[data-store-preview-address]');
-    const previewLandmark = root.querySelector('[data-store-preview-landmark]');
+    const previewWhatsapp = root.querySelector('[data-store-preview-whatsapp]');
     const previewHours = root.querySelector('[data-store-preview-hours]');
     const previewContact = root.querySelector('[data-store-preview-contact]');
     const previewFacilities = root.querySelector('[data-store-preview-facilities]');
@@ -1840,11 +1826,11 @@ function initStore() {
         return {
             name: field('name')?.value.trim() ?? '',
             tagline: field('tagline')?.value.trim() ?? '',
-            email: field('email')?.value.trim() ?? '',
+            whatsapp: field('whatsapp')?.value.trim() ?? '',
             description: field('description')?.value.trim() ?? '',
             address: field('address')?.value.trim() ?? '',
             maps_url: field('maps_url')?.value.trim() ?? '',
-            landmark: field('landmark')?.value.trim() ?? '',
+            maps_embed: field('maps_embed')?.value.trim() ?? '',
             phone: field('phone')?.value.trim() ?? '',
             instagram: instagramRaw ? `@${instagramRaw.replace(/^@+/, '')}` : '',
             points: readPoints(),
@@ -1873,7 +1859,7 @@ function initStore() {
 
         if (previewDescription) previewDescription.textContent = data.description || 'Deskripsi tentang kami akan tampil di sini.';
         if (previewAddress) previewAddress.textContent = data.address || 'Alamat kedai akan tampil di sini.';
-        if (previewLandmark) previewLandmark.textContent = data.landmark || '';
+        if (previewWhatsapp) previewWhatsapp.textContent = data.whatsapp ? `WA ${data.whatsapp}` : '';
         if (previewContact) previewContact.textContent = `${data.phone || 'Nomor telepon'} • ${data.instagram || '@instagram'}`;
         if (previewMapName) previewMapName.textContent = data.name || 'Kedai Varya';
 
@@ -1911,11 +1897,11 @@ function initStore() {
     const applyStore = (store) => {
         setField('name', store.name);
         setField('tagline', store.tagline);
-        setField('email', store.email);
+        setField('whatsapp', store.whatsapp);
         setField('description', store.description);
         setField('address', store.address);
         setField('maps_url', store.maps_url);
-        setField('landmark', store.landmark);
+        setField('maps_embed', store.maps_embed);
         setField('phone', store.phone);
         setField('instagram', (store.instagram ?? '').replace(/^@+/, ''));
         setField('facilities', (store.facilities ?? []).join(', '));
@@ -1975,8 +1961,8 @@ function initStore() {
             valid = false;
         }
 
-        if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-            setError('email', 'Masukkan alamat email yang valid.');
+        if (!data.whatsapp || !/^[0-9+\-\s()]{8,}$/.test(data.whatsapp)) {
+            setError('whatsapp', 'Masukkan nomor WhatsApp yang valid.');
             valid = false;
         }
 
@@ -1991,7 +1977,7 @@ function initStore() {
         }
 
         if (!data.phone) {
-            setError('phone', 'Nomor telepon / WhatsApp wajib diisi.');
+            setError('phone', 'Nomor telepon wajib diisi.');
             valid = false;
         }
 

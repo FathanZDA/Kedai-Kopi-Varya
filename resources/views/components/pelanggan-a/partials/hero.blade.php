@@ -18,8 +18,8 @@
                          'hidden' => $index !== 0,
                      ])>
                     <div class="relative h-[360px] sm:h-[480px] lg:h-[540px]">
-                        @if ($promo->image && file_exists(public_path($promo->image)))
-                            <img src="{{ asset($promo->image) }}" alt="{{ $promo->title }}"
+                        @if ($promo->gambar && file_exists(public_path($promo->gambar)))
+                            <img src="{{ asset($promo->gambar) }}" alt="{{ $promo->judul }}"
                                  class="absolute inset-0 h-full w-full object-cover">
                         @else
                             {{-- Placeholder sampai admin mengunggah foto promo [AD-04] --}}
@@ -40,24 +40,18 @@
                             @endif
 
                             <h1 class="title-xl text-5xl text-white sm:text-7xl lg:text-8xl">
-                                {{ $promo->title }}
+                                {{ $promo->judul }}
                             </h1>
 
-                            @if ($promo->subtitle)
-                                <p class="max-w-3xl bg-varya-light px-5 py-2 font-display text-sm font-bold tracking-wide text-varya-dark uppercase sm:text-base">
-                                    {{ $promo->subtitle }}
-                                </p>
-                            @endif
-
-                            @if ($promo->description)
-                                <p class="max-w-2xl font-serif text-sm text-white/85 sm:text-base">{{ $promo->description }}</p>
+                            @if ($promo->deskripsi)
+                                <p class="max-w-2xl font-serif text-sm text-white/85 sm:text-base">{{ $promo->deskripsi }}</p>
                             @endif
                         </div>
 
-                        {{-- Stiker miring --}}
-                        @if ($promo->badge_text && $index === 0)
+                        {{-- Stiker promo --}}
+                        @if ($index === 0)
                             <span class="tag absolute top-2 right-4 rotate-6 border-2 border-ink bg-rust px-3 py-1.5 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] sm:top-14 sm:right-24">
-                                {{ $promo->badge_text }}
+                                Promo
                             </span>
                         @endif
                     </div>

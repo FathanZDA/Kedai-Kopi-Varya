@@ -5,30 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Menu extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'category_id',
-        'name',
+        'nama',
         'slug',
-        'price',
-        'description',
-        'image',
-        'is_featured',
-        'is_available',
-        'sort_order',
+        'harga',
+        'deskripsi',
+        'foto',
+        'tersedia',
+        'urutan',
     ];
 
     protected function casts(): array
     {
         return [
-            'price' => 'integer',
-            'is_featured' => 'boolean',
-            'is_available' => 'boolean',
-            'sort_order' => 'integer',
+            'harga' => 'integer',
+            'tersedia' => 'boolean',
+            'urutan' => 'integer',
         ];
     }
 
@@ -39,17 +38,17 @@ class Menu extends Model
 
     public function scopeAvailable($query)
     {
-        return $query->where('is_available', true);
+        return $query->where('tersedia', true);
     }
 
     public function scopeOrdered($query)
     {
-        return $query->orderBy('sort_order')->orderBy('name');
+        return $query->orderBy('urutan')->orderBy('nama');
     }
 
     /** "Rp 22.000" — format Indonesia tanpa desimal. */
     public function getFormattedPriceAttribute(): string
     {
-        return 'Rp '.number_format($this->price, 0, ',', '.');
+        return 'Rp '.number_format($this->harga, 0, ',', '.');
     }
 }

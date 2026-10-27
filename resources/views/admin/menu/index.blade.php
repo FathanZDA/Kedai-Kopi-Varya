@@ -89,10 +89,10 @@
                         @php
                             $categoryTabs = [
                                 ['key' => 'all', 'label' => 'Semua'],
-                                ['key' => 'kopi', 'label' => 'Kopi'],
-                                ['key' => 'non-kopi', 'label' => 'Non-Kopi'],
-                                ['key' => 'makanan', 'label' => 'Makanan'],
-                                ['key' => 'camilan', 'label' => 'Camilan'],
+                                ...collect($categories)->map(fn (array $category): array => [
+                                    'key' => $category['slug'],
+                                    'label' => $category['label'],
+                                ])->all(),
                             ];
                         @endphp
 

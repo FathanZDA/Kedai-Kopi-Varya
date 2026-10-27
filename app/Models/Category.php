@@ -11,19 +11,26 @@ class Category extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
+        'nama',
         'slug',
-        'sort_order',
+        'urutan',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'urutan' => 'integer',
+        ];
+    }
 
     public function menus(): HasMany
     {
         return $this->hasMany(Menu::class);
     }
 
-    /** Urutan tampil mengikuti sort_order, lalu nama. */
+    /** Urutan tampil mengikuti urutan, lalu nama. */
     public function scopeOrdered($query)
     {
-        return $query->orderBy('sort_order')->orderBy('name');
+        return $query->orderBy('urutan')->orderBy('nama');
     }
 }

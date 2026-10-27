@@ -171,15 +171,19 @@
                 <span class="tag mt-0.5 block text-[7px] text-muted">{{ $admin['role'] }}</span>
             </span>
 
-            <a href="{{ route('pelanggan-a.beranda') }}"
-               class="tag inline-flex shrink-0 items-center gap-1 rounded border-2 border-ink bg-admin-panel px-1.5 py-1.5 text-[8px] font-bold transition-colors hover:bg-varya-light"
-               title="Keluar dari area admin (demo)">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>
-                </svg>
-                Keluar
-            </a>
+            <form method="POST" action="{{ route('logout') }}" class="shrink-0">
+                @csrf
+
+                <button type="submit"
+                        class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-admin-panel px-1.5 py-1.5 text-[8px] font-bold transition-colors hover:bg-varya-light"
+                        title="Keluar dari akun">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>
+                    </svg>
+                    Keluar
+                </button>
+            </form>
         </div>
     </div>
 </aside>

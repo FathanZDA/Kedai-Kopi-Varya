@@ -11,30 +11,41 @@ class Promo extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title',
-        'subtitle',
-        'description',
-        'image',
-        'badge_text',
-        'is_active',
-        'sort_order',
+        'judul',
+        'deskripsi',
+        'gambar',
+        'urutan',
+        'aktif',
+        'mulai',
+        'berakhir',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
-            'sort_order' => 'integer',
+            'aktif' => 'boolean',
+            'urutan' => 'integer',
+            'mulai' => 'date',
+            'berakhir' => 'date',
         ];
     }
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('is_active', true);
+        $hariIni = now('Asia/Jakarta')->toDateString();
+
+        return $query
+            ->where('aktif', true)
+            ->where(function (Builder $query) use ($hariIni): void {
+                $query->whereNull('mulai')->orWhereDate('mulai', '<=', $hariIni);
+            })
+            ->where(function (Builder $query) use ($hariIni): void {
+                $query->whereNull('berakhir')->orWhereDate('berakhir', '>=', $hariIni);
+            });
     }
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')->orderBy('id');
+        return $query->orderBy('urutan')->orderBy('id');
     }
 }

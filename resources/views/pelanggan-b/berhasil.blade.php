@@ -74,7 +74,7 @@
                         <div class="text-left sm:text-right">
                             <p class="tag text-[9px] text-muted">Kode ID Pesanan</p>
                             <p data-ticket-code class="tag mt-1 inline-block border-2 border-ink bg-surface px-3 py-1.5 text-[10px] font-bold text-ink">
-                                ORD-00000000-0000
+                                ABCD1234
                             </p>
                             <p data-ticket-date class="tag mt-1.5 text-[8px] text-muted">20 Okt 2026, 17:18 WIB</p>
                         </div>
@@ -118,7 +118,7 @@
                         </p>
                     </div>
 
-                    <div data-ticket-notes-wrap class="mt-4 rounded-lg border-2 border-line-strong bg-[#f7f6f7] px-4 py-3.5">
+                    <div data-ticket-catatan-wrap class="mt-4 rounded-lg border-2 border-line-strong bg-[#f7f6f7] px-4 py-3.5">
                         <p class="tag flex items-center gap-2 text-[9px] font-bold text-ink">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -126,7 +126,7 @@
                             </svg>
                             Catatan Khusus untuk Barista
                         </p>
-                        <p data-ticket-notes class="mt-1.5 font-serif text-[12px] leading-relaxed text-ink-soft">
+                        <p data-ticket-catatan class="mt-1.5 font-serif text-[12px] leading-relaxed text-ink-soft">
                             Catatan pesanan.
                         </p>
                     </div>

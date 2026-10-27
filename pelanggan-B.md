@@ -1,5 +1,7 @@
 ### Pelanggan B (Pemesan di Tempat via QR Code)
 
+**Status:** FINAL untuk alur bisnis. Backend pesanan dan integrasi Midtrans belum diimplementasikan.
+
 **Ringkasan:** Pembayaran Pelanggan B menggunakan **QRIS dinamis Midtrans Sandbox**. Pesanan dibuat lebih dulu dengan status **menunggu pembayaran**, lalu pelanggan membayar melalui QRIS. Status pembayaran berubah otomatis dari notifikasi Midtrans, nomor antrean baru diberikan setelah lunas, dan pembayaran gagal/kedaluwarsa dapat diulang dari halaman konfirmasi.
 
 Pelanggan B **tidak memiliki fitur Cek Pesanan atau pelacakan pesanan**. Setelah pembayaran, pelanggan hanya melihat **halaman konfirmasi pembayaran** yang menampilkan nomor antrean dan pesan bahwa nama/nomor antrean akan dipanggil saat pesanan selesai. Pelanggan juga **tidak memiliki tombol pembatalan**; pesanan yang tidak dibayar akan kedaluwarsa otomatis.

@@ -52,9 +52,9 @@
                             </div>
 
                             <div>
-                                <label for="store-email" class="admin-label">Email Resmi <span class="text-rust">*</span></label>
-                                <input id="store-email" type="email" data-store-field="email" value="{{ $store['email'] }}" class="admin-input mt-2" autocomplete="email">
-                                <p data-store-error-for="email" hidden class="mt-1.5 font-mono text-[8px] font-bold text-rust"></p>
+                                <label for="store-whatsapp" class="admin-label">Nomor WhatsApp <span class="text-rust">*</span></label>
+                                <input id="store-whatsapp" type="tel" data-store-field="whatsapp" value="{{ $store['whatsapp'] }}" class="admin-input mt-2" autocomplete="tel">
+                                <p data-store-error-for="whatsapp" hidden class="mt-1.5 font-mono text-[8px] font-bold text-rust"></p>
                             </div>
                         </div>
 
@@ -136,8 +136,9 @@
                         </div>
 
                         <div>
-                            <label for="store-landmark" class="admin-label">Petunjuk Patokan Lokasi (Tanda Acuan)</label>
-                            <input id="store-landmark" type="text" data-store-field="landmark" value="{{ $store['landmark'] }}" class="admin-input mt-2" autocomplete="off">
+                            <label for="store-maps-embed" class="admin-label">URL Sematan Peta (Embed)</label>
+                            <input id="store-maps-embed" type="url" data-store-field="maps_embed" value="{{ $store['maps_embed'] }}" class="admin-input mt-2" autocomplete="off" placeholder="https://www.google.com/maps/embed?...">
+                            <p class="mt-1.5 font-serif text-[10px] text-muted">Dipakai untuk iframe peta di halaman lokasi. Kosongkan untuk memakai peta bawaan.</p>
                         </div>
                     </div>
                 </section>
@@ -326,7 +327,7 @@
                                     <div>
                                         <p class="tag text-[7px] font-bold text-muted">Alamat Presisi</p>
                                         <p data-store-preview-address class="mt-1 font-serif text-[10px] leading-relaxed font-semibold text-ink">{{ $store['address'] }}</p>
-                                        <p data-store-preview-landmark class="mt-1 font-serif text-[9px] leading-relaxed text-muted">{{ $store['landmark'] }}</p>
+                                        <p data-store-preview-whatsapp class="mt-1 font-serif text-[9px] leading-relaxed text-muted">WA {{ $store['whatsapp'] }}</p>
                                     </div>
                                 </div>
                             </div>

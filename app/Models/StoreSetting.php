@@ -6,25 +6,27 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Pengaturan toko. Selalu satu baris (id = 1); accessor `instance()`
- * supaya view tidak perlu-stubbing id di mana-mana.
+ * supaya view tidak perlu menulis id di mana-mana.
  */
 class StoreSetting extends Model
 {
     protected $fillable = [
-        'name',
+        'nama_toko',
         'tagline',
-        'address',
-        'landmark',
+        'sejarah',
+        'alamat',
         'maps_url',
+        'maps_embed',
+        'telepon',
+        'whatsapp',
         'instagram',
-        'about_text',
-        'hours',
+        'fasilitas',
     ];
 
     protected function casts(): array
     {
         return [
-            'hours' => 'array',
+            'fasilitas' => 'array',
         ];
     }
 
@@ -33,20 +35,28 @@ class StoreSetting extends Model
         return static::first() ?? new static;
     }
 
-    /** "08.00 - 23.00" — dibaca dari JSON jam operasional. */
+    /** "08.00 - 23.00" — dibaca dari tabel store_hours. */
     public function getHoursSummaryAttribute(): string
     {
-        $hours = array_filter($this->hours ?? []);
+        $hours = StoreHour::query()->ordered()->get();
 
-        if ($hours === []) {
+        if ($hours->isEmpty()) {
             return '08.00 - 23.00';
         }
 
-        $values = array_unique(array_values($hours));
+        $rentang = $hours
+            ->where('tutup', false)
+            ->map(fn (StoreHour $hour): string => str_replace(':', '.', substr((string) $hour->jam_buka, 0, 5))
+                .' - '.str_replace(':', '.', substr((string) $hour->jam_tutup, 0, 5)))
+            ->unique()
+            ->values();
 
-        // Kalau semua hari sama jamnya, cukup tampilkan satu rentang.
-        return count($values) === 1
-            ? reset($values)
+        if ($rentang->isEmpty()) {
+            return 'Tutup';
+        }
+
+        return $rentang->count() === 1
+            ? $rentang->first()
             : 'Bervariasi per hari';
     }
 }

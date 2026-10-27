@@ -2,24 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Models\Menu;
+use App\Models\Promo;
+use App\Models\StoreHour;
+use App\Models\StoreSetting;
 use Carbon\CarbonImmutable;
 
 /**
  * Tampilan admin / owner (front-end).
  *
  * Catatan tahap pengerjaan:
- * - Semua data pada controller ini adalah data contoh untuk kebutuhan tampilan.
- * - Belum ada autentikasi, query database, upload permanen, atau logika backend.
- * - Perubahan menu, promosi, dan informasi toko disimpan sementara di browser
- *   melalui resources/js/admin.js agar alur demo terasa utuh.
+ * - Menu, kategori, promosi, dan informasi toko dibaca dari database.
+ * - Pesanan dan laporan masih data demo sampai slice backend tersedia.
+ * - Belum ada autentikasi, upload permanen, atau logika backend transaksi.
+ * - Perubahan menu, promosi, dan informasi toko masih disimpan sementara di
+ *   browser melalui resources/js/admin.js agar alur demo terasa utuh.
  */
 class AdminController extends Controller
 {
     public function dashboard()
     {
         $admin = $this->admin();
-        $orders = array_map(static function (array $order): array {
-            $payments = ['ORD-20261016-2JC9' => 'Tunai'];
+        $kodeTunai = $this->kodePesanan('demo-order-20261016-2JC9');
+        $orders = array_map(static function (array $order) use ($kodeTunai): array {
+            $payments = [$kodeTunai => 'Tunai'];
             $order['payment'] = $payments[$order['code']] ?? 'QRIS';
 
             return $order;
@@ -43,7 +50,6 @@ class AdminController extends Controller
             'orders' => $orders,
             'menus' => $menus,
             'popularMenus' => $this->popularMenus(),
-            'peakHours' => $this->peakHours(),
             'summary' => $summary,
             'pendingPayments' => $pendingPayments,
             'todayRevenue' => $todayRevenue,
@@ -64,8 +70,10 @@ class AdminController extends Controller
         return view('admin.menu.index', [
             'admin' => $admin,
             'menus' => $menus,
+            'categories' => $this->categories(),
             'config' => [
                 'menus' => $menus,
+                'categories' => $this->categories(),
             ],
         ]);
     }
@@ -105,7 +113,6 @@ class AdminController extends Controller
             'description' => '',
             'image' => asset('images/menus/varya-signature.jpg'),
             'available' => true,
-            'featured' => false,
         ];
 
         return view('admin.menu.form', [
@@ -182,86 +189,68 @@ class AdminController extends Controller
 
     private function admin(): array
     {
+        $user = auth()->user();
+
         return [
-            'name' => 'Bagas Pratama',
-            'initial' => 'BP',
-            'role' => 'Admin / Owner',
+            'name' => $user->name,
+            'initial' => $user->inisial(),
+            'role' => $user->role->label(),
         ];
     }
 
     private function categories(): array
     {
-        return [
-            ['slug' => 'kopi', 'label' => 'Kopi'],
-            ['slug' => 'non-kopi', 'label' => 'Non-Kopi'],
-            ['slug' => 'makanan', 'label' => 'Makanan'],
-            ['slug' => 'camilan', 'label' => 'Camilan'],
-        ];
+        return Category::query()
+            ->ordered()
+            ->get()
+            ->map(fn (Category $category): array => [
+                'slug' => $category->slug,
+                'label' => $category->nama,
+            ])
+            ->all();
     }
 
     private function menuData(): array
     {
-        $rows = [
-            [1, 'Varya Signature', 'kopi', 'Kopi', 20000, 'Double Ristretto, Susu Segar, Aren Bakar khas.', 'varya-signature.jpg', true, true],
-            [2, 'Americano Street Cold', 'kopi', 'Kopi', 24000, 'Arabika Gayo & Toraja cold brew style pekat.', 'americano-street.jpg', true, false],
-            [3, 'Artisan Cappuccino', 'kopi', 'Kopi', 28000, 'Double shot espresso Gayo dengan microfoam.', 'caramel-macchiato.jpg', true, false],
-            [4, 'Salted Caramel Macchiato', 'kopi', 'Kopi', 32000, 'Perpaduan espresso kental, vanilla manis, dan caramel.', 'caramel-macchiato.jpg', true, false],
-            [5, 'Ceremonial Matcha Latte', 'non-kopi', 'Non-Kopi', 30000, 'Bubuk matcha murni asal Uji, Kyoto yang ditaburi.', 'matcha-creamy.jpg', false, false],
-            [6, 'Mie Gacoan Varya Special', 'makanan', 'Makanan', 18000, 'Sensasi pedas gurih pangit kriuk daun bawang.', 'bowl-sambal-matah.jpg', true, false],
-            [7, 'Basque Burnt Cheesecake', 'camilan', 'Camilan', 35000, 'Slice cheesecake caramelized crust creamy.', 'almond-croissant.jpg', true, false],
-            [8, 'Butter French Croissant', 'camilan', 'Camilan', 24000, 'Butter Prancis berlapis, dipanggang hingga renyah.', 'almond-croissant.jpg', true, false],
-            [9, 'Es Kopi Susu Gula Aren', 'kopi', 'Kopi', 22000, 'Espresso, susu segar, dan gula aren cair.', 'varya-signature.jpg', true, false],
-            [10, 'Cold Brew Grit', 'kopi', 'Kopi', 30000, 'Single origin Flores, cold brew 24 jam.', 'cold-brew-grit.jpg', false, false],
-            [11, 'Artisan Jasmine Tea', 'non-kopi', 'Non-Kopi', 18000, 'Teh melati slow brew dengan aroma bunga.', 'artisan-jasmine.jpg', true, false],
-            [12, 'Sunset Mocktail', 'non-kopi', 'Non-Kopi', 26000, 'Blood orange, soda, dan mint segar.', 'sunset-mocktail.jpg', true, false],
-            [13, 'Truffle Fries', 'camilan', 'Camilan', 22000, 'Kentang renyah, parmesan, dan minyak truffle.', 'truffle-fries.jpg', true, false],
-            [14, 'Bowl Sambal Matah', 'makanan', 'Makanan', 28000, 'Ayam krispi gurih dengan sambal matah segar.', 'bowl-sambal-matah.jpg', true, false],
-            [15, 'Dimsum Mentai', 'makanan', 'Makanan', 24000, 'Isi 4 pcs, ayam udang, saus mentai torched.', 'dimsum-mentai.jpg', true, false],
-            [16, 'Roti Bakar Mix', 'makanan', 'Makanan', 20000, 'Cokelat lumer, keju, dan roti panggang.', 'roti-bakar-mix.jpg', true, false],
-            [17, 'Almond Croissant', 'camilan', 'Camilan', 26000, 'French butter layers dengan almond cream.', 'almond-croissant.jpg', true, false],
-            [18, 'Matcha Creamy', 'non-kopi', 'Non-Kopi', 24000, 'Ceremonial grade Uji dengan oat milk creamy.', 'matcha-creamy.jpg', true, false],
-            [19, 'Caramel Macchiato', 'kopi', 'Kopi', 25000, 'Vanilla milk, espresso, dan caramel.', 'caramel-macchiato.jpg', true, false],
-            [20, 'Kopi Pandan', 'kopi', 'Kopi', 23000, 'Espresso, susu, dan sirup pandan wangi.', 'varya-signature.jpg', true, false],
-            [21, 'Lemon Tea Segar', 'non-kopi', 'Non-Kopi', 16000, 'Teh hitam, lemon, dan madu.', 'artisan-jasmine.jpg', false, false],
-            [22, 'Chicken Wings Honey', 'makanan', 'Makanan', 27000, 'Sayap ayam panggang dengan saus madu.', 'truffle-fries.jpg', true, false],
-            [23, 'Pisang Goreng Keju', 'camilan', 'Camilan', 21000, 'Pisang goreng hangat, keju, dan susu.', 'almond-croissant.jpg', true, false],
-            [24, 'Brown Sugar Latte', 'kopi', 'Kopi', 26000, 'Espresso, susu, brown sugar, dan boba.', 'caramel-macchiato.jpg', true, false],
+        $skuPrefixes = [
+            'kopi' => 'KOP',
+            'teh' => 'TEH',
+            'autentik' => 'AUT',
+            'makanan' => 'MKN',
+            'cemilan' => 'CML',
         ];
 
         $skuCounters = [];
-        $skuPrefixes = [
-            'kopi' => 'KOP',
-            'non-kopi' => 'NON',
-            'makanan' => 'MKN',
-            'camilan' => 'CML',
-        ];
 
-        return array_map(function (array $row) use (&$skuCounters, $skuPrefixes): array {
-            [$id, $name, $category, $categoryLabel, $price, $description, $image, $available, $featured] = $row;
+        return Menu::query()
+            ->with('category')
+            ->ordered()
+            ->get()
+            ->map(function (Menu $menu) use (&$skuCounters, $skuPrefixes): array {
+                $category = $menu->category->slug;
+                $skuCounters[$category] = ($skuCounters[$category] ?? 0) + 1;
 
-            $skuCounters[$category] = ($skuCounters[$category] ?? 0) + 1;
-
-            return [
-                'id' => $id,
-                'name' => $name,
-                'sku' => $skuPrefixes[$category].'-'.str_pad((string) $skuCounters[$category], 3, '0', STR_PAD_LEFT),
-                'category' => $category,
-                'category_label' => $categoryLabel,
-                'price' => $price,
-                'description' => $description,
-                'image' => asset('images/menus/'.$image),
-                'available' => $available,
-                'featured' => $featured,
-                'deleted' => false,
-            ];
-        }, $rows);
+                return [
+                    'id' => $menu->id,
+                    'name' => $menu->nama,
+                    'sku' => ($skuPrefixes[$category] ?? 'SKU').'-'.str_pad((string) $skuCounters[$category], 3, '0', STR_PAD_LEFT),
+                    'category' => $category,
+                    'category_label' => $menu->category->nama,
+                    'price' => $menu->harga,
+                    'description' => $menu->deskripsi,
+                    'image' => $menu->foto ? asset($menu->foto) : asset('images/menus/varya-signature.jpg'),
+                    'available' => $menu->tersedia,
+                    'deleted' => false,
+                ];
+            })
+            ->all();
     }
 
     private function recentOrders(): array
     {
-        return [
+        $orders = [
             [
-                'code' => 'ORD-20261016-2JC9',
+                'code' => 'demo-order-20261016-2JC9',
                 'customer' => 'P (Pelanggan)',
                 'type' => 'dine_in',
                 'type_label' => 'Di Tempat',
@@ -273,19 +262,19 @@ class AdminController extends Controller
                 'time' => '8 menit lalu',
             ],
             [
-                'code' => 'ORD-20261016-1MEY',
+                'code' => 'demo-order-20261016-1MEY',
                 'customer' => 'Fathan Zada',
                 'type' => 'dine_in',
                 'type_label' => 'Di Tempat',
                 'items' => 3,
                 'portions' => 3,
                 'total' => 105000,
-                'status' => 'siap_saji',
-                'status_label' => 'Siap Saji',
+                'status' => 'diproses',
+                'status_label' => 'Diproses',
                 'time' => '18 menit lalu',
             ],
             [
-                'code' => 'ORD-20261016-4EFV',
+                'code' => 'demo-order-20261016-4EFV',
                 'customer' => 'Marcell',
                 'type' => 'dine_in',
                 'type_label' => 'Di Tempat',
@@ -297,7 +286,7 @@ class AdminController extends Controller
                 'time' => '42 menit lalu',
             ],
             [
-                'code' => 'ORD-20261004-5UR7',
+                'code' => 'demo-order-20261004-5UR7',
                 'customer' => 'Steven Pratama',
                 'type' => 'take_away',
                 'type_label' => 'Bawa Pulang',
@@ -309,7 +298,7 @@ class AdminController extends Controller
                 'time' => '1 jam lalu',
             ],
             [
-                'code' => 'ORD-20261016-7KQ2',
+                'code' => 'demo-order-20261016-7KQ2',
                 'customer' => 'Anjani',
                 'type' => 'take_away',
                 'type_label' => 'Bawa Pulang',
@@ -321,7 +310,7 @@ class AdminController extends Controller
                 'time' => '3 menit lalu',
             ],
             [
-                'code' => 'ORD-20261016-9ZP4',
+                'code' => 'demo-order-20261016-9ZP4',
                 'customer' => 'Rian Pratama',
                 'type' => 'dine_in',
                 'type_label' => 'Di Tempat',
@@ -333,19 +322,19 @@ class AdminController extends Controller
                 'time' => '6 menit lalu',
             ],
             [
-                'code' => 'ORD-20261016-3HXN',
+                'code' => 'demo-order-20261016-3HXN',
                 'customer' => 'Salsabila Putri',
                 'type' => 'take_away',
                 'type_label' => 'Bawa Pulang',
                 'items' => 1,
                 'portions' => 1,
                 'total' => 32000,
-                'status' => 'siap_saji',
-                'status_label' => 'Siap Saji',
+                'status' => 'diproses',
+                'status_label' => 'Diproses',
                 'time' => '11 menit lalu',
             ],
             [
-                'code' => 'ORD-20261016-6BVM',
+                'code' => 'demo-order-20261016-6BVM',
                 'customer' => 'Bagas',
                 'type' => 'dine_in',
                 'type_label' => 'Di Tempat',
@@ -357,7 +346,7 @@ class AdminController extends Controller
                 'time' => '25 menit lalu',
             ],
             [
-                'code' => 'ORD-20261015-8QWE',
+                'code' => 'demo-order-20261015-8QWE',
                 'customer' => 'Nadia Kirana',
                 'type' => 'take_away',
                 'type_label' => 'Bawa Pulang',
@@ -369,7 +358,7 @@ class AdminController extends Controller
                 'time' => '1 hari lalu',
             ],
             [
-                'code' => 'ORD-20261015-2PLM',
+                'code' => 'demo-order-20261015-2PLM',
                 'customer' => 'Fajar Ramadhan',
                 'type' => 'dine_in',
                 'type_label' => 'Di Tempat',
@@ -381,72 +370,57 @@ class AdminController extends Controller
                 'time' => '2 hari lalu',
             ],
         ];
+
+        return array_map(fn (array $order): array => [
+            ...$order,
+            'code' => $this->kodePesanan($order['code']),
+        ], $orders);
     }
 
     private function popularMenus(): array
     {
         return [
             [
-                'name' => 'Artisan Cappuccino',
-                'price' => 28000,
-                'note' => 'Ristretto Ganda',
+                'name' => 'Varya Signature',
+                'price' => 22000,
+                'note' => 'Aren & Fresh Milk',
                 'sales' => '14x terjual',
                 'tag' => 'Kopi Terlaris',
-                'image' => asset('images/menus/caramel-macchiato.jpg'),
+                'image' => asset('images/menus/varya-signature.jpg'),
             ],
             [
-                'name' => 'Salted Caramel Macchiato',
-                'price' => 32000,
-                'note' => 'Manis & Gurih',
+                'name' => 'Caramel Macchiato',
+                'price' => 25000,
+                'note' => 'Karamel Gurih',
                 'sales' => '11x terjual',
                 'tag' => 'Favorit Sore',
                 'image' => asset('images/menus/caramel-macchiato.jpg'),
             ],
             [
-                'name' => 'Ceremonial Matcha Latte',
-                'price' => 30000,
+                'name' => 'Matcha Creamy',
+                'price' => 24000,
                 'note' => 'Murni Uji',
                 'sales' => '9x terjual',
-                'tag' => 'Non-Kopi Terlaris',
+                'tag' => 'Teh Terlaris',
                 'image' => asset('images/menus/matcha-creamy.jpg'),
             ],
             [
-                'name' => 'Butter French Croissant',
-                'price' => 24000,
+                'name' => 'Almond Croissant',
+                'price' => 26000,
                 'note' => 'Baru Dipanggang',
                 'sales' => '8x terjual',
                 'tag' => 'Pasangan Kopi',
                 'image' => asset('images/menus/almond-croissant.jpg'),
             ],
             [
-                'name' => 'Basque Burnt Cheesecake',
-                'price' => 35000,
-                'note' => 'Kastard Lembut',
+                'name' => 'Roti Bakar Mix',
+                'price' => 20000,
+                'note' => 'Cokelat & Keju',
                 'sales' => '6x terjual',
-                'tag' => 'Hidangan Penutup Unggulan',
-                'image' => asset('images/menus/almond-croissant.jpg'),
+                'tag' => 'Cemilan Favorit',
+                'image' => asset('images/menus/roti-bakar-mix.jpg'),
             ],
         ];
-    }
-
-    private function peakHours(): array
-    {
-        $hours = [
-            ['label' => '15h', 'value' => 6],
-            ['label' => '17h', 'value' => 18],
-            ['label' => '19h', 'value' => 28],
-            ['label' => '21h', 'value' => 42],
-            ['label' => '23h', 'value' => 37],
-            ['label' => '01h', 'value' => 22],
-            ['label' => '03h', 'value' => 8],
-        ];
-
-        $max = max(array_column($hours, 'value'));
-
-        return array_map(static fn (array $hour): array => [
-            ...$hour,
-            'height' => max(8, (int) round(($hour['value'] / $max) * 100)),
-        ], $hours);
     }
 
     private function transactions(): array
@@ -455,8 +429,8 @@ class AdminController extends Controller
             // Oktober 2026 - total transaksi lunas: Rp 647.000.
             [
                 'date' => '2026-10-16 03:37',
-                'code' => 'TRX-20261016-DPV3',
-                'order' => 'ORD-20261016-2JC9',
+                'code' => 'demo-transaksi-20261016-DPV3',
+                'order' => 'demo-order-20261016-2JC9',
                 'customer' => 'P (0979766)',
                 'method' => 'tunai',
                 'status' => 'lunas',
@@ -470,8 +444,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-10-16 03:37',
-                'code' => 'TRX-20261006-UHCN',
-                'order' => 'ORD-20261006-1MEY',
+                'code' => 'demo-transaksi-20261006-UHCN',
+                'order' => 'demo-order-20261006-1MEY',
                 'customer' => 'Fathan Zada',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -484,8 +458,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-10-06 12:41',
-                'code' => 'TRX-20261006-4EFV',
-                'order' => 'ORD-20261006-SXY1',
+                'code' => 'demo-transaksi-20261006-4EFV',
+                'order' => 'demo-order-20261006-SXY1',
                 'customer' => 'Marcell',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -496,8 +470,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-10-04 06:05',
-                'code' => 'TRX-20261004-FMJE',
-                'order' => 'ORD-20261004-5UR7',
+                'code' => 'demo-transaksi-20261004-FMJE',
+                'order' => 'demo-order-20261004-5UR7',
                 'customer' => 'Steven Pratama',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -512,8 +486,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-10-01 01:42',
-                'code' => 'TRX-20261001-DPYI',
-                'order' => 'ORD-20261001-ACZP',
+                'code' => 'demo-transaksi-20261001-DPYI',
+                'order' => 'demo-order-20261001-ACZP',
                 'customer' => 'Than',
                 'method' => 'tunai',
                 'status' => 'lunas',
@@ -525,8 +499,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-10-01 12:07',
-                'code' => 'TRX-20261001-001',
-                'order' => 'ORD-20261001-001',
+                'code' => 'demo-transaksi-20261001-001',
+                'order' => 'demo-order-20261001-001',
                 'customer' => 'Fathan',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -537,8 +511,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-10-02 14:00',
-                'code' => 'TRX-20261002-002',
-                'order' => 'ORD-20261002-002',
+                'code' => 'demo-transaksi-20261002-002',
+                'order' => 'demo-order-20261002-002',
                 'customer' => 'Dewi',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -550,8 +524,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-09-29 19:24',
-                'code' => 'TRX-20260929-002',
-                'order' => 'ORD-20260929-002',
+                'code' => 'demo-transaksi-20260929-002',
+                'order' => 'demo-order-20260929-002',
                 'customer' => 'Rani',
                 'method' => 'tunai',
                 'status' => 'lunas',
@@ -565,8 +539,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-10-16 04:12',
-                'code' => 'TRX-20261016-PEND',
-                'order' => 'ORD-20261016-PEND',
+                'code' => 'demo-transaksi-20261016-PEND',
+                'order' => 'demo-order-20261016-PEND',
                 'customer' => 'Nadia Kirana',
                 'method' => 'qris',
                 'status' => 'menunggu',
@@ -578,8 +552,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-10-16 04:18',
-                'code' => 'TRX-20261016-PERIK',
-                'order' => 'ORD-20261016-PERIK',
+                'code' => 'demo-transaksi-20261016-PERIK',
+                'order' => 'demo-order-20261016-PERIK',
                 'customer' => 'Fajar Ramadhan',
                 'method' => 'qris',
                 'status' => 'perlu_diperiksa',
@@ -591,8 +565,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-10-15 21:18',
-                'code' => 'TRX-20261015-GAGAL',
-                'order' => 'ORD-20261015-GAGAL',
+                'code' => 'demo-transaksi-20261015-GAGAL',
+                'order' => 'demo-order-20261015-GAGAL',
                 'customer' => 'Dimas',
                 'method' => 'qris',
                 'status' => 'gagal',
@@ -604,8 +578,8 @@ class AdminController extends Controller
             // September 2026.
             [
                 'date' => '2026-09-28 18:40',
-                'code' => 'TRX-20260928-003',
-                'order' => 'ORD-20260928-003',
+                'code' => 'demo-transaksi-20260928-003',
+                'order' => 'demo-order-20260928-003',
                 'customer' => 'Alya',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -618,8 +592,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-09-25 20:11',
-                'code' => 'TRX-20260925-004',
-                'order' => 'ORD-20260925-004',
+                'code' => 'demo-transaksi-20260925-004',
+                'order' => 'demo-order-20260925-004',
                 'customer' => 'Bagas',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -632,8 +606,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-09-22 17:08',
-                'code' => 'TRX-20260922-005',
-                'order' => 'ORD-20260922-005',
+                'code' => 'demo-transaksi-20260922-005',
+                'order' => 'demo-order-20260922-005',
                 'customer' => 'Sinta',
                 'method' => 'tunai',
                 'status' => 'lunas',
@@ -645,8 +619,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-09-20 21:32',
-                'code' => 'TRX-20260920-006',
-                'order' => 'ORD-20260920-006',
+                'code' => 'demo-transaksi-20260920-006',
+                'order' => 'demo-order-20260920-006',
                 'customer' => 'Yoga',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -658,8 +632,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-09-18 19:54',
-                'code' => 'TRX-20260918-007',
-                'order' => 'ORD-20260918-007',
+                'code' => 'demo-transaksi-20260918-007',
+                'order' => 'demo-order-20260918-007',
                 'customer' => 'Maya',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -671,8 +645,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-09-15 16:20',
-                'code' => 'TRX-20260915-008',
-                'order' => 'ORD-20260915-008',
+                'code' => 'demo-transaksi-20260915-008',
+                'order' => 'demo-order-20260915-008',
                 'customer' => 'Raka',
                 'method' => 'tunai',
                 'status' => 'lunas',
@@ -686,8 +660,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-09-12 22:03',
-                'code' => 'TRX-20260912-009',
-                'order' => 'ORD-20260912-009',
+                'code' => 'demo-transaksi-20260912-009',
+                'order' => 'demo-order-20260912-009',
                 'customer' => 'Nabila',
                 'method' => 'qris',
                 'status' => 'menunggu',
@@ -699,8 +673,8 @@ class AdminController extends Controller
             // Agustus 2026.
             [
                 'date' => '2026-08-28 20:15',
-                'code' => 'TRX-20260828-010',
-                'order' => 'ORD-20260828-010',
+                'code' => 'demo-transaksi-20260828-010',
+                'order' => 'demo-order-20260828-010',
                 'customer' => 'Dimas',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -713,8 +687,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-08-25 18:42',
-                'code' => 'TRX-20260825-011',
-                'order' => 'ORD-20260825-011',
+                'code' => 'demo-transaksi-20260825-011',
+                'order' => 'demo-order-20260825-011',
                 'customer' => 'Intan',
                 'method' => 'tunai',
                 'status' => 'lunas',
@@ -727,8 +701,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-08-22 21:09',
-                'code' => 'TRX-20260822-012',
-                'order' => 'ORD-20260822-012',
+                'code' => 'demo-transaksi-20260822-012',
+                'order' => 'demo-order-20260822-012',
                 'customer' => 'Rizal',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -741,8 +715,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-08-18 16:34',
-                'code' => 'TRX-20260818-013',
-                'order' => 'ORD-20260818-013',
+                'code' => 'demo-transaksi-20260818-013',
+                'order' => 'demo-order-20260818-013',
                 'customer' => 'Vina',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -754,8 +728,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-08-14 19:57',
-                'code' => 'TRX-20260814-014',
-                'order' => 'ORD-20260814-014',
+                'code' => 'demo-transaksi-20260814-014',
+                'order' => 'demo-order-20260814-014',
                 'customer' => 'Arif',
                 'method' => 'tunai',
                 'status' => 'lunas',
@@ -769,8 +743,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-08-10 20:26',
-                'code' => 'TRX-20260810-015',
-                'order' => 'ORD-20260810-015',
+                'code' => 'demo-transaksi-20260810-015',
+                'order' => 'demo-order-20260810-015',
                 'customer' => 'Laras',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -783,8 +757,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-08-06 17:12',
-                'code' => 'TRX-20260806-016',
-                'order' => 'ORD-20260806-016',
+                'code' => 'demo-transaksi-20260806-016',
+                'order' => 'demo-order-20260806-016',
                 'customer' => 'Hendra',
                 'method' => 'qris',
                 'status' => 'lunas',
@@ -796,8 +770,8 @@ class AdminController extends Controller
             ],
             [
                 'date' => '2026-08-02 22:45',
-                'code' => 'TRX-20260802-017',
-                'order' => 'ORD-20260802-017',
+                'code' => 'demo-transaksi-20260802-017',
+                'order' => 'demo-order-20260802-017',
                 'customer' => 'Sari',
                 'method' => 'tunai',
                 'status' => 'lunas',
@@ -817,12 +791,16 @@ class AdminController extends Controller
     private function makeTransaction(array $definition): array
     {
         $date = CarbonImmutable::parse($definition['date'], 'Asia/Jakarta');
-        $items = array_map(static fn (array $item): array => [
-            'name' => $item[0],
-            'qty' => $item[1],
-            'price' => $item[2],
-            'subtotal' => $item[1] * $item[2],
-        ], $definition['items']);
+        $items = array_map(function (array $item): array {
+            [$nama, $harga] = $this->menuKanonik($item[0], $item[2]);
+
+            return [
+                'name' => $nama,
+                'qty' => $item[1],
+                'price' => $harga,
+                'subtotal' => $item[1] * $harga,
+            ];
+        }, $definition['items']);
 
         $total = array_sum(array_column($items, 'subtotal'));
         $method = $definition['method'];
@@ -839,15 +817,17 @@ class AdminController extends Controller
         ];
 
         $hash = md5($definition['code']);
+        $code = $this->kodePesanan($definition['code']);
+        $orderCode = $this->kodePesanan($definition['order']);
 
         return [
-            'id' => $definition['code'],
+            'id' => $code,
             'date_iso' => $date->format('Y-m-d'),
             'datetime' => $date->locale('id')->translatedFormat('d M Y, H:i').' WIB',
             'month' => $date->format('Y-m'),
             'month_label' => $date->locale('id')->translatedFormat('F Y'),
-            'code' => $definition['code'],
-            'order_code' => $definition['order'],
+            'code' => $code,
+            'order_code' => $orderCode,
             'customer' => $definition['customer'],
             'total' => $total,
             'method' => $method,
@@ -893,70 +873,128 @@ class AdminController extends Controller
 
     private function promoData(): array
     {
-        return [
-            [
-                'id' => 1,
-                'title' => 'Ngopi Sore Varya',
-                'description' => 'Nikmati potongan harga untuk semua kopi susu setiap hari pukul 15.00-18.00.',
-                'image' => asset('images/menus/caramel-macchiato.jpg'),
-                'order' => 1,
-                'period_start' => '2026-10-01',
-                'period_end' => '2026-12-31',
-                'active' => true,
-            ],
-            [
-                'id' => 2,
-                'title' => 'Paket Nongkrong',
-                'description' => 'Dua kopi pilihan plus satu camilan favorit untuk teman ngobrol sore ini.',
-                'image' => asset('images/menus/roti-bakar-mix.jpg'),
-                'order' => 2,
-                'period_start' => '2026-10-05',
-                'period_end' => '2026-11-30',
-                'active' => true,
-            ],
-            [
-                'id' => 3,
-                'title' => 'Matcha Season',
-                'description' => 'Varian matcha creamy dengan harga spesial selama musim hujan.',
-                'image' => asset('images/menus/matcha-creamy.jpg'),
-                'order' => 3,
-                'period_start' => '2026-10-10',
-                'period_end' => null,
-                'active' => true,
-            ],
-        ];
+        return Promo::query()
+            ->ordered()
+            ->get()
+            ->map(fn (Promo $promo): array => [
+                'id' => $promo->id,
+                'title' => $promo->judul,
+                'description' => $promo->deskripsi,
+                'image' => $promo->gambar ? asset($promo->gambar) : asset('images/menus/varya-signature.jpg'),
+                'order' => $promo->urutan,
+                'period_start' => $promo->mulai?->toDateString(),
+                'period_end' => $promo->berakhir?->toDateString(),
+                'active' => $promo->aktif,
+            ])
+            ->all();
     }
 
     private function storeData(): array
     {
+        $store = StoreSetting::instance();
+
+        $hours = StoreHour::query()
+            ->ordered()
+            ->get()
+            ->map(fn (StoreHour $hour): array => [
+                'key' => $this->hariKey($hour->hari),
+                'day' => $hour->hari_label,
+                'open' => substr((string) $hour->jam_buka, 0, 5),
+                'close' => substr((string) $hour->jam_tutup, 0, 5),
+                'closed' => $hour->tutup,
+            ])
+            ->all();
+
         return [
-            'name' => 'Kedai Varya',
-            'tagline' => 'Coffee & Eatery',
-            'email' => 'varya.coffee@gmail.com',
-            'description' => 'KEDAI KOPI VARYA lahir di sudut jalan perkotaan sebagai titik temu bagi para pecinta kopi, kreator visual, peselancar jalanan, dan musisi lokal. Kami memadukan denyut jalanan dengan teknik seduh presisi standar barista dunia. Setiap cangkir menyajikan biji kopi nusantara pilihan yang dipanggang segar, dipadukan gula aren otentik, susu artisanal, dan rempah alami lokal. Varya bukan sekadar tempat minum espresso cepat saji; ini adalah ruang kolaboratif terbuka untuk berdiskusi santai, mengerjakan tugas kreatif hingga larut, atau sekadar bertukar playlist favorit.',
-            'address' => 'Jl. Wonokromo No. 16, Wonokromo, Kec. Wonokromo, Surabaya, Jawa Timur 60243',
-            'maps_url' => 'https://maps.google.com/?q=Kedai+Kopi+Varya+Wonokromo',
-            'landmark' => 'Dekat Jembatan Penyebrangan Wonokromo',
-            'instagram' => '@kedaikopivarya',
-            'phone' => '+62 812 3456 7890',
-            'facilities' => ['WiFi Cepat', 'Colokan Listrik', 'Area Outdoor', 'Ruang Komunitas', 'Mushola', 'Parkir Motor'],
+            'name' => $store->nama_toko ?? 'Kedai Kopi Varya',
+            'tagline' => $store->tagline ?? '',
+            'description' => $store->sejarah ?? '',
+            'address' => $store->alamat ?? '',
+            'maps_url' => $store->maps_url ?? '',
+            'maps_embed' => $store->maps_embed ?? '',
+            'instagram' => $store->instagram ?? '',
+            'phone' => $store->telepon ?? '',
+            'whatsapp' => $store->whatsapp ?? '',
+            'facilities' => $store->fasilitas ?? [],
             'points' => [
                 ['value' => '100%', 'label' => 'Kopi Lokal'],
                 ['value' => '15+', 'label' => 'Kreasi Kopi & Non-Kopi'],
                 ['value' => 'Setiap Hari', 'label' => 'Siap Melayani'],
             ],
-            'hours' => [
-                ['key' => 'senin', 'day' => 'Senin', 'open' => '15:00', 'close' => '03:00', 'closed' => false],
-                ['key' => 'selasa', 'day' => 'Selasa', 'open' => '15:00', 'close' => '03:00', 'closed' => false],
-                ['key' => 'rabu', 'day' => 'Rabu', 'open' => '15:00', 'close' => '03:00', 'closed' => false],
-                ['key' => 'kamis', 'day' => 'Kamis', 'open' => '15:00', 'close' => '03:00', 'closed' => false],
-                ['key' => 'jumat', 'day' => 'Jumat', 'open' => '15:00', 'close' => '03:00', 'closed' => false],
-                ['key' => 'sabtu', 'day' => 'Sabtu', 'open' => '12:00', 'close' => '03:00', 'closed' => false],
-                ['key' => 'minggu', 'day' => 'Minggu', 'open' => '12:00', 'close' => '02:00', 'closed' => false],
-            ],
+            'hours' => $hours,
             'about_image' => asset('images/menus/varya-signature.jpg'),
-            'last_updated' => 'Hari ini, 14:28 WIB',
+            'last_updated' => $store->updated_at?->locale('id')->translatedFormat('j F Y, H:i').' WIB' ?? 'Belum diperbarui',
         ];
     }
-}
 
+    private function hariKey(int $hari): string
+    {
+        return match ($hari) {
+            0 => 'minggu',
+            1 => 'senin',
+            2 => 'selasa',
+            3 => 'rabu',
+            4 => 'kamis',
+            5 => 'jumat',
+            6 => 'sabtu',
+            default => 'senin',
+        };
+    }
+
+    private function menuKanonik(string $nama, int $harga): array
+    {
+        $kanonik = [
+            'Varya Signature' => 22000,
+            'Americano Street' => 18000,
+            'Americano Street Cold' => 18000,
+            'Matcha Creamy' => 24000,
+            'Sunset Mocktail' => 26000,
+            'Artisan Jasmine' => 18000,
+            'Artisan Jasmine Tea' => 18000,
+            'Caramel Macchiato' => 25000,
+            'Salted Caramel Macchiato' => 25000,
+            'Roti Bakar Mix' => 20000,
+            'Truffle Fries' => 22000,
+            'Bowl Sambal Matah' => 28000,
+            'Mie Gacoan Varya Special' => 28000,
+            'Almond Croissant' => 26000,
+            'Butter French Croissant' => 26000,
+            'Dimsum Mentai' => 24000,
+            'Cold Brew Grit' => 30000,
+            'Es Kopi Susu Gula Aren' => 22000,
+            'Artisan Cappuccino' => 25000,
+            'Ceremonial Matcha Latte' => 24000,
+            'Basque Burnt Cheesecake' => 20000,
+            'Lemon Tea Segar' => 18000,
+            'Kopi Pandan' => 22000,
+            'Chicken Wings Honey' => 22000,
+            'Pisang Goreng Keju' => 26000,
+            'Brown Sugar Latte' => 25000,
+        ];
+
+        $namaKanonik = match ($nama) {
+            'Americano Street Cold' => 'Americano Street',
+            'Artisan Jasmine Tea' => 'Artisan Jasmine',
+            'Salted Caramel Macchiato' => 'Caramel Macchiato',
+            'Mie Gacoan Varya Special' => 'Bowl Sambal Matah',
+            'Butter French Croissant' => 'Almond Croissant',
+            'Es Kopi Susu Gula Aren' => 'Varya Signature',
+            'Artisan Cappuccino' => 'Caramel Macchiato',
+            'Ceremonial Matcha Latte' => 'Matcha Creamy',
+            'Basque Burnt Cheesecake' => 'Roti Bakar Mix',
+            'Lemon Tea Segar' => 'Artisan Jasmine',
+            'Kopi Pandan' => 'Varya Signature',
+            'Chicken Wings Honey' => 'Truffle Fries',
+            'Pisang Goreng Keju' => 'Almond Croissant',
+            'Brown Sugar Latte' => 'Caramel Macchiato',
+            default => $nama,
+        };
+
+        return [$namaKanonik, $kanonik[$namaKanonik] ?? $harga];
+    }
+
+    private function kodePesanan(string $seed): string
+    {
+        return strtoupper(substr(md5($seed), 0, 8));
+    }
+}

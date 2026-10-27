@@ -1,5 +1,7 @@
 ### Admin / Owner
 
+**Status:** FINAL untuk alur bisnis. Implementasi backend CRUD, transaksi, dan laporan belum selesai.
+
 **Ringkasan:** Admin memiliki **lima fitur utama**: Dashboard, Kelola Menu, Laporan Transaksi, Iklan & Promosi, dan Informasi Toko. Fitur rekonsiliasi pembayaran dan refund manual **tidak ada di aplikasi** karena penanganannya dilakukan melalui dashboard Midtrans.
 
 **Ruang lingkup admin:**
@@ -163,7 +165,7 @@ Admin tidak memiliki fitur rekonsiliasi pembayaran, refund, atau manajemen akun 
 * **Menu yang dihapus menggunakan *soft delete*.** Menu tidak tampil untuk penjualan baru, tetapi data pesanan lama tetap utuh karena `order_items` menyimpan snapshot nama dan harga.
 * **Perubahan harga hanya berlaku untuk pesanan baru.** Pesanan lama tidak berubah.
 * Admin dapat mengubah ketersediaan menu. Kasir juga dapat mengubah ketersediaan, tetapi kasir tidak dapat mengubah data menu lainnya.
-* **Kategori menu menggunakan daftar tetap** yang sudah di-*seed* (contoh: Kopi, Non-Kopi, Makanan). Tidak ada CRUD kategori pada versi ini.
+* **Kategori menu menggunakan daftar tetap** yang sudah di-*seed*: **Kopi, Teh, Autentik, Makanan, Cemilan**. Tidak ada CRUD kategori pada versi ini.
 * **Promosi nonaktif tidak tampil di landing page.** Promosi dengan periode yang sudah berakhir juga tidak ditampilkan sebagai promosi aktif.
 * **Informasi toko langsung berlaku** setelah disimpan, tanpa perlu mengubah kode program.
 * **Rekonsiliasi pembayaran tidak dilakukan di aplikasi.** Jika ada status yang perlu diperiksa, admin memeriksa dashboard Midtrans dan menindaklanjuti secara manual.

@@ -54,9 +54,9 @@
                         </svg>
                     </span>
                     <div class="min-w-0">
-                        <p class="product-name text-xs">{{ $store->name ?? 'Kedai Kopi Varya' }}</p>
+                        <p class="product-name text-xs">{{ $store->nama_toko ?? 'Kedai Kopi Varya' }}</p>
                         <p class="mt-1 font-serif text-[12px] leading-relaxed text-ink-soft">
-                            {{ $store->address ?? 'Jl. Raya Wonokromo No.16, Wonokromo, Surabaya.' }}
+                            {{ $store->alamat ?? 'Jl. Raya Wonokromo No.16, Wonokromo, Surabaya.' }}
                         </p>
                     </div>
                 </div>

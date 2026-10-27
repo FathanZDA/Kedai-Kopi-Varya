@@ -1,5 +1,7 @@
 ### Kasir
 
+**Status:** FINAL untuk alur bisnis. Implementasi backend pesanan, pembayaran tunai, dan nomor antrean belum selesai.
+
 **Ringkasan:** Kasir memiliki **tiga fitur utama**: Buat Pesanan, Pesanan Masuk, dan Kelola Menu. Halaman awal setelah login adalah **Buat Pesanan**, yaitu antarmuka untuk memasukkan pesanan pelanggan yang membayar **tunai** di kasir. Pembayaran QRIS Pelanggan B diproses otomatis melalui Midtrans, sehingga kasir **tidak mengonfirmasi pembayaran QRIS secara manual**. Pembayaran tunai ditangani kasir, termasuk perhitungan kembalian.
 
 **Ruang lingkup kasir:**
@@ -20,7 +22,7 @@ Halaman ini mengikuti desain kasir pada folder `design/kasir`.
 * **Header:** menampilkan nama kasir yang sedang login, misalnya `Kasir: Dimas Pratama`.
 * **Panel menu:**
   * Kolom pencarian produk/layanan dan tombol **Cari**.
-  * Filter kategori: **Semua**, **Kopi**, **Teh**, **Autentik**, dan **Makanan**.
+  * Filter kategori: **Semua**, **Kopi**, **Teh**, **Autentik**, **Makanan**, dan **Cemilan**.
   * Grid kartu menu berisi foto, nama, deskripsi singkat, harga, dan tombol **+** untuk menambah ke pesanan.
   * Menu berstatus **Habis** tetap tampil dengan label **Habis**, tetapi tombol **+** tidak aktif.
 * **Panel pesanan (kanan):**
@@ -42,7 +44,9 @@ Halaman ini mengikuti desain kasir pada folder `design/kasir`.
 
 * Dapat mencari menu dan memfilter menu berdasarkan kategori.
 
-* Dapat memilih menu, mengatur jumlah, dan menambahkan catatan item.
+* Dapat memilih menu dan mengatur jumlah item.
+
+* Dapat mengisi catatan per item.
 
 * Dapat mengisi nama pelanggan dan memilih tipe pesanan (Dine In/Take Away).
 
@@ -54,7 +58,7 @@ Halaman ini mengikuti desain kasir pada folder `design/kasir`.
 
 * Dapat melihat pesanan yang masuk dari QR Pelanggan B beserta status pembayarannya.
 
-* Dapat melihat detail pesanan: item, jumlah, harga, subtotal, catatan, waktu, sumber, metode pembayaran, status pembayaran, nomor antrean, dan ID transaksi Midtrans.
+* Dapat melihat detail pesanan: item, jumlah, harga, subtotal, catatan pesanan, catatan per item, waktu, sumber, metode pembayaran, status pembayaran, nomor antrean, dan ID transaksi Midtrans.
 
 * Dapat memantau status pembayaran QRIS yang diperbarui otomatis oleh sistem.
 
@@ -92,7 +96,7 @@ Halaman ini mengikuti desain kasir pada folder `design/kasir`.
 
 6. Kasir mengisi nama pelanggan dan memilih tipe pesanan (Dine In/Take Away).
 
-7. Kasir mengisi catatan item bila perlu.
+7. Kasir mengisi catatan pesanan dan catatan per item bila perlu.
 
 8. Sistem menghitung subtotal dan total tagihan.
 
@@ -200,6 +204,7 @@ Halaman ini mengikuti desain kasir pada folder `design/kasir`.
 |---|---|
 | Membuka halaman **Buat Pesanan** sebagai halaman awal | Menandai QRIS lunas secara manual |
 | Membuat pesanan tunai | Membuat pesanan QRIS |
+| Mengisi catatan pesanan dan catatan per item | — |
 | Menghitung kembalian | Mengubah item/jumlah/total pesanan QRIS |
 | Melihat dan memantau semua pesanan | Membatalkan pesanan yang sudah lunas |
 | Mengubah status pesanan (antre → diproses → selesai) | Mengubah harga/nama/deskripsi/foto menu |
@@ -212,7 +217,7 @@ Halaman ini mengikuti desain kasir pada folder `design/kasir`.
 **Skenario Penerimaan:**
 
 1. Kasir login dan langsung melihat halaman **Buat Pesanan**; tidak ada kartu ringkasan dashboard.
-2. Kasir memilih 2 Vanilla Latte, mengisi nama pelanggan, memilih **Dine In**, dan menambahkan catatan; total muncul di panel pesanan.
+2. Kasir memilih 2 Vanilla Latte, mengisi nama pelanggan, memilih **Dine In**, serta menambahkan catatan pesanan dan catatan per item; total muncul di panel pesanan.
 3. Kasir menekan **Proses Bayar**, menginput uang tunai Rp50.000 untuk total Rp45.000, dan sistem menampilkan kembalian Rp5.000.
 4. Kasir menyimpan transaksi; pesanan langsung lunas, mendapat nomor antrean, dan muncul di tab **Antrean** pada halaman **Pesanan Masuk**.
 5. Kasir menginput uang tunai kurang dari total; sistem menolak dan menampilkan pesan validasi.

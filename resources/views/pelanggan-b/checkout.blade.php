@@ -129,12 +129,12 @@
                         {{-- Catatan --}}
                         <div>
                             <div class="flex items-center justify-between gap-3">
-                                <label for="order-notes" class="tag text-[10px] font-bold text-ink">Catatan</label>
+                                <label for="order-catatan" class="tag text-[10px] font-bold text-ink">Catatan</label>
                                 <span class="tag text-[8px] text-muted">(Opsional)</span>
                             </div>
-                            <textarea id="order-notes"
-                                      name="notes"
-                                      data-notes
+                            <textarea id="order-catatan"
+                                      name="catatan"
+                                      data-catatan
                                       rows="3"
                                       placeholder="Contoh: Meja No. 05, gula sedikit saja / less ice &amp; sedotan kertas."
                                       class="mt-2 w-full resize-none rounded-md border-[3px] border-ink bg-surface px-4 py-3 font-serif text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-varya/30"></textarea>

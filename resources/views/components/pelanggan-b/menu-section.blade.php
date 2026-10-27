@@ -43,7 +43,7 @@
             <button type="button"
                     data-filter="{{ $category->slug }}"
                     class="brut-sm tag bg-surface px-5 py-2.5 text-[10px] font-bold text-ink transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-[11px]">
-                {{ $category->name }}
+                {{ $category->nama }}
             </button>
         @endforeach
     </div>
@@ -53,7 +53,7 @@
         @forelse ($menus as $menu)
             <div data-menu-item
                  data-category="{{ $menu->category->slug }}"
-                 data-name="{{ \Illuminate\Support\Str::lower($menu->name.' '.$menu->description) }}">
+                 data-name="{{ \Illuminate\Support\Str::lower($menu->nama.' '.$menu->deskripsi) }}">
                 <x-menu-card
                     :menu="$menu"
                     :detail-url="route('pelanggan-b.produk', $menu)"

@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Models\Menu;
+
 /**
  * Tampilan kasir (front-end).
  *
  * Catatan tahap pengerjaan:
- * - Seluruh data di controller ini adalah data contoh (mock) untuk kebutuhan
- *   tampilan. Belum ada query database, autentikasi, atau logika backend.
- * - Interaksi seperti keranjang, pembayaran tunai, dan status menu dijalankan
+ * - Menu dan kategori sudah dibaca dari database.
+ * - Pesanan dan pembayaran masih data demo sampai slice backend tersedia.
+ * - Interaksi keranjang, pembayaran tunai, dan status menu masih dijalankan
  *   di sisi klien melalui resources/js/kasir.js.
  */
 class KasirController extends Controller
@@ -42,11 +45,13 @@ class KasirController extends Controller
 
     private function kasir(): array
     {
+        $user = auth()->user();
+
         return [
-            'name' => 'Dimas Pratama',
-            'short_name' => 'Dimas',
-            'initial' => 'DP',
-            'role' => 'Kasir',
+            'name' => $user->name,
+            'short_name' => $user->namaDepan(),
+            'initial' => $user->inisial(),
+            'role' => $user->role->label(),
         ];
     }
 
@@ -54,173 +59,37 @@ class KasirController extends Controller
     {
         return [
             ['slug' => 'all', 'label' => 'Semua'],
-            ['slug' => 'kopi', 'label' => 'Kopi'],
-            ['slug' => 'teh', 'label' => 'Teh'],
-            ['slug' => 'autentik', 'label' => 'Autentik'],
-            ['slug' => 'makanan', 'label' => 'Makanan'],
+            ...Category::query()
+                ->ordered()
+                ->get()
+                ->map(fn (Category $category): array => [
+                    'slug' => $category->slug,
+                    'label' => $category->nama,
+                ])
+                ->all(),
         ];
     }
 
     private function menus(): array
     {
-        return [
-            [
-                'id' => 1,
-                'slug' => 'varya-signature',
-                'name' => 'Varya Signature',
-                'category' => 'kopi',
-                'category_label' => 'Kopi',
-                'price' => 22000,
-                'description' => 'Aren, oat creamy, double shot.',
-                'spec' => 'Espresso Blend • Roasted Arabica',
-                'image' => 'images/menus/varya-signature.jpg',
-                'featured' => true,
-                'available' => true,
-            ],
-            [
-                'id' => 2,
-                'slug' => 'americano-street',
-                'name' => 'Americano Street',
-                'category' => 'kopi',
-                'category_label' => 'Kopi',
-                'price' => 18000,
-                'description' => 'Single origin Flores, clean & bright.',
-                'spec' => 'Double Shot • Water & Ice',
-                'image' => 'images/menus/americano-street.jpg',
+        return Menu::query()
+            ->with('category')
+            ->ordered()
+            ->get()
+            ->map(fn (Menu $menu): array => [
+                'id' => $menu->id,
+                'slug' => $menu->slug,
+                'name' => $menu->nama,
+                'category' => $menu->category->slug,
+                'category_label' => $menu->category->nama,
+                'price' => $menu->harga,
+                'description' => $menu->deskripsi,
+                'spec' => $menu->category->nama,
+                'image' => $menu->foto,
                 'featured' => false,
-                'available' => true,
-            ],
-            [
-                'id' => 3,
-                'slug' => 'matcha-creamy',
-                'name' => 'Matcha Creamy',
-                'category' => 'teh',
-                'category_label' => 'Teh',
-                'price' => 24000,
-                'description' => 'Uji pure matcha, creamy milk.',
-                'spec' => 'Ceremonial Grade Uji • Oat Milk',
-                'image' => 'images/menus/matcha-creamy.jpg',
-                'featured' => false,
-                'available' => true,
-            ],
-            [
-                'id' => 4,
-                'slug' => 'sunset-mocktail',
-                'name' => 'Sunset Mocktail',
-                'category' => 'autentik',
-                'category_label' => 'Autentik',
-                'price' => 26000,
-                'description' => 'Blood orange, soda, mint segar.',
-                'spec' => 'Citrus • Soda • Fresh Mint',
-                'image' => 'images/menus/sunset-mocktail.jpg',
-                'featured' => false,
-                'available' => true,
-            ],
-            [
-                'id' => 5,
-                'slug' => 'artisan-jasmine',
-                'name' => 'Artisan Jasmine Tea',
-                'category' => 'teh',
-                'category_label' => 'Teh',
-                'price' => 18000,
-                'description' => 'Slow-brewed royal jasmine.',
-                'spec' => 'Jasmine Tea • Slow Brewed',
-                'image' => 'images/menus/artisan-jasmine.jpg',
-                'featured' => false,
-                'available' => true,
-            ],
-            [
-                'id' => 6,
-                'slug' => 'caramel-macchiato',
-                'name' => 'Caramel Macchiato',
-                'category' => 'kopi',
-                'category_label' => 'Kopi',
-                'price' => 25000,
-                'description' => 'Vanilla milk, espresso, caramel.',
-                'spec' => 'Espresso • Vanilla Milk • Caramel',
-                'image' => 'images/menus/caramel-macchiato.jpg',
-                'featured' => false,
-                'available' => true,
-            ],
-            [
-                'id' => 7,
-                'slug' => 'roti-bakar-mix',
-                'name' => 'Roti Bakar Mix',
-                'category' => 'makanan',
-                'category_label' => 'Makanan',
-                'price' => 20000,
-                'description' => 'Cokelat lumer + keju.',
-                'spec' => 'Cokelat • Keju • Roti Panggang',
-                'image' => 'images/menus/roti-bakar-mix.jpg',
-                'featured' => false,
-                'available' => true,
-            ],
-            [
-                'id' => 8,
-                'slug' => 'truffle-fries',
-                'name' => 'Truffle Fries',
-                'category' => 'makanan',
-                'category_label' => 'Makanan',
-                'price' => 22000,
-                'description' => 'Parmesan snow, truffle oil.',
-                'spec' => 'Parmesan • Truffle Oil • Crispy',
-                'image' => 'images/menus/truffle-fries.jpg',
-                'featured' => false,
-                'available' => true,
-            ],
-            [
-                'id' => 9,
-                'slug' => 'bowl-sambal-matah',
-                'name' => 'Bowl Sambal Matah',
-                'category' => 'makanan',
-                'category_label' => 'Makanan',
-                'price' => 28000,
-                'description' => 'Ayam krispi gurih, sambal matah.',
-                'spec' => 'Crispy Chicken • Sambal Fresh',
-                'image' => 'images/menus/bowl-sambal-matah.jpg',
-                'featured' => false,
-                'available' => true,
-            ],
-            [
-                'id' => 10,
-                'slug' => 'almond-croissant',
-                'name' => 'Almond Croissant',
-                'category' => 'makanan',
-                'category_label' => 'Makanan',
-                'price' => 26000,
-                'description' => 'French butter layers, almond.',
-                'spec' => 'French Butter • Almond Cream',
-                'image' => 'images/menus/almond-croissant.jpg',
-                'featured' => false,
-                'available' => true,
-            ],
-            [
-                'id' => 11,
-                'slug' => 'dimsum-mentai',
-                'name' => 'Dimsum Mentai',
-                'category' => 'makanan',
-                'category_label' => 'Makanan',
-                'price' => 24000,
-                'description' => 'Isi 4 pcs, torched mentai.',
-                'spec' => 'Ayam Udang • Saus Mentai',
-                'image' => 'images/menus/dimsum-mentai.jpg',
-                'featured' => false,
-                'available' => true,
-            ],
-            [
-                'id' => 12,
-                'slug' => 'cold-brew-grit',
-                'name' => 'Cold Brew Grit',
-                'category' => 'kopi',
-                'category_label' => 'Kopi',
-                'price' => 30000,
-                'description' => 'Biji kopi habis dari roastery.',
-                'spec' => 'Single Origin Flores • 24 Jam',
-                'image' => 'images/menus/cold-brew-grit.jpg',
-                'featured' => false,
-                'available' => false,
-            ],
-        ];
+                'available' => $menu->tersedia,
+            ])
+            ->all();
     }
 
     private function orders(): array
@@ -235,7 +104,7 @@ class KasirController extends Controller
 
         return [
             [
-                'id' => 'ORD-001',
+                'id' => 'V7K2M9QX',
                 'code' => 'V7K2M9QX',
                 'queue' => '001',
                 'customer' => 'Anjani',
@@ -258,7 +127,7 @@ class KasirController extends Controller
                 ],
             ],
             [
-                'id' => 'ORD-002',
+                'id' => 'R4M8P2TZ',
                 'code' => 'R4M8P2TZ',
                 'queue' => '002',
                 'customer' => 'Rian Pratama',
@@ -281,7 +150,7 @@ class KasirController extends Controller
                 ],
             ],
             [
-                'id' => 'ORD-003',
+                'id' => 'H9N3C6WL',
                 'code' => 'H9N3C6WL',
                 'queue' => '003',
                 'customer' => 'Salsabila Putri',
@@ -302,7 +171,7 @@ class KasirController extends Controller
                 ],
             ],
             [
-                'id' => 'ORD-004',
+                'id' => 'B5T1Y8KD',
                 'code' => 'B5T1Y8KD',
                 'queue' => '004',
                 'customer' => 'Bagas Pratama',
@@ -323,7 +192,7 @@ class KasirController extends Controller
                 ],
             ],
             [
-                'id' => 'ORD-005',
+                'id' => 'Q8S6J4AX',
                 'code' => 'Q8S6J4AX',
                 'queue' => null,
                 'customer' => 'Nadia Kirana',
@@ -345,7 +214,7 @@ class KasirController extends Controller
                 ],
             ],
             [
-                'id' => 'ORD-006',
+                'id' => 'M2D7F9VR',
                 'code' => 'M2D7F9VR',
                 'queue' => null,
                 'customer' => 'Fajar Ramadhan',
@@ -367,7 +236,7 @@ class KasirController extends Controller
                 ],
             ],
             [
-                'id' => 'ORD-007',
+                'id' => 'K3W8L5NB',
                 'code' => 'K3W8L5NB',
                 'queue' => '005',
                 'customer' => 'Dewi Lestari',
@@ -390,7 +259,7 @@ class KasirController extends Controller
                 ],
             ],
             [
-                'id' => 'ORD-008',
+                'id' => 'X6P1D9CM',
                 'code' => 'X6P1D9CM',
                 'queue' => '006',
                 'customer' => 'Yoga Pratama',
@@ -413,7 +282,7 @@ class KasirController extends Controller
                 ],
             ],
             [
-                'id' => 'ORD-009',
+                'id' => 'A4G2Z7YH',
                 'code' => 'A4G2Z7YH',
                 'queue' => '007',
                 'customer' => 'Intan Permata',

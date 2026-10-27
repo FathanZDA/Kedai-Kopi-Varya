@@ -24,7 +24,7 @@
                 <hr class="mt-4 mb-6 border-line-strong">
 
                 <p class="font-serif text-[15px] leading-[1.9] text-ink-soft sm:text-base">
-                    {{ $store?->about_text }}
+                    {{ $store?->sejarah }}
                 </p>
             </div>
 

@@ -1,5 +1,7 @@
 ### 1. Pelanggan A (Informasional / Pengunjung Biasa)
 
+**Status:** FINAL untuk alur bisnis. Halaman publik sudah memakai data database.
+
 **Akses Fitur (Use Case):**
 
 * Dapat melihat *landing page*.

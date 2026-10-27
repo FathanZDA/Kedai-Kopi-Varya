@@ -11,6 +11,6 @@
     <x-pelanggan-b.menu-section :categories="$categories" :menus="$menus" />
 
     <div class="pb-4">
-        <x-pelanggan-a.partials.lokasi :store="$store" />
+        <x-pelanggan-a.partials.lokasi :store="$store" :hours="$hours" />
     </div>
 </x-layouts.pelanggan-b>

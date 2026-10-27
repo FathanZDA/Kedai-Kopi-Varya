@@ -179,18 +179,10 @@
                     </div>
 
                     <div class="p-4 sm:p-5">
-                        <label class="flex max-w-md cursor-pointer items-start gap-3 rounded-md border-2 border-line-strong bg-admin-soft px-4 py-3">
-                            <input type="checkbox"
-                                   data-field="featured"
-                                   class="mt-0.5 h-4 w-4 accent-varya-dark"
-                                   @checked($menu['featured'] ?? false)>
-                            <span>
-                                <span class="block font-display text-[14px] leading-tight font-extrabold">Menu Terlaris</span>
-                                <span class="mt-1 block font-serif text-[10px] leading-relaxed text-ink-soft">
-                                    Tampilkan badge <strong>Best Seller</strong> di katalog pelanggan dan kasir.
-                                </span>
-                            </span>
-                        </label>
+                        <p class="font-serif text-[12px] leading-relaxed text-ink-soft">
+                            Status ketersediaan diatur pada bagian <strong class="text-ink">Informasi Menu</strong>.
+                            Badge “Terlaris” tidak dipakai karena tidak ada kolomnya di kontrak database.
+                        </p>
                     </div>
                 </section>
 
@@ -239,14 +231,6 @@
                                      src="{{ $previewImage }}"
                                      alt="Pratinjau menu"
                                      class="h-full w-full object-cover">
-
-                                <span data-preview-featured
-                                      @class([
-                                          'absolute top-2 left-2 rounded bg-varya-dark px-2 py-1 font-mono text-[7px] font-bold tracking-wide text-white uppercase',
-                                          'hidden' => ! ($menu['featured'] ?? false),
-                                      ])>
-                                    Terlaris
-                                </span>
 
                                 <span data-preview-unavailable
                                       @class([

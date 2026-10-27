@@ -4,9 +4,10 @@
 **Informasi Dokumen**
 * **Nama Produk:** Website Kedai Kopi Varya (pemesanan, kasir, dan manajemen kedai)
 * **Tanggal:** 21 Oktober 2026
+* **Terakhir diperbarui:** 27 Oktober 2026
 * **Penyusun:** Kelompok 6
 * **Konteks:** Tugas Project Based Learning (PJBL)
-* **Status:** Acuan implementasi
+* **Status:** FINAL — acuan implementasi utama
 
 ---
 
@@ -43,6 +44,8 @@ Ruang lingkup aplikasi dibuat lebih fokus:
   * Makanan: Mie Ae
   * Minuman kopi: Vanilla Latte
   * Minuman non-kopi: Heejo
+
+*(Tiga menu di atas adalah informasi profil. Daftar menu lengkap dan harga mengikuti data kanonik di `docs/DATABASE.md`; menu tambahan ditambahkan lewat CRUD admin.)*
 
 #### 2.2 Kondisi Saat Ini
 
@@ -309,9 +312,9 @@ Kasir hanya memiliki **tiga fitur utama** berikut. Tidak ada halaman dashboard, 
 ##### [K-01] Buat Pesanan — Tunai *(Prioritas: Must)*
 
 * **[K-01a] Halaman awal:** Setelah login, kasir langsung diarahkan ke halaman **Buat Pesanan**.
-* **[K-01b] Pilih menu:** Menampilkan menu yang tersedia dengan pencarian dan filter kategori **Semua**, **Kopi**, **Teh**, **Autentik**, dan **Makanan**. Menu habis tetap tampil dengan label **Habis** dan tidak dapat dipilih.
-* **[K-01c] Keranjang pesanan:** Kasir dapat menambah, mengurangi, dan menghapus item, serta mengisi catatan per item.
-* **[K-01d] Data pelanggan:** Nama pelanggan (wajib), tipe pesanan **Dine In** atau **Take Away** (wajib), dan nama kasir yang terisi otomatis dari akun yang login.
+* **[K-01b] Pilih menu:** Menampilkan menu yang tersedia dengan pencarian dan filter kategori **Semua**, **Kopi**, **Teh**, **Autentik**, **Makanan**, dan **Cemilan**. Menu habis tetap tampil dengan label **Habis** dan tidak dapat dipilih.
+* **[K-01c] Keranjang pesanan:** Kasir dapat menambah, mengurangi, dan menghapus item, serta mengisi catatan per item. Catatan disimpan di `order_items.catatan`.
+* **[K-01d] Data pelanggan:** Nama pelanggan (wajib), tipe pesanan **Dine In** atau **Take Away** (wajib), dan nama kasir yang terisi otomatis dari akun yang login. Untuk order tunai, kasir disimpan di `orders.cashier_id`.
 * **[K-01e] Pembayaran tunai:** Sistem menghitung subtotal dan total, kasir menginput uang diterima, sistem memvalidasi `uang_diterima >= total`, lalu menampilkan kembalian.
 * **[K-01f] Simpan transaksi:** Saat disimpan, pesanan langsung berstatus **lunas**, mendapatkan **nomor antrean**, dan masuk tab **Antrean**.
 * **[K-01g] Konfirmasi:** Sistem menampilkan nomor antrean dan ringkasan pembayaran setelah transaksi disimpan, lalu mengosongkan form untuk pesanan berikutnya.
@@ -321,7 +324,7 @@ Kasir hanya memiliki **tiga fitur utama** berikut. Tidak ada halaman dashboard, 
 
 * **[K-02a] Daftar pesanan:** Pesanan ditampilkan berurutan berdasarkan waktu masuk, lengkap dengan kode pesanan, **nomor antrean**, nama pelanggan, tipe pesanan, total, sumber (QR/tunai), metode pembayaran, dan status pembayaran. Pesanan dengan status **perlu diperiksa** diberi penanda khusus.
 * **[K-02b] Tab pesanan:** Tersedia tab **Belum Dibayar**, **Antrean**, **Diproses**, dan **Selesai**. Tab **Selesai** berfungsi sebagai riwayat pesanan hari ini. Pesanan yang dibatalkan tidak ditampilkan secara default, tetapi datanya tetap tersedia untuk laporan admin.
-* **[K-02c] Detail pesanan:** Menampilkan item, jumlah, harga satuan, subtotal, catatan, waktu pesanan, **nomor antrean**, status pembayaran, serta ID transaksi Midtrans untuk pesanan QRIS.
+* **[K-02c] Detail pesanan:** Menampilkan item, jumlah, harga satuan, subtotal, catatan pesanan, catatan per item, waktu pesanan, **nomor antrean**, status pembayaran, serta ID transaksi Midtrans untuk pesanan QRIS.
 * **[K-02d] Pembaruan otomatis:** Status pembayaran QRIS diperbarui tanpa perlu me-refresh halaman, menggunakan *polling* singkat (5–10 detik).
 * **[K-02e] Cek Status (kasir):** Tombol khusus halaman Pesanan Masuk untuk memeriksa status pembayaran langsung ke API Midtrans bila notifikasi terasa terlambat. Tombol ini tidak tersedia di halaman pelanggan.
 * **[K-02f] Status pesanan:** Kasir dapat mengubah status **Antrean → Diproses → Selesai**.
@@ -352,7 +355,7 @@ Admin hanya memiliki **lima fitur utama** berikut.
 * **[AD-02b] Tambah menu:** Nama, kategori, harga, deskripsi, foto, dan status ketersediaan.
 * **[AD-02c] Ubah menu:** Mengubah seluruh data menu, termasuk harga dan ketersediaan.
 * **[AD-02d] Hapus menu:** Menghapus menu dengan *soft delete* setelah konfirmasi. Menu yang dihapus tidak tampil di halaman pelanggan dan kasir, tetapi riwayat pesanan lama tetap utuh.
-* **[AD-02e] Kategori:** Kategori menggunakan daftar tetap yang sudah di-*seed* (contoh: Kopi, Non-Kopi, Makanan). Tidak ada CRUD kategori terpisah pada versi ini.
+* **[AD-02e] Kategori:** Kategori menggunakan daftar tetap yang sudah di-*seed*: **Kopi, Teh, Autentik, Makanan, Cemilan**. Tidak ada CRUD kategori terpisah pada versi ini.
 
 ##### [AD-03] Laporan Transaksi *(Prioritas: Must)*
 
@@ -589,8 +592,9 @@ Admin hanya memiliki **lima fitur utama** berikut.
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | id | bigint | Primary key |
-| nama | string | Contoh: Kopi, Non-Kopi, Makanan |
+| nama | string | Kopi, Teh, Autentik, Makanan, Cemilan |
 | slug | string | Unik |
+| urutan | integer | Urutan tampil |
 
 **menus**
 
@@ -599,10 +603,12 @@ Admin hanya memiliki **lima fitur utama** berikut.
 | id | bigint | Primary key |
 | category_id | bigint | Relasi ke `categories` |
 | nama | string | Nama menu |
+| slug | string | Unik, untuk URL detail menu |
 | harga | integer | Rupiah, bilangan bulat |
 | deskripsi | text | Nullable |
 | foto | string | Path/URL gambar |
 | tersedia | boolean | Default `true` |
+| urutan | integer | Urutan tampil |
 | deleted_at | datetime | Soft delete |
 | timestamps | datetime | Dibuat/diubah |
 
@@ -624,6 +630,7 @@ Admin hanya memiliki **lima fitur utama** berikut.
 | total | integer | Rupiah |
 | uang_diterima | integer | Nullable, khusus tunai |
 | kembalian | integer | Nullable, khusus tunai |
+| cashier_id | bigint | Nullable, relasi ke `users`; hanya untuk order kasir |
 | waktu_lunas | datetime | Nullable |
 | batas_waktu_pembayaran | datetime | Nullable, khusus QRIS |
 | timestamps | datetime | Dibuat/diubah |
@@ -639,6 +646,7 @@ Admin hanya memiliki **lima fitur utama** berikut.
 | harga_satuan | integer | **Snapshot** harga saat dipesan |
 | jumlah | integer | Jumlah item |
 | subtotal | integer | `harga_satuan * jumlah` |
+| catatan | text | Nullable, catatan per item |
 
 **payments**
 
@@ -731,6 +739,8 @@ Admin hanya memiliki **lima fitur utama** berikut.
 * Satu `order` memiliki banyak `order_items`.
 * Satu `order` dapat memiliki banyak `payments` (percobaan pembayaran), tetapi hanya satu yang boleh berstatus aktif (`menunggu`) dalam satu waktu.
 * Satu `order` dapat memiliki banyak `payment_notifications` (log).
+* `orders.cashier_id` nullable, relasi ke `users`; `null` untuk order QRIS.
+* `order_items.catatan` menyimpan catatan per item dan tidak mengubah snapshot nama/harga.
 * `orders.kode_pesanan` unik.
 * Kombinasi `(tanggal_antrean, nomor_antrean)` unik.
 * `payments.midtrans_order_id` unik.
@@ -742,6 +752,7 @@ Admin hanya memiliki **lima fitur utama** berikut.
 
 * `orders (status_pembayaran, created_at)` untuk dashboard dan laporan.
 * `orders (status_pesanan, created_at)` untuk daftar pesanan kasir.
+* `orders (cashier_id, created_at)` untuk laporan per kasir.
 * `orders (tanggal_antrean, nomor_antrean)` unik untuk nomor antrean.
 * `payments (midtrans_order_id)` unik untuk pencarian webhook.
 * `payment_notifications (midtrans_order_id)` untuk audit.
@@ -984,20 +995,24 @@ Saat pembayaran lunas (`settlement` atau `capture` dengan `fraud_status=accept`)
 * Kode pesanan menggunakan 8 karakter acak dari huruf/angka tanpa karakter ambigu (`I`, `O`, `0`, `1`) agar halaman konfirmasi tidak mudah ditebak dan mudah dibacakan.
 * Nomor antrean di-*reset* harian dan ditampilkan tiga digit.
 * Tidak ada nomor meja pada versi ini.
-* Kategori menu menggunakan daftar tetap; tidak ada CRUD kategori.
+* Kategori menu menggunakan daftar tetap: **Kopi, Teh, Autentik, Makanan, Cemilan**; tidak ada CRUD kategori.
 * Akun kasir/admin dibuat melalui *seeder*; belum ada UI manajemen akun.
+* Database aplikasi dan test menggunakan **MySQL**; SQLite tidak dipakai.
+* Data menu, pesanan, dan pembayaran disimpan di database, bukan `localStorage`/`sessionStorage`.
+* Catatan per item disimpan di `order_items.catatan`; order tunai menyimpan kasir pembuat di `orders.cashier_id`.
+* Data menu kanonik adalah 12 menu yang sudah ada di database. Menu tambahan hanya ditambahkan melalui CRUD admin setelah backend selesai.
 
 #### 15.2 Pertanyaan yang Masih Perlu Dikonfirmasi
 
 * Apakah batas waktu 15 menit sudah sesuai dengan kebiasaan pelanggan kedai?
 * Apakah nomor antrean cukup menggunakan format tiga angka (`001`), atau perlu prefix tertentu?
-* Apakah laporan perlu ekspor PDF/Excel pada MVP, atau cukup tampilan di web?
+* **Ekspor laporan:** ditunda ke Fase 2; MVP cukup menampilkan laporan di web.
+* **Nomor meja:** tidak dipakai pada versi ini.
+* **Akun kasir/admin:** dibuat lewat seeder; UI manajemen akun ditunda.
+* **Pesanan tunai yang sudah disimpan:** tidak boleh diubah itemnya oleh admin; koreksi dilakukan di luar alur normal dan dicatat manual.
 * Siapa yang memegang akun Midtrans dan `server_key`, serta siapa yang boleh mengakses dashboard Midtrans?
 * URL publik/HTTPS apa yang akan digunakan untuk notifikasi pembayaran saat demo dan produksi?
 * Apakah data di Firebase dan spreadsheet dimigrasi, atau sistem baru berdiri sendiri?
-* Apakah pesanan tunai yang sudah disimpan boleh diubah itemnya oleh admin? *(Usulan: tidak; koreksi dilakukan di luar alur normal dan dicatat manual).*
-* Apakah diperlukan nomor meja untuk Pelanggan B? *(Usulan: belum, sampai diminta pihak kedai).*
-* Apakah admin perlu mengelola akun kasir di aplikasi? *(Usulan: belum, gunakan seeder).*
 * Format dan isi konten *event* Varya mode malam di *landing page*?
 
 ---
@@ -1019,8 +1034,8 @@ Saat pembayaran lunas (`settlement` atau `capture` dengan `fraud_status=accept`)
 
 #### 16.1 Catatan Status Implementasi
 
-* Dokumen ini adalah acuan implementasi sebelum modul pesanan, kasir, admin, dan pembayaran dibuat.
-* Dokumen ini tidak memuat kode aplikasi; status implementasi diperbarui terpisah.
-* Modul yang belum diimplementasikan: pesanan, keranjang, kasir, admin, dan integrasi Midtrans.
-* Paket `midtrans/midtrans-php` dan variabel lingkungan Midtrans belum tersedia saat dokumen ini disusun.
+* Dokumen ini adalah acuan implementasi utama; status teknis rinci ada di `docs/ROUTES.md` dan `docs/DATABASE.md`.
+* Front-end publik, katalog menu, data toko, serta tampilan kasir/admin sudah tersedia.
+* Backend pesanan, keranjang persisten, transaksi kasir/admin, laporan DB-backed, dan integrasi Midtrans belum diimplementasikan.
+* Paket `midtrans/midtrans-php` dan variabel lingkungan Midtrans belum tersedia. Keputusan O-16 masih `OPEN`.
 

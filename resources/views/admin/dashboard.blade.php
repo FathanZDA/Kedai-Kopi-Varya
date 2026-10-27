@@ -249,47 +249,6 @@
                     </div>
                 </section>
 
-                <section class="admin-card overflow-hidden" aria-labelledby="peak-hours-title">
-                    <div class="flex items-start justify-between gap-2 border-b-2 border-ink bg-[#f3f1e7] px-4 py-2.5">
-                        <div class="flex items-center gap-2">
-                            <span class="h-2.5 w-2.5 rounded-full bg-varya-dark"></span>
-                            <h2 id="peak-hours-title" class="font-display text-[16px] leading-tight font-black uppercase">
-                                Tren Jam Sibuk
-                            </h2>
-                        </div>
-                        <span class="tag rounded border-2 border-ink bg-ink px-2 py-1 text-[7px] font-bold text-white">Analitik Langsung</span>
-                    </div>
-
-                    <div class="px-4 py-3.5">
-                        <div class="flex items-end justify-between gap-3">
-                            <div>
-                                <p class="tag text-[8px] text-muted">Puncak Kunjungan</p>
-                                <p class="mt-1 font-display text-[24px] leading-none font-black">21.00 — 01.00 WIB</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="tag text-[8px] text-muted">Rata-rata Malam</p>
-                                <p class="mt-1 font-display text-[17px] leading-none font-black">42 Transaksi / Jam</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 flex h-[100px] items-end justify-between gap-2 border-b-2 border-ink pb-1">
-                            @foreach ($peakHours as $hour)
-                                <div class="flex h-full flex-1 flex-col items-center justify-end gap-1">
-                                    <div class="admin-bar w-full"
-                                         style="height: {{ $hour['height'] }}%"
-                                         data-active="{{ $hour['label'] === '21h' ? 'true' : 'false' }}"
-                                         title="{{ $hour['value'] }} transaksi pada {{ $hour['label'] }}"></div>
-                                </div>
-                            @endforeach
-                        </div>
-
-                        <div class="mt-1 flex justify-between gap-2">
-                            @foreach ($peakHours as $hour)
-                                <span class="tag flex-1 text-center text-[7px] text-muted">{{ $hour['label'] }}</span>
-                            @endforeach
-                        </div>
-                    </div>
-                </section>
             </div>
         </div>
     </div>

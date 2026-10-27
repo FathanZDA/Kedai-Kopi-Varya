@@ -3,6 +3,6 @@
     <x-public.ticker :store="$store" />
 
     <div class="pb-4">
-        <x-pelanggan-a.partials.lokasi :store="$store" />
+        <x-pelanggan-a.partials.lokasi :store="$store" :hours="$hours" />
     </div>
 </x-layouts.public>

@@ -45,7 +45,7 @@
                             <p class="tag text-[9px] text-white/70">Pembayaran</p>
                             <h1 id="payment-title" class="product-name mt-0.5 text-xl">QRIS Midtrans</h1>
                         </div>
-                        <span class="tag rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[8px] font-bold">Sandbox</span>
+                        <span class="tag rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[8px] font-bold">Belum Aktif</span>
                     </div>
 
                     <div class="p-5 sm:p-6">
@@ -54,7 +54,7 @@
                                 <p class="tag text-[9px] text-muted">Merchant Resmi</p>
                                 <p class="product-name mt-1 text-lg">Kedai Kopi Varya</p>
                                 <p class="tag mt-1 text-[8px] text-muted">
-                                    Kode Pesanan: <span data-payment-code class="font-bold text-ink">ORD-00000000-0000</span>
+                                    Kode Pesanan: <span data-payment-code class="font-bold text-ink">ABCD1234</span>
                                 </p>
                             </div>
 
@@ -63,17 +63,22 @@
                                 <p data-payment-total class="font-display text-3xl leading-tight font-black text-varya-dark">Rp 0</p>
                             </div>
 
-                            <div class="relative mt-5 rounded-xl border-[3px] border-ink bg-white p-4">
-                                <span class="tag absolute top-2 right-2 z-10 -rotate-3 rounded bg-rust px-2 py-1 text-[7px] font-bold text-white">
-                                    Simulasi
+                            <div class="mt-5 rounded-xl border-[3px] border-dashed border-line-strong bg-canvas p-6 text-center">
+                                <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full border-2 border-ink bg-white">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>
+                                    </svg>
                                 </span>
-                                <div data-qr-sim class="mx-auto aspect-square w-full max-w-[260px]" aria-label="QRIS simulasi"></div>
-                                <p class="tag mt-3 text-center text-[8px] text-muted">NMID: SIMULASI-MIDTRANS-SANDBOX</p>
+                                <p class="product-name mt-3 text-base">QRIS Midtrans belum terpasang</p>
+                                <p class="mx-auto mt-2 max-w-sm font-serif text-[12px] leading-relaxed text-ink-soft">
+                                    Integrasi pembayaran QRIS sedang disiapkan. Pesanan ini masih berupa draft dan
+                                    belum memiliki nomor antrean. Status lunas hanya akan diperbarui oleh webhook Midtrans.
+                                </p>
                             </div>
 
                             <p class="mx-auto mt-4 max-w-sm text-center font-serif text-[12px] leading-relaxed text-ink-soft">
-                                Buka aplikasi e-wallet atau mobile banking, pilih <strong class="text-ink">QRIS</strong>,
-                                lalu scan kode di atas dan selesaikan pembayaran.
+                                Setelah integrasi aktif, halaman ini akan menampilkan QRIS resmi dari Midtrans Sandbox.
                             </p>
 
                             <div class="mt-4 flex flex-wrap justify-center gap-1.5">
@@ -97,17 +102,12 @@
                             </p>
                         </div>
 
-                        <div class="mt-3 rounded-lg border-2 border-dashed border-rust/40 bg-[#fff5f0] p-3.5">
-                            <p class="tag text-[8px] font-bold text-rust">Mode simulasi UI</p>
+                        <div class="mt-3 rounded-lg border-2 border-dashed border-line-strong bg-canvas p-3.5">
+                            <p class="tag text-[8px] font-bold text-muted">Menunggu Integrasi</p>
                             <p class="mt-1 font-serif text-[11px] leading-relaxed text-ink-soft">
-                                Integrasi Midtrans belum aktif. Gunakan tombol di bawah untuk melihat alur pembayaran berhasil.
+                                Pembayaran QRIS belum dapat diproses. Draft pesanan ini tidak akan ditandai lunas
+                                dan tidak mendapat nomor antrean sampai webhook Midtrans aktif.
                             </p>
-                            <button type="button" data-simulate-payment
-                                    class="tag mt-3 flex w-full items-center justify-center gap-2 rounded-md border-2 border-ink bg-rust px-4 py-3 text-[9px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
-                                Simulasikan Pembayaran Berhasil
-                            </button>
                         </div>
 
                         <button type="button" data-check-payment

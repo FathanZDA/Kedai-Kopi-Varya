@@ -1,10 +1,27 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\PelangganAController;
 use App\Http\Controllers\PelangganBController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Autentikasi — login bersama kasir dan admin
+|--------------------------------------------------------------------------
+| Tidak ada registrasi publik. Akun dibuat lewat seeder.
+*/
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'create'])->name('login');
+    Route::post('/login', [AuthController::class, 'store'])->name('login.store');
+});
+
+Route::post('/logout', [AuthController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('logout');
 
 /*
 |--------------------------------------------------------------------------
@@ -15,7 +32,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PelangganAController::class, 'beranda'])->name('pelanggan-a.beranda');
 
-Route::get('/tentang-kami', [PelangganAController::class, 'tentang'])->name('pelanggan-a.tentang');
+Route::get('/tentang', [PelangganAController::class, 'tentang'])->name('pelanggan-a.tentang');
+
+Route::redirect('/tentang-kami', '/tentang', 301);
 
 Route::get('/menu', [PelangganAController::class, 'menu'])->name('pelanggan-a.menu');
 
@@ -45,42 +64,48 @@ Route::prefix('pesan')->name('pelanggan-b.')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Kasir — tampilan front-end
+| Kasir — wajib login dengan role kasir
 |--------------------------------------------------------------------------
-| Tahap ini hanya menyiapkan tampilan. Data menu dan pesanan masih berupa
-| data contoh di KasirController; autentikasi dan database menyusul.
+| Menu dan kategori sudah dibaca dari database. Pesanan masih data contoh di
+| KasirController; transaksi database menyusul.
 */
 
-Route::prefix('kasir')->name('kasir.')->group(function () {
-    Route::redirect('/', '/kasir/pesanan/baru');
+Route::middleware(['auth', 'role:kasir'])->group(function () {
+    Route::redirect('/kasir', '/kasir/pesanan/baru', 301);
 
-    Route::get('/pesanan/baru', [KasirController::class, 'buatPesanan'])->name('pesanan.baru');
+    Route::prefix('kasir')->name('kasir.')->group(function () {
+        Route::get('/pesanan/baru', [KasirController::class, 'buatPesanan'])->name('pesanan.baru');
 
-    Route::get('/pesanan', [KasirController::class, 'pesananMasuk'])->name('pesanan.index');
+        Route::get('/pesanan', [KasirController::class, 'pesananMasuk'])->name('pesanan.index');
 
-    Route::get('/menu', [KasirController::class, 'kelolaMenu'])->name('menu.index');
+        Route::get('/menu', [KasirController::class, 'kelolaMenu'])->name('menu.index');
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| Admin / Owner — tampilan front-end
+| Admin / Owner — wajib login dengan role admin
 |--------------------------------------------------------------------------
-| Dashboard, kelola menu, laporan transaksi, iklan & promosi, dan informasi
-| toko. Data masih berupa contoh di AdminController dan localStorage browser.
+| Menu, kategori, promosi, dan informasi toko sudah dibaca dari database.
+| Transaksi, laporan, dan aksi CRUD masih data contoh/localStorage.
 */
 
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::redirect('/admin', '/admin/dashboard', 301);
 
-    Route::get('/menu', [AdminController::class, 'menus'])->name('menu.index');
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
-    Route::get('/menu/create', [AdminController::class, 'createMenu'])->name('menu.create');
+        Route::get('/menu', [AdminController::class, 'menus'])->name('menu.index');
 
-    Route::get('/menu/{menu}/edit', [AdminController::class, 'editMenu'])->name('menu.edit');
+        Route::get('/menu/create', [AdminController::class, 'createMenu'])->name('menu.create');
 
-    Route::get('/laporan', [AdminController::class, 'reports'])->name('reports');
+        Route::get('/menu/{menu}/edit', [AdminController::class, 'editMenu'])->name('menu.edit');
 
-    Route::get('/promosi', [AdminController::class, 'promos'])->name('promos');
+        Route::get('/laporan', [AdminController::class, 'reports'])->name('reports');
 
-    Route::get('/toko', [AdminController::class, 'store'])->name('store');
+        Route::get('/promosi', [AdminController::class, 'promos'])->name('promos');
+
+        Route::get('/toko', [AdminController::class, 'store'])->name('store');
+    });
 });
