@@ -216,6 +216,15 @@ class KasirOrderTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
     }
 
+    public function test_halaman_buat_pesanan_menyiapkan_token_csrf_dan_route_penyimpanan(): void
+    {
+        $this->actingAs($this->kasir)
+            ->get(route('kasir.pesanan.baru'))
+            ->assertOk()
+            ->assertSee('name="csrf-token"', false)
+            ->assertSee(route('kasir.pesanan.store'), false);
+    }
+
     public function test_admin_tidak_boleh_membuat_order_kasir(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin]);

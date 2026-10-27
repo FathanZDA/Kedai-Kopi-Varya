@@ -25,7 +25,6 @@ class KasirController extends Controller
             'kasir' => $this->kasir(),
             'categories' => $this->categories(),
             'menus' => $this->menus(),
-            'nextQueue' => $this->nextQueue(),
         ]);
     }
 
@@ -34,7 +33,6 @@ class KasirController extends Controller
         return view('kasir.pesanan-masuk', [
             'kasir' => $this->kasir(),
             'orders' => $this->orders(),
-            'nextQueue' => $this->nextQueue(),
         ]);
     }
 
@@ -325,16 +323,5 @@ class KasirController extends Controller
                 ],
             ],
         ];
-    }
-
-    private function nextQueue(): int
-    {
-        $highest = 0;
-
-        foreach ($this->orders() as $order) {
-            $highest = max($highest, (int) $order['queue']);
-        }
-
-        return $highest + 1;
     }
 }

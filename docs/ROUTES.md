@@ -358,7 +358,7 @@ Status 27 Okt 2026: **sudah diimplementasikan** di `KasirController@storeOrder` 
 Hal yang perlu diketahui konsumen endpoint ini:
 
 - `nomor_antrean` dikirim sebagai string tiga digit (`"007"`), mengikuti contoh pada kontrak di atas.
-- Respons berisi field tambahan di luar contoh (`tipe_pesanan`, `catatan`, `sumber`, label status, `waktu_lunas`, `item`) agar dialog konfirmasi kasir tidak perlu request kedua. Semua field contoh tetap ada, jadi kontrak lama tetap terpenuhi.
+- Respons berisi field tambahan di luar contoh (`tipe_pesanan`, `catatan`, `sumber`, label status, `waktu_lunas`, `item`) agar dialog konfirmasi kasir tidak perlu request kedua. Semua field contoh tetap ada, jadi kontrak lama tetap terpenuhi. Daftar item memakai kunci `item` agar sama dengan request.
 - Harga dan subtotal **tidak** dikirim klien dan diabaikan bila ada; server selalu memakai harga dari `menus.harga`.
 - Error `409` (menu berubah saat transaksi disimpan) **belum** bisa dihasilkan karena request tidak membawa harga pembanding. Saat ini menu yang hilang atau habis menghasilkan `422` dengan field `item`. Jika Anda ingin `409` aktif, request perlu ditambah harga acuan per item — keputusan ini menunggu persetujuan.
 

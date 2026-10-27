@@ -1,9 +1,9 @@
 // Interaksi front-end area kasir Kedai Kopi Varya.
-// Belum ada pemanggilan API/database; data contoh berasal dari halaman Blade
-// dan penyimpanan sementara browser (localStorage) untuk kebutuhan demo UI.
+// Buat Pesanan sudah menyimpan transaksi tunai ke database lewat
+// POST /kasir/pesanan. Pesanan Masuk dan Kelola Menu masih memakai data
+// contoh dari halaman Blade.
 
 const STORAGE_KEYS = {
-    orders: 'varya.kasir.orders.v1',
     menuAvailability: 'varya.kasir.menu-availability.v1',
 };
 
@@ -45,6 +45,46 @@ function writeStorage(key, value) {
     } catch {
         // localStorage bisa tidak tersedia pada mode privat; abaikan.
     }
+}
+
+/** Header CSRF dari meta tag layout. */
+function csrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+}
+
+/**
+ * Kirim JSON ke server dan kembalikan status + body.
+ * Server membalas 422 dengan `errors` untuk pelanggaran validasi.
+ */
+async function kirimJson(url, payload) {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': csrfToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => null);
+
+    return { ok: response.ok, status: response.status, data };
+}
+
+/** Ambil pesan kesalahan pertama dari respons server. */
+function pesanKesalahan(status, data) {
+    const daftar = Object.values(data?.errors ?? {}).flat();
+    const pertama = daftar.find((pesan) => typeof pesan === 'string' && pesan !== '');
+
+    if (pertama) return pertama;
+
+    if (status === 419) return 'Sesi Anda berakhir. Muat ulang halaman lalu login kembali.';
+    if (status === 403) return 'Akun ini tidak berhak membuat pesanan kasir.';
+    if (status === 401) return 'Sesi Anda berakhir. Silakan login kembali.';
+
+    return data?.message ?? 'Pesanan gagal disimpan. Coba lagi.';
 }
 
 function openDialog(dialog) {
@@ -94,17 +134,6 @@ function formatDateTime(date = new Date()) {
         .replaceAll('.', ':');
 
     return `${dateText} • ${timeText} WIB`;
-}
-
-function randomOrderCode() {
-    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-
-    for (let index = 0; index < 8; index += 1) {
-        code += characters[Math.floor(Math.random() * characters.length)];
-    }
-
-    return code;
 }
 
 function renderPagination(container, totalPages, currentPage, onSelect) {
@@ -390,13 +419,7 @@ function initBuatPesanan() {
     let currentNoteId = null;
     let paymentTotal = 0;
     let paymentCash = 0;
-    const storedOrders = readStorage(STORAGE_KEYS.orders, []);
-    let queueCounter = Math.max(
-        Number(config.nextQueue) || 1,
-        ...(Array.isArray(storedOrders) ? storedOrders : []).map(
-            (order) => (Number(order.queue) || 0) + 1,
-        ),
-    );
+    let menyimpan = false;
 
     const menuGrid = root.querySelector('[data-menu-grid]');
     const menuEmpty = root.querySelector('[data-menu-empty]');
@@ -430,6 +453,7 @@ function initBuatPesanan() {
     const paymentError = root.querySelector('[data-payment-error]');
     const paymentKeypad = root.querySelector('[data-payment-keypad]');
     const paymentConfirm = root.querySelector('[data-payment-confirm]');
+    const paymentLabel = root.querySelector('[data-payment-label]');
 
     const successDialog = root.querySelector('[data-success-dialog]');
     const successQueue = root.querySelector('[data-success-queue]');
@@ -813,48 +837,38 @@ function initBuatPesanan() {
         }
     });
 
-    const saveOrder = () => {
+    const saveOrder = async () => {
         const typeInput = orderTypeInputs.find((input) => input.checked);
-        const type = typeInput?.value ?? 'dine_in';
-        const typeLabel = type === 'take_away' ? 'Take Away' : 'Dine In';
-        const queue = String(queueCounter).padStart(3, '0');
-        queueCounter += 1;
 
-        const items = Array.from(cart.values()).map((item) => ({
-            name: item.name,
-            price: item.price,
-            qty: item.qty,
-            subtotal: item.price * item.qty,
-            note: item.note || null,
-        }));
-
-        const order = {
-            id: `KSR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            code: randomOrderCode(),
-            queue,
-            customer: customerName?.value.trim() ?? '',
-            type,
-            type_label: typeLabel,
-            source: 'kasir',
-            status: 'antre',
-            payment: 'tunai',
-            payment_label: 'Tunai',
-            payment_status: 'lunas',
-            total: paymentTotal,
-            created_at: formatDateTime(),
-            midtrans_id: null,
-            cash_received: paymentCash,
-            change: paymentCash - paymentTotal,
-            notes: null,
-            items,
+        const payload = {
+            nama_pelanggan: (customerName?.value ?? '').trim(),
+            tipe_pesanan: typeInput?.value ?? 'dine_in',
+            catatan: null,
+            uang_diterima: paymentCash,
+            item: Array.from(cart.values()).map((item) => ({
+                menu_id: Number(item.id),
+                jumlah: item.qty,
+                catatan: item.note || null,
+            })),
         };
 
-        const savedOrders = readStorage(STORAGE_KEYS.orders, []);
-        const list = Array.isArray(savedOrders) ? savedOrders : [];
-        list.push(order);
-        writeStorage(STORAGE_KEYS.orders, list.slice(-50));
+        try {
+            const { ok, status, data } = await kirimJson(
+                config.routes.pesananStore,
+                payload,
+            );
 
-        return order;
+            if (!ok) {
+                return { ok: false, pesan: pesanKesalahan(status, data) };
+            }
+
+            return { ok: true, order: data?.data ?? null };
+        } catch {
+            return {
+                ok: false,
+                pesan: 'Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.',
+            };
+        }
     };
 
     const resetForm = () => {
@@ -871,44 +885,80 @@ function initBuatPesanan() {
     };
 
     const showSuccess = (order) => {
-        const quantity = order.items.reduce((total, item) => total + item.qty, 0);
+        if (!order) return;
 
-        if (successQueue) successQueue.textContent = `#${order.queue}`;
+        const jumlahItem = (order.item ?? []).reduce(
+            (total, item) => total + Number(item.jumlah),
+            0,
+        );
+
+        if (successQueue) successQueue.textContent = `#${order.nomor_antrean}`;
 
         if (successType) {
-            successType.textContent = order.type_label;
+            successType.textContent = order.tipe_pesanan_label;
             successType.className = `tag mt-1 inline-block rounded border-2 px-2.5 py-1 text-[8px] font-bold ${
-                order.type === 'take_away'
+                order.tipe_pesanan === 'take_away'
                     ? 'border-ink bg-kasir-amber-soft text-brown'
                     : 'border-ink bg-ink text-white'
             }`;
         }
 
-        if (successCustomer) successCustomer.textContent = order.customer;
+        if (successCustomer) successCustomer.textContent = order.nama_pelanggan;
         if (successTotal) successTotal.textContent = rupiah(order.total ?? paymentTotal);
-        if (successItems) successItems.textContent = `${quantity} Menu`;
-        if (successTime) successTime.textContent = order.created_at;
+        if (successItems) successItems.textContent = `${jumlahItem} Menu`;
+        if (successTime) successTime.textContent = formatDateTime();
 
         closeDialog(paymentDialog);
         openDialog(successDialog);
     };
 
-    paymentConfirm?.addEventListener('click', () => {
+    const setMenyimpan = (aktif) => {
+        menyimpan = aktif;
+
+        if (!paymentConfirm) return;
+
+        paymentConfirm.disabled = aktif;
+        paymentConfirm.classList.toggle('opacity-60', aktif);
+
+        if (paymentLabel) {
+            paymentLabel.textContent = aktif ? 'Menyimpan…' : 'Selesai Bayar';
+        }
+    };
+
+    const showPaymentError = (pesan) => {
+        if (!paymentError) return;
+
+        paymentError.textContent = pesan;
+        paymentError.hidden = false;
+    };
+
+    paymentConfirm?.addEventListener('click', async () => {
+        if (menyimpan) return;
+
         if (paymentCash < paymentTotal) {
-            if (paymentError) {
-                paymentError.textContent =
-                    paymentCash === 0
-                        ? 'Masukkan uang yang diterima terlebih dahulu.'
-                        : `Uang diterima kurang ${rupiah(paymentTotal - paymentCash)} dari total tagihan.`;
-                paymentError.hidden = false;
-            }
+            showPaymentError(
+                paymentCash === 0
+                    ? 'Masukkan uang yang diterima terlebih dahulu.'
+                    : `Uang diterima kurang ${rupiah(paymentTotal - paymentCash)} dari total tagihan.`,
+            );
 
             return;
         }
 
-        const order = saveOrder();
+        setMenyimpan(true);
+
+        const hasil = await saveOrder();
+
+        setMenyimpan(false);
+
+        if (!hasil.ok) {
+            showPaymentError(hasil.pesan);
+
+            return;
+        }
+
         resetForm();
-        showSuccess(order);
+        showSuccess(hasil.order);
     });
 
     root.querySelector('[data-success-close]')?.addEventListener('click', () => {
@@ -939,15 +989,6 @@ function initPesananMasuk() {
         orders = JSON.parse(dataElement?.textContent ?? '[]');
     } catch {
         orders = [];
-    }
-
-    const savedOrders = readStorage(STORAGE_KEYS.orders, []);
-    if (Array.isArray(savedOrders)) {
-        savedOrders.forEach((order) => {
-            if (order?.id && !orders.some((existing) => existing.id === order.id)) {
-                orders.push(order);
-            }
-        });
     }
 
     let activeTab = 'all';
@@ -999,27 +1040,6 @@ function initPesananMasuk() {
 
     const orderQuantity = (order) =>
         (order.items ?? []).reduce((total, item) => total + Number(item.qty), 0);
-
-    const persistSavedOrder = (order) => {
-        if (!String(order.id).startsWith('KSR-')) return;
-
-        const saved = readStorage(STORAGE_KEYS.orders, []);
-        if (!Array.isArray(saved)) return;
-
-        const index = saved.findIndex((item) => item.id === order.id);
-        if (index >= 0) {
-            saved[index] = order;
-            writeStorage(STORAGE_KEYS.orders, saved);
-        }
-    };
-
-    const removeSavedOrder = (id) => {
-        const saved = readStorage(STORAGE_KEYS.orders, []);
-        writeStorage(
-            STORAGE_KEYS.orders,
-            Array.isArray(saved) ? saved.filter((order) => order.id !== id) : [],
-        );
-    };
 
     const updateTabStyles = () => {
         tabButtons.forEach((button) => {
@@ -1353,7 +1373,6 @@ function initPesananMasuk() {
 
         if (action === 'process') {
             order.status = 'diproses';
-            persistSavedOrder(order);
             closeDialog(detailDialog);
             showToast(`Pesanan ${order.code} mulai diproses.`);
             renderOrders();
@@ -1362,7 +1381,6 @@ function initPesananMasuk() {
 
         if (action === 'finish') {
             order.status = 'selesai';
-            persistSavedOrder(order);
             closeDialog(detailDialog);
             showToast(`Pesanan ${order.code} selesai.`);
             renderOrders();
@@ -1397,7 +1415,6 @@ function initPesananMasuk() {
 
         const canceled = pendingCancel;
         orders = orders.filter((order) => order.id !== canceled.id);
-        removeSavedOrder(canceled.id);
 
         pendingCancel = null;
         closeDialog(confirmDialog);

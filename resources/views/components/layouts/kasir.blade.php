@@ -3,7 +3,6 @@
     'active' => 'pesanan-baru',
     'description' => 'Antarmuka kasir Kedai Kopi Varya.',
     'kasir' => ['name' => 'Dimas Pratama', 'initial' => 'DP', 'role' => 'Kasir'],
-    'nextQueue' => 1,
 ])
 
 <!DOCTYPE html>
@@ -11,6 +10,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ? $title.' — Kasir Kedai Kopi Varya' : 'Kasir — Kedai Kopi Varya' }}</title>
     <meta name="description" content="{{ $description }}">
 
@@ -22,12 +22,12 @@
         window.KASIR_CONFIG = {
             routes: {
                 pesananBaru: @json(route('kasir.pesanan.baru')),
+                pesananStore: @json(route('kasir.pesanan.store')),
                 pesananMasuk: @json(route('kasir.pesanan.index')),
                 kelolaMenu: @json(route('kasir.menu.index')),
                 situs: @json(route('pelanggan-a.beranda')),
             },
             kasir: @json($kasir),
-            nextQueue: @json($nextQueue),
         };
     </script>
 

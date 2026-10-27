@@ -39,7 +39,7 @@ class OrderResource extends JsonResource
             'uang_diterima' => $this->uang_diterima,
             'kembalian' => $this->kembalian,
             'waktu_lunas' => $this->waktu_lunas?->toIso8601String(),
-            'items' => $this->whenLoaded('items', fn (): array => $this->items
+            'item' => $this->whenLoaded('items', fn (): array => $this->items
                 ->map(fn ($item): array => [
                     'menu_id' => $item->menu_id,
                     'nama_menu' => $item->nama_menu,

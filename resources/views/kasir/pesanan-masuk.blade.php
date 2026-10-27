@@ -8,7 +8,6 @@
 <x-layouts.kasir title="Pesanan Masuk"
                  active="pesanan-masuk"
                  :kasir="$kasir"
-                 :next-queue="$nextQueue"
                  description="Pantau pesanan QRIS dan tunai yang masuk ke kasir Kedai Kopi Varya.">
     <div data-kasir-pesanan-masuk>
         <div class="flex flex-wrap items-end justify-between gap-3">

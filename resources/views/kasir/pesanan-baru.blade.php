@@ -5,7 +5,6 @@
 <x-layouts.kasir title="Buat Pesanan"
                  active="pesanan-baru"
                  :kasir="$kasir"
-                 :next-queue="$nextQueue"
                  description="Buat pesanan tunai pelanggan di kasir Kedai Kopi Varya.">
     <div data-kasir-pesanan-baru>
         <div class="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -397,10 +396,10 @@
 
                 <div class="border-t-2 border-ink p-4">
                     <button type="button" data-payment-confirm
-                            class="tag flex w-full items-center justify-center gap-2 rounded-md border-2 border-ink bg-varya-dark px-4 py-3.5 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                            class="tag flex w-full items-center justify-center gap-2 rounded-md border-2 border-ink bg-varya-dark px-4 py-3.5 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
-                        Selesai Bayar
+                        <span data-payment-label>Selesai Bayar</span>
                     </button>
                 </div>
             </div>
