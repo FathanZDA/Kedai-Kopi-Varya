@@ -1,11 +1,6 @@
 // Interaksi front-end area kasir Kedai Kopi Varya.
-// Buat Pesanan sudah menyimpan transaksi tunai ke database lewat
-// POST /kasir/pesanan. Pesanan Masuk dan Kelola Menu masih memakai data
-// contoh dari halaman Blade.
-
-const STORAGE_KEYS = {
-    menuAvailability: 'varya.kasir.menu-availability.v1',
-};
+// Buat Pesanan, Pesanan Masuk, dan Kelola Menu membaca serta menulis data
+// dari database lewat endpoint JSON di area /kasir.
 
 const PAGE_SIZE = 6;
 const numberFormatter = new Intl.NumberFormat('id-ID');
@@ -24,27 +19,6 @@ function escapeHtml(value) {
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
-}
-
-function hasOwn(object, key) {
-    return Object.prototype.hasOwnProperty.call(object, key);
-}
-
-function readStorage(key, fallback) {
-    try {
-        const raw = window.localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
-    }
-}
-
-function writeStorage(key, value) {
-    try {
-        window.localStorage.setItem(key, JSON.stringify(value));
-    } catch {
-        // localStorage bisa tidak tersedia pada mode privat; abaikan.
-    }
 }
 
 /** Header CSRF dari meta tag layout. */
@@ -334,35 +308,6 @@ function initClock() {
 /* Status ketersediaan menu                                                   */
 /* -------------------------------------------------------------------------- */
 
-function getAvailabilityOverrides() {
-    return readStorage(STORAGE_KEYS.menuAvailability, {}) ?? {};
-}
-
-function saveAvailabilityOverride(menuId, available) {
-    const overrides = getAvailabilityOverrides();
-    overrides[String(menuId)] = Boolean(available);
-    writeStorage(STORAGE_KEYS.menuAvailability, overrides);
-}
-
-function setMenuCardAvailability(card, available) {
-    const button = card.querySelector('[data-add-to-cart]');
-    const badge = card.querySelector('[data-menu-unavailable-badge]');
-    const image = card.querySelector('img');
-
-    card.dataset.menuAvailable = available ? '1' : '0';
-    card.classList.toggle('opacity-75', !available);
-    image?.classList.toggle('grayscale', !available);
-
-    if (badge) {
-        badge.classList.toggle('hidden', available);
-        badge.hidden = available;
-    }
-
-    if (button) {
-        button.disabled = !available;
-    }
-}
-
 function setMenuRowAvailability(row, available) {
     row.dataset.available = available ? '1' : '0';
 
@@ -465,13 +410,8 @@ function initBuatPesanan() {
 
     /* ------------------------- ketersediaan menu ------------------------- */
 
-    const overrides = getAvailabilityOverrides();
-
-    cards.forEach((card) => {
-        if (hasOwn(overrides, card.dataset.menuId)) {
-            setMenuCardAvailability(card, Boolean(overrides[card.dataset.menuId]));
-        }
-    });
+    // Status tersedia/habis sudah dirender server dari kolom menus.tersedia;
+    // perubahan dilakukan kasir di halaman Kelola Menu.
 
     /* --------------------------- filter menu ----------------------------- */
 
@@ -1463,6 +1403,7 @@ function initKelolaMenu() {
     const root = document.querySelector('[data-kasir-kelola-menu]');
     if (!root) return;
 
+    const config = window.KASIR_CONFIG ?? {};
     const rows = Array.from(root.querySelectorAll('[data-menu-row]'));
     const tabButtons = Array.from(root.querySelectorAll('[data-menu-tab]'));
     const searchInput = root.querySelector('[data-menu-list-search-input]');
@@ -1474,12 +1415,40 @@ function initKelolaMenu() {
     let searchTerm = '';
     let currentPage = 1;
 
-    const overrides = getAvailabilityOverrides();
-    rows.forEach((row) => {
-        if (hasOwn(overrides, row.dataset.menuId)) {
-            setMenuRowAvailability(row, Boolean(overrides[row.dataset.menuId]));
+    const ubahKetersediaan = async (row, tersedia) => {
+        const button = row.querySelector('[data-toggle-menu]');
+        if (!button || button.disabled) return;
+
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+
+        try {
+            const hasil = await kirimJson(
+                config.routes.menuAvailability.replace('__ID__', encodeURIComponent(row.dataset.menuId)),
+                { tersedia },
+                'PATCH',
+            );
+
+            if (!hasil.ok) {
+                showToast(pesanKesalahan(hasil.status, hasil.data));
+                return;
+            }
+
+            const baru = hasil.data?.data?.tersedia ?? tersedia;
+            setMenuRowAvailability(row, baru);
+            showToast(
+                baru
+                    ? `${row.dataset.menuName} ditandai Tersedia.`
+                    : `${row.dataset.menuName} ditandai Habis.`,
+            );
+            renderMenu();
+        } catch {
+            showToast('Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.');
+        } finally {
+            button.disabled = false;
+            button.removeAttribute('aria-busy');
         }
-    });
+    };
 
     const updateTabStyles = () => {
         tabButtons.forEach((button) => {
@@ -1589,16 +1558,7 @@ function initKelolaMenu() {
         if (!row) return;
 
         const nextAvailable = row.dataset.available !== '1';
-        setMenuRowAvailability(row, nextAvailable);
-        saveAvailabilityOverride(row.dataset.menuId, nextAvailable);
-
-        showToast(
-            nextAvailable
-                ? `${row.dataset.menuName} ditandai Tersedia.`
-                : `${row.dataset.menuName} ditandai Habis.`,
-        );
-
-        renderMenu();
+        ubahKetersediaan(row, nextAvailable);
     });
 
     renderMenu();

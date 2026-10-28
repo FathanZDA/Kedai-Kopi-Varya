@@ -34,6 +34,7 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | GET | `/kasir/pesanan` | `kasir.pesanan.index` | `KasirController@pesananMasuk` | `auth` + `role:kasir`; pesanan hari ini dari DB |
 | PATCH | `/kasir/pesanan/{order}/status` | `kasir.pesanan.status` | `KasirController@updateStatus` | `auth` + `role:kasir`; `antre → diproses → selesai` |
 | GET | `/kasir/menu` | `kasir.menu.index` | `KasirController@kelolaMenu` | `auth` + `role:kasir`; menu dari DB |
+| PATCH | `/kasir/menu/{menu}/availability` | `kasir.menu.availability` | `KasirController@updateAvailability` | `auth` + `role:kasir`; hanya `tersedia` |
 | ANY | `/admin` | — | Redirect 301 ke `/admin/dashboard` | `auth` + `role:admin` |
 | GET | `/admin/dashboard` | `admin.dashboard` | `AdminController@dashboard` | `auth` + `role:admin`; transaksi contoh |
 | GET | `/admin/menu` | `admin.menu.index` | `AdminController@menus` | `auth` + `role:admin`; menu dari DB |
@@ -131,8 +132,8 @@ Catatan:
 
 Status implementasi 28 Okt 2026:
 
-- `GET /kasir/pesanan/baru`, `POST /kasir/pesanan`, `GET /kasir/pesanan`, dan `PATCH /kasir/pesanan/{order}/status` **sudah aktif**.
-- `GET /kasir/pesanan/poll`, `GET /kasir/pesanan/{order}`, `POST .../cancel`, `POST .../check-status`, dan `PATCH /kasir/menu/{menu}/availability` **belum dibuat**.
+- `GET /kasir/pesanan/baru`, `POST /kasir/pesanan`, `GET /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `GET /kasir/menu`, dan `PATCH /kasir/menu/{menu}/availability` **sudah aktif**.
+- `GET /kasir/pesanan/poll`, `GET /kasir/pesanan/{order}`, `POST .../cancel`, dan `POST .../check-status` **belum dibuat**.
 - Daftar pesanan memuat order yang dibuat pada hari berjalan (`created_at` hari ini, zona `Asia/Jakarta`), supaya order QRIS yang belum dibayar tetap tampil di tab Belum Dibayar meski belum punya nomor antrean.
 
 ### 2.5 Admin
@@ -463,6 +464,40 @@ Aturan:
 - Proses idempoten; notifikasi ganda tidak boleh membuat nomor antrean ganda.
 - Simpan payload ke `payment_notifications`.
 
+### 4.8 `PATCH /kasir/menu/{menu}/availability`
+
+Request:
+
+```json
+{
+  "tersedia": false
+}
+```
+
+Response `200`:
+
+```json
+{
+  "data": {
+    "id": 1,
+    "nama": "Varya Signature",
+    "slug": "varya-signature",
+    "harga": 22000,
+    "tersedia": false,
+    "tersedia_label": "Habis"
+  }
+}
+```
+
+Aturan:
+
+- `{menu}` adalah id numerik menu; menu yang sudah di-soft-delete menghasilkan `404`.
+- Hanya kolom `menus.tersedia` yang diubah. Field lain (`nama`, `harga`, `category_id`, `deskripsi`, `foto`) diabaikan walau dikirim.
+- `tersedia` wajib diisi dan harus boolean (`true`/`false`, `1`/`0`); nilai lain ditolak `422`.
+- Error penting: `401` tamu, `403` bukan kasir, `404` menu tidak ada, `422` validasi gagal.
+
+Status 28 Okt 2026: **sudah diimplementasikan** di `KasirController@updateAvailability` + `App\Http\Requests\Kasir\UpdateMenuAvailabilityRequest` + `App\Http\Resources\MenuResource`. Halaman Kelola Menu memanggil endpoint ini; status ketersediaan tidak lagi disimpan di `localStorage`.
+
 ---
 
 ## 5. Perbedaan route sekarang vs target
@@ -474,7 +509,7 @@ Aturan:
 | `/pesan/pembayaran` | `/pesanan/{kode_pesanan}` | Hapus halaman demo |
 | `/pesan/berhasil` | `/pesanan/{kode_pesanan}` | Hapus halaman demo |
 | Belum ada login | `/login`, `POST /login`, `POST /logout` | **Selesai** — auth manual + role redirect |
-| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan` dan `PATCH /kasir/pesanan/{order}/status` **selesai**; action lain menyusul |
+| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, dan `PATCH /kasir/menu/{menu}/availability` **selesai**; action lain menyusul |
 | Belum ada webhook | `/api/midtrans/notification` | Tambah route + CSRF exception |
 | Belum ada role | `auth` + `role:*` | **Selesai** — middleware `role` aktif di area kasir/admin |
 | Belum ada rate limit | `throttle:*` | Login selesai; checkout/status menyusul |

@@ -176,7 +176,7 @@
                                     <button type="button"
                                             data-toggle-menu
                                             @class([
-                                                'tag rounded border-2 border-ink px-3 py-2 text-[8px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5',
+                                                'tag rounded border-2 border-ink px-3 py-2 text-[8px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60',
                                                 'bg-kasir-panel text-rust' => $menu['available'],
                                                 'bg-varya-dark text-white' => ! $menu['available'],
                                             ])>

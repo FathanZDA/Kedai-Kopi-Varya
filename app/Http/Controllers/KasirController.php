@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Kasir\StoreOrderRequest;
+use App\Http\Requests\Kasir\UpdateMenuAvailabilityRequest;
 use App\Http\Requests\Kasir\UpdateOrderStatusRequest;
+use App\Http\Resources\MenuResource;
 use App\Http\Resources\OrderResource;
 use App\Models\Category;
 use App\Models\Menu;
@@ -19,7 +21,7 @@ use Illuminate\Support\Carbon;
  * - Menu dan kategori dibaca dari database.
  * - Buat Pesanan menyimpan order tunai lewat POST /kasir/pesanan.
  * - Pesanan Masuk membaca order dari database dan bisa mengubah status.
- * - Kelola Menu masih data contoh sampai slice CRUD berikutnya.
+ * - Kelola Menu membaca menu dari database dan mengubah status ketersediaan.
  */
 class KasirController extends Controller
 {
@@ -80,6 +82,22 @@ class KasirController extends Controller
         $order = $orderService->ubahStatus($order, $request->statusPesanan());
 
         return (new OrderResource($order))
+            ->response()
+            ->setStatusCode(200);
+    }
+
+    /**
+     * Ubah status ketersediaan menu (Tersedia/Habis).
+     *
+     * Kasir hanya boleh mengubah kolom `tersedia`; data menu lain milik admin.
+     */
+    public function updateAvailability(
+        UpdateMenuAvailabilityRequest $request,
+        Menu $menu,
+    ): JsonResponse {
+        $menu->update(['tersedia' => $request->tersedia()]);
+
+        return (new MenuResource($menu->refresh()))
             ->response()
             ->setStatusCode(200);
     }
