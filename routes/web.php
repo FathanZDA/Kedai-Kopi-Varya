@@ -67,7 +67,8 @@ Route::prefix('pesan')->name('pelanggan-b.')->group(function () {
 | Kasir — wajib login dengan role kasir
 |--------------------------------------------------------------------------
 | Menu dan kategori dibaca dari database. Transaksi tunai disimpan lewat
-| POST /kasir/pesanan. Pesanan masuk dan kelola menu masih data contoh.
+| POST /kasir/pesanan dan statusnya diubah lewat PATCH .../status.
+| Kelola Menu masih data contoh.
 */
 
 Route::middleware(['auth', 'role:kasir'])->group(function () {
@@ -77,6 +78,8 @@ Route::middleware(['auth', 'role:kasir'])->group(function () {
         Route::get('/pesanan/baru', [KasirController::class, 'buatPesanan'])->name('pesanan.baru');
 
         Route::post('/pesanan', [KasirController::class, 'storeOrder'])->name('pesanan.store');
+
+        Route::patch('/pesanan/{order}/status', [KasirController::class, 'updateStatus'])->name('pesanan.status');
 
         Route::get('/pesanan', [KasirController::class, 'pesananMasuk'])->name('pesanan.index');
 

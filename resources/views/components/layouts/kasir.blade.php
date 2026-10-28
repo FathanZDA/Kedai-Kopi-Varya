@@ -23,6 +23,7 @@
             routes: {
                 pesananBaru: @json(route('kasir.pesanan.baru')),
                 pesananStore: @json(route('kasir.pesanan.store')),
+                pesananStatus: @json(route('kasir.pesanan.status', ['order' => '__ID__'])),
                 pesananMasuk: @json(route('kasir.pesanan.index')),
                 kelolaMenu: @json(route('kasir.menu.index')),
                 situs: @json(route('pelanggan-a.beranda')),

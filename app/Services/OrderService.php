@@ -67,6 +67,44 @@ class OrderService
     }
 
     /**
+     * Ubah status pesanan mengikuti alur antre → diproses → selesai.
+     *
+     * Baris order dikunci agar dua kasir tidak mengubah status bersamaan.
+     *
+     * @throws ValidationException
+     */
+    public function ubahStatus(Order $order, StatusPesanan $tujuan): Order
+    {
+        return DB::transaction(function () use ($order, $tujuan): Order {
+            $terkunci = Order::query()->lockForUpdate()->findOrFail($order->id);
+            $asal = $terkunci->status_pesanan;
+
+            if ($tujuan !== ($this->transisiBerikutnya($asal))) {
+                throw ValidationException::withMessages([
+                    'status' => "Status pesanan tidak bisa diubah dari {$asal->label()} ke {$tujuan->label()}.",
+                ]);
+            }
+
+            $terkunci->status_pesanan = $tujuan;
+            $terkunci->save();
+
+            return $terkunci->load('items');
+        });
+    }
+
+    /**
+     * Status berikutnya yang diizinkan, atau null bila sudah final.
+     */
+    private function transisiBerikutnya(StatusPesanan $status): ?StatusPesanan
+    {
+        return match ($status) {
+            StatusPesanan::Antre => StatusPesanan::Diproses,
+            StatusPesanan::Diproses => StatusPesanan::Selesai,
+            default => null,
+        };
+    }
+
+    /**
      * Validasi ulang menu di server dan susun snapshot order_items.
      *
      * Harga diambil dari database, bukan dari browser. Menu yang sudah

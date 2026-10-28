@@ -56,16 +56,16 @@ function csrfToken() {
  * Kirim JSON ke server dan kembalikan status + body.
  * Server membalas 422 dengan `errors` untuk pelanggaran validasi.
  */
-async function kirimJson(url, payload) {
+async function kirimJson(url, payload, method = 'POST') {
     const response = await fetch(url, {
-        method: 'POST',
+        method,
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
             'X-CSRF-TOKEN': csrfToken(),
             'X-Requested-With': 'XMLHttpRequest',
         },
-        body: JSON.stringify(payload),
+        body: payload === null ? undefined : JSON.stringify(payload),
     });
 
     const data = await response.json().catch(() => null);
@@ -81,10 +81,10 @@ function pesanKesalahan(status, data) {
     if (pertama) return pertama;
 
     if (status === 419) return 'Sesi Anda berakhir. Muat ulang halaman lalu login kembali.';
-    if (status === 403) return 'Akun ini tidak berhak membuat pesanan kasir.';
+    if (status === 403) return 'Akun ini tidak berhak melakukan aksi ini.';
     if (status === 401) return 'Sesi Anda berakhir. Silakan login kembali.';
 
-    return data?.message ?? 'Pesanan gagal disimpan. Coba lagi.';
+    return data?.message ?? 'Permintaan gagal diproses. Coba lagi.';
 }
 
 function openDialog(dialog) {
@@ -1145,8 +1145,6 @@ function initPesananMasuk() {
         } else if (order.status === 'diproses') {
             actions += actionButton('finish', 'Selesai', 'primary', order);
         } else if (order.status === 'menunggu_pembayaran') {
-            actions += actionButton('check', 'Cek Status', 'secondary', order);
-
             if (order.payment_status === 'menunggu') {
                 actions += actionButton('cancel', 'Batalkan', 'danger', order);
             }
@@ -1255,7 +1253,7 @@ function initPesananMasuk() {
         if (order.status === 'diproses') return actionButton('finish', 'Selesai', 'primary', order);
 
         if (order.status === 'menunggu_pembayaran') {
-            let markup = actionButton('check', 'Cek Status', 'secondary', order);
+            let markup = '';
             if (order.payment_status === 'menunggu') {
                 markup += actionButton('cancel', 'Batalkan Pesanan', 'danger', order);
             }
@@ -1327,18 +1325,38 @@ function initPesananMasuk() {
 
     /* ------------------------- aksi status pesanan ----------------------- */
 
-    const simulateCheckStatus = (order) => {
-        showToast('Memeriksa status pembayaran ke Midtrans...');
+    let mengubahStatus = false;
 
-        window.setTimeout(() => {
-            if (order.payment_status === 'menunggu') {
-                showToast(`Pesanan ${order.code} masih menunggu pembayaran.`);
-            } else if (order.payment_status === 'perlu_diperiksa') {
-                showToast('Pesanan perlu diperiksa manual melalui dashboard Midtrans.');
-            } else {
-                showToast(`Status pembayaran ${order.code} sudah lunas.`);
+    const ubahStatus = async (order, status) => {
+        if (mengubahStatus) return;
+
+        mengubahStatus = true;
+
+        try {
+            const hasil = await kirimJson(
+                config.routes.pesananStatus.replace('__ID__', encodeURIComponent(order.id)),
+                { status },
+                'PATCH',
+            );
+
+            if (!hasil.ok) {
+                showToast(pesanKesalahan(hasil.status, hasil.data));
+                return;
             }
-        }, 900);
+
+            order.status = hasil.data?.data?.status_pesanan ?? status;
+            closeDialog(detailDialog);
+            showToast(
+                order.status === 'diproses'
+                    ? `Pesanan ${order.code} mulai diproses.`
+                    : `Pesanan ${order.code} selesai.`,
+            );
+            renderOrders();
+        } catch {
+            showToast('Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.');
+        } finally {
+            mengubahStatus = false;
+        }
     };
 
     const openCancelConfirm = (order) => {
@@ -1360,11 +1378,6 @@ function initPesananMasuk() {
             return;
         }
 
-        if (action === 'check') {
-            simulateCheckStatus(order);
-            return;
-        }
-
         if (action === 'cancel') {
             closeDialog(detailDialog);
             openCancelConfirm(order);
@@ -1372,18 +1385,12 @@ function initPesananMasuk() {
         }
 
         if (action === 'process') {
-            order.status = 'diproses';
-            closeDialog(detailDialog);
-            showToast(`Pesanan ${order.code} mulai diproses.`);
-            renderOrders();
+            ubahStatus(order, 'diproses');
             return;
         }
 
         if (action === 'finish') {
-            order.status = 'selesai';
-            closeDialog(detailDialog);
-            showToast(`Pesanan ${order.code} selesai.`);
-            renderOrders();
+            ubahStatus(order, 'selesai');
         }
     };
 

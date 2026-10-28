@@ -3,19 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Kasir\StoreOrderRequest;
+use App\Http\Requests\Kasir\UpdateOrderStatusRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Category;
 use App\Models\Menu;
+use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Carbon;
 
 /**
  * Tampilan kasir (front-end).
  *
  * Catatan tahap pengerjaan:
- * - Menu dan kategori sudah dibaca dari database.
- * - Pesanan tunai sudah disimpan ke database lewat storeOrder().
- * - Pesanan masuk dan kelola menu masih data contoh sampai slice berikutnya.
+ * - Menu dan kategori dibaca dari database.
+ * - Buat Pesanan menyimpan order tunai lewat POST /kasir/pesanan.
+ * - Pesanan Masuk membaca order dari database dan bisa mengubah status.
+ * - Kelola Menu masih data contoh sampai slice CRUD berikutnya.
  */
 class KasirController extends Controller
 {
@@ -61,6 +65,23 @@ class KasirController extends Controller
         return (new OrderResource($order))
             ->response()
             ->setStatusCode(201);
+    }
+
+    /**
+     * Ubah status pesanan: antre → diproses → selesai.
+     *
+     * Transisi yang tidak sah ditolak `OrderService` dengan respons 422.
+     */
+    public function updateStatus(
+        UpdateOrderStatusRequest $request,
+        Order $order,
+        OrderService $orderService,
+    ): JsonResponse {
+        $order = $orderService->ubahStatus($order, $request->statusPesanan());
+
+        return (new OrderResource($order))
+            ->response()
+            ->setStatusCode(200);
     }
 
     private function kasir(): array
@@ -112,216 +133,77 @@ class KasirController extends Controller
             ->all();
     }
 
+    /**
+     * Daftar pesanan hari ini untuk halaman Pesanan Masuk.
+     *
+     * Order QRIS yang belum dibayar belum punya nomor antrean, jadi filter
+     * memakai tanggal dibuat agar pesanan itu tetap tampil di tab Belum Dibayar.
+     */
     private function orders(): array
     {
-        $item = static fn (string $name, int $price, int $qty, ?string $note = null): array => [
-            'name' => $name,
-            'price' => $price,
-            'qty' => $qty,
-            'subtotal' => $price * $qty,
-            'note' => $note,
+        return Order::query()
+            ->with('items')
+            ->whereDate('created_at', now()->toDateString())
+            ->latest('created_at')
+            ->get()
+            ->map(fn (Order $order): array => [
+                'id' => (string) $order->id,
+                'code' => $order->kode_pesanan,
+                'queue' => $order->nomor_antrean === null
+                    ? null
+                    : str_pad((string) $order->nomor_antrean, 3, '0', STR_PAD_LEFT),
+                'customer' => $order->nama_pelanggan,
+                'type' => $order->tipe_pesanan->value,
+                'type_label' => $order->tipe_pesanan->label(),
+                'source' => $order->sumber->value,
+                'status' => $order->status_pesanan->value,
+                'payment' => $order->metode_pembayaran->value,
+                'payment_label' => $order->metode_pembayaran->label(),
+                'payment_status' => $order->status_pembayaran->value,
+                'total' => $order->total,
+                'created_at' => $this->formatWaktu($order->created_at),
+                'midtrans_id' => null,
+                'cash_received' => $order->uang_diterima,
+                'change' => $order->kembalian,
+                'expires_at' => $order->batas_waktu_pembayaran
+                    ? $this->formatWaktu($order->batas_waktu_pembayaran)
+                    : null,
+                'notes' => $order->catatan,
+                'items' => $order->items
+                    ->map(fn ($item): array => [
+                        'name' => $item->nama_menu,
+                        'price' => $item->harga_satuan,
+                        'qty' => $item->jumlah,
+                        'subtotal' => $item->subtotal,
+                        'note' => $item->catatan,
+                    ])
+                    ->all(),
+            ])
+            ->all();
+    }
+
+    /**
+     * Format waktu tampilan kasir: "23 Okt 2026 • 21:04 WIB".
+     */
+    private function formatWaktu(?Carbon $waktu): ?string
+    {
+        if (! $waktu) {
+            return null;
+        }
+
+        $bulan = [
+            1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+            'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
         ];
 
-        return [
-            [
-                'id' => 'V7K2M9QX',
-                'code' => 'V7K2M9QX',
-                'queue' => '001',
-                'customer' => 'Anjani',
-                'type' => 'dine_in',
-                'type_label' => 'Dine In',
-                'source' => 'qr',
-                'status' => 'antre',
-                'payment' => 'qris',
-                'payment_label' => 'QRIS BCA',
-                'payment_status' => 'lunas',
-                'total' => 90000,
-                'created_at' => '23 Okt 2026 • 21:04 WIB',
-                'midtrans_id' => 'a71f9c2e-4b80-4c11-9d0e-8a4b7f2c1d63',
-                'notes' => 'Less Sugar',
-                'items' => [
-                    $item('Varya Signature', 22000, 1, 'Less Sugar (50%) • Normal Ice'),
-                    $item('Almond Croissant', 26000, 1),
-                    $item('Dimsum Mentai', 24000, 1),
-                    $item('Americano Street', 18000, 1, 'Normal Ice • No Sugar'),
-                ],
-            ],
-            [
-                'id' => 'R4M8P2TZ',
-                'code' => 'R4M8P2TZ',
-                'queue' => '002',
-                'customer' => 'Rian Pratama',
-                'type' => 'take_away',
-                'type_label' => 'Take Away',
-                'source' => 'kasir',
-                'status' => 'antre',
-                'payment' => 'tunai',
-                'payment_label' => 'Tunai',
-                'payment_status' => 'lunas',
-                'total' => 56000,
-                'created_at' => '23 Okt 2026 • 21:10 WIB',
-                'midtrans_id' => null,
-                'cash_received' => 60000,
-                'change' => 4000,
-                'notes' => 'Less Sugar',
-                'items' => [
-                    $item('Americano Street', 18000, 2, 'Less Sugar'),
-                    $item('Roti Bakar Mix', 20000, 1),
-                ],
-            ],
-            [
-                'id' => 'H9N3C6WL',
-                'code' => 'H9N3C6WL',
-                'queue' => '003',
-                'customer' => 'Salsabila Putri',
-                'type' => 'take_away',
-                'type_label' => 'Take Away',
-                'source' => 'qr',
-                'status' => 'diproses',
-                'payment' => 'qris',
-                'payment_label' => 'QRIS BCA',
-                'payment_status' => 'lunas',
-                'total' => 72000,
-                'created_at' => '23 Okt 2026 • 21:14 WIB',
-                'midtrans_id' => 'c2d84e1a-9f35-4a67-bc20-3e5f7a1d9b44',
-                'notes' => 'Extra Spicy',
-                'items' => [
-                    $item('Matcha Creamy', 24000, 2),
-                    $item('Dimsum Mentai', 24000, 1, 'Extra Spicy'),
-                ],
-            ],
-            [
-                'id' => 'B5T1Y8KD',
-                'code' => 'B5T1Y8KD',
-                'queue' => '004',
-                'customer' => 'Bagas Pratama',
-                'type' => 'dine_in',
-                'type_label' => 'Dine In',
-                'source' => 'qr',
-                'status' => 'selesai',
-                'payment' => 'qris',
-                'payment_label' => 'QRIS BCA',
-                'payment_status' => 'lunas',
-                'total' => 56000,
-                'created_at' => '23 Okt 2026 • 20:42 WIB',
-                'midtrans_id' => 'f0a3b7d9-2c64-4e18-8a55-6d1f9c3b7e21',
-                'notes' => 'Light Roast',
-                'items' => [
-                    $item('Cold Brew Grit', 30000, 1, 'Light Roast'),
-                    $item('Almond Croissant', 26000, 1),
-                ],
-            ],
-            [
-                'id' => 'Q8S6J4AX',
-                'code' => 'Q8S6J4AX',
-                'queue' => null,
-                'customer' => 'Nadia Kirana',
-                'type' => 'dine_in',
-                'type_label' => 'Dine In',
-                'source' => 'qr',
-                'status' => 'menunggu_pembayaran',
-                'payment' => 'qris',
-                'payment_label' => 'QRIS BCA',
-                'payment_status' => 'menunggu',
-                'total' => 66000,
-                'created_at' => '23 Okt 2026 • 21:18 WIB',
-                'expires_at' => '23 Okt 2026 • 21:33 WIB',
-                'midtrans_id' => '7e1b5c8a-0d42-4f96-b3a1-9c8e2f6d4a10',
-                'notes' => null,
-                'items' => [
-                    $item('Varya Signature', 22000, 2),
-                    $item('Truffle Fries', 22000, 1),
-                ],
-            ],
-            [
-                'id' => 'M2D7F9VR',
-                'code' => 'M2D7F9VR',
-                'queue' => null,
-                'customer' => 'Fajar Ramadhan',
-                'type' => 'take_away',
-                'type_label' => 'Take Away',
-                'source' => 'qr',
-                'status' => 'menunggu_pembayaran',
-                'payment' => 'qris',
-                'payment_label' => 'QRIS BCA',
-                'payment_status' => 'perlu_diperiksa',
-                'total' => 52000,
-                'created_at' => '23 Okt 2026 • 21:15 WIB',
-                'expires_at' => '23 Okt 2026 • 21:30 WIB',
-                'midtrans_id' => '3a9c6e2b-7f51-48d0-a6c4-1b5e9f7d2c88',
-                'notes' => 'Tanpa Es',
-                'items' => [
-                    $item('Sunset Mocktail', 26000, 1, 'Tanpa Es'),
-                    $item('Almond Croissant', 26000, 1),
-                ],
-            ],
-            [
-                'id' => 'K3W8L5NB',
-                'code' => 'K3W8L5NB',
-                'queue' => '005',
-                'customer' => 'Dewi Lestari',
-                'type' => 'dine_in',
-                'type_label' => 'Dine In',
-                'source' => 'kasir',
-                'status' => 'selesai',
-                'payment' => 'tunai',
-                'payment_label' => 'Tunai',
-                'payment_status' => 'lunas',
-                'total' => 45000,
-                'created_at' => '23 Okt 2026 • 20:10 WIB',
-                'midtrans_id' => null,
-                'cash_received' => 50000,
-                'change' => 5000,
-                'notes' => null,
-                'items' => [
-                    $item('Caramel Macchiato', 25000, 1),
-                    $item('Roti Bakar Mix', 20000, 1),
-                ],
-            ],
-            [
-                'id' => 'X6P1D9CM',
-                'code' => 'X6P1D9CM',
-                'queue' => '006',
-                'customer' => 'Yoga Pratama',
-                'type' => 'take_away',
-                'type_label' => 'Take Away',
-                'source' => 'kasir',
-                'status' => 'selesai',
-                'payment' => 'tunai',
-                'payment_label' => 'Tunai',
-                'payment_status' => 'lunas',
-                'total' => 42000,
-                'created_at' => '23 Okt 2026 • 19:55 WIB',
-                'midtrans_id' => null,
-                'cash_received' => 50000,
-                'change' => 8000,
-                'notes' => 'Bungkus terpisah',
-                'items' => [
-                    $item('Americano Street', 18000, 1),
-                    $item('Dimsum Mentai', 24000, 1, 'Bungkus terpisah'),
-                ],
-            ],
-            [
-                'id' => 'A4G2Z7YH',
-                'code' => 'A4G2Z7YH',
-                'queue' => '007',
-                'customer' => 'Intan Permata',
-                'type' => 'dine_in',
-                'type_label' => 'Dine In',
-                'source' => 'qr',
-                'status' => 'selesai',
-                'payment' => 'qris',
-                'payment_label' => 'QRIS BCA',
-                'payment_status' => 'lunas',
-                'total' => 46000,
-                'created_at' => '23 Okt 2026 • 19:30 WIB',
-                'midtrans_id' => '9d5f2a7c-6b18-4e03-8c74-2f1a6b9d5e37',
-                'notes' => null,
-                'items' => [
-                    $item('Varya Signature', 22000, 1),
-                    $item('Matcha Creamy', 24000, 1),
-                ],
-            ],
-        ];
+        $lokal = $waktu->copy()->timezone('Asia/Jakarta');
+
+        return sprintf(
+            '%d %s %d • %s WIB',
+            $lokal->day,
+            $bulan[$lokal->month],
+            $lokal->year,
+            $lokal->format('H:i'),
+        );
     }
 }

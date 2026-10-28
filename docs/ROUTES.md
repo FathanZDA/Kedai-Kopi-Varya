@@ -31,7 +31,8 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | ANY | `/kasir` | — | Redirect 301 ke `/kasir/pesanan/baru` | `auth` + `role:kasir` |
 | GET | `/kasir/pesanan/baru` | `kasir.pesanan.baru` | `KasirController@buatPesanan` | `auth` + `role:kasir`; menu dari DB |
 | POST | `/kasir/pesanan` | `kasir.pesanan.store` | `KasirController@storeOrder` | `auth` + `role:kasir`; order tunai langsung lunas + nomor antrean |
-| GET | `/kasir/pesanan` | `kasir.pesanan.index` | `KasirController@pesananMasuk` | `auth` + `role:kasir`; data contoh |
+| GET | `/kasir/pesanan` | `kasir.pesanan.index` | `KasirController@pesananMasuk` | `auth` + `role:kasir`; pesanan hari ini dari DB |
+| PATCH | `/kasir/pesanan/{order}/status` | `kasir.pesanan.status` | `KasirController@updateStatus` | `auth` + `role:kasir`; `antre → diproses → selesai` |
 | GET | `/kasir/menu` | `kasir.menu.index` | `KasirController@kelolaMenu` | `auth` + `role:kasir`; menu dari DB |
 | ANY | `/admin` | — | Redirect 301 ke `/admin/dashboard` | `auth` + `role:admin` |
 | GET | `/admin/dashboard` | `admin.dashboard` | `AdminController@dashboard` | `auth` + `role:admin`; transaksi contoh |
@@ -44,7 +45,8 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 
 Belum ada:
 
-- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`.
+- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan` dan `PATCH /kasir/pesanan/{order}/status`.
+- Route polling (`GET /kasir/pesanan/poll`), detail pesanan, pembatalan, dan cek status pembayaran.
 - Webhook Midtrans.
 - Rate limiting untuk checkout/status pesanan (login sudah dibatasi 5 percobaan/menit).
 
@@ -126,6 +128,12 @@ Catatan:
 - `GET /kasir/pesanan/poll` harus didaftarkan sebelum `GET /kasir/pesanan/{order}`.
 - Kasir tidak punya route untuk mengubah item, harga, atau menandai QRIS lunas.
 - `POST /kasir/pesanan` hanya menerima `metode_pembayaran = tunai`; QRIS ditolak.
+
+Status implementasi 28 Okt 2026:
+
+- `GET /kasir/pesanan/baru`, `POST /kasir/pesanan`, `GET /kasir/pesanan`, dan `PATCH /kasir/pesanan/{order}/status` **sudah aktif**.
+- `GET /kasir/pesanan/poll`, `GET /kasir/pesanan/{order}`, `POST .../cancel`, `POST .../check-status`, dan `PATCH /kasir/menu/{menu}/availability` **belum dibuat**.
+- Daftar pesanan memuat order yang dibuat pada hari berjalan (`created_at` hari ini, zona `Asia/Jakarta`), supaya order QRIS yang belum dibayar tetap tampil di tab Belum Dibayar meski belum punya nomor antrean.
 
 ### 2.5 Admin
 
@@ -389,7 +397,40 @@ Catatan:
 - Jangan mengirim seluruh riwayat; gunakan `sejak` atau filter tab.
 - Pastikan kasir hanya melihat data yang relevan.
 
-### 4.6 `POST /api/midtrans/notification`
+### 4.6 `PATCH /kasir/pesanan/{order}/status`
+
+Request:
+
+```json
+{
+  "status": "diproses"
+}
+```
+
+Response `200`:
+
+```json
+{
+  "data": {
+    "kode_pesanan": "V7K2M9QX",
+    "nomor_antrean": "007",
+    "status_pesanan": "diproses",
+    "status_pesanan_label": "Diproses"
+  }
+}
+```
+
+Aturan:
+
+- Hanya transisi `antre → diproses` dan `diproses → selesai` yang diterima.
+- Transisi lain (melompati tahap, mengubah pesanan `selesai`, atau pesanan `menunggu_pembayaran`) ditolak `422` dengan error pada field `status`.
+- `{order}` adalah id numerik order, bukan `kode_pesanan`.
+- Perubahan status berjalan di dalam `DB::transaction` + `lockForUpdate` agar dua kasir tidak mengubah bersamaan.
+- Error penting: `401` tamu, `403` bukan kasir, `404` order tidak ada, `422` transisi tidak sah.
+
+Status 28 Okt 2026: **sudah diimplementasikan** di `KasirController@updateStatus` + `App\Services\OrderService::ubahStatus` + `App\Http\Requests\Kasir\UpdateOrderStatusRequest`. Respons memakai `OrderResource` sehingga berisi field tambahan di luar contoh (`total`, `uang_diterima`, `kembalian`, `item`, label lain) — semua field contoh tetap ada.
+
+### 4.7 `POST /api/midtrans/notification`
 
 Payload contoh (key mengikuti Midtrans, bukan bahasa Indonesia):
 
@@ -433,7 +474,7 @@ Aturan:
 | `/pesan/pembayaran` | `/pesanan/{kode_pesanan}` | Hapus halaman demo |
 | `/pesan/berhasil` | `/pesanan/{kode_pesanan}` | Hapus halaman demo |
 | Belum ada login | `/login`, `POST /login`, `POST /logout` | **Selesai** — auth manual + role redirect |
-| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan` **selesai**; action lain menyusul |
+| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan` dan `PATCH /kasir/pesanan/{order}/status` **selesai**; action lain menyusul |
 | Belum ada webhook | `/api/midtrans/notification` | Tambah route + CSRF exception |
 | Belum ada role | `auth` + `role:*` | **Selesai** — middleware `role` aktif di area kasir/admin |
 | Belum ada rate limit | `throttle:*` | Login selesai; checkout/status menyusul |
