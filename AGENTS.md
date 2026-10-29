@@ -23,7 +23,7 @@ Sumber aturan bisnis utama adalah `PRD.md`. Detail alur per role ada di `kasir.m
 
 ## 2. Status saat ini
 
-Per 27 Oktober 2026:
+Per 29 Oktober 2026. Ringkasan serah-terima antar sesi (branch, baseline test, slice berikutnya, catatan lingkungan) ada di **`docs/HANDOFF.md`** — baca itu lebih dulu saat memulai sesi baru.
 
 - **Front-end publik Pelanggan A:** sudah memakai database (`categories`, `menus`, `promos`, `store_settings`, `store_hours`).
 - **Front-end Pelanggan B:** menu dan toko sudah dari database. Keranjang dan checkout masih `localStorage`/`sessionStorage`; simulasi pembayaran sudah dihapus, tetapi Midtrans belum aktif sehingga tidak ada pesanan yang ditandai lunas dari browser.
