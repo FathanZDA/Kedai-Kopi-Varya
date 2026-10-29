@@ -130,10 +130,10 @@ Catatan:
 - Kasir tidak punya route untuk mengubah item, harga, atau menandai QRIS lunas.
 - `POST /kasir/pesanan` hanya menerima `metode_pembayaran = tunai`; QRIS ditolak.
 
-Status implementasi 28 Okt 2026:
+Status implementasi 29 Okt 2026:
 
-- `GET /kasir/pesanan/baru`, `POST /kasir/pesanan`, `GET /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `GET /kasir/menu`, dan `PATCH /kasir/menu/{menu}/availability` **sudah aktif**.
-- `GET /kasir/pesanan/poll`, `GET /kasir/pesanan/{order}`, `POST .../cancel`, dan `POST .../check-status` **belum dibuat**.
+- `GET /kasir/pesanan/baru`, `POST /kasir/pesanan`, `GET /kasir/pesanan`, `GET /kasir/pesanan/poll`, `PATCH /kasir/pesanan/{order}/status`, `GET /kasir/menu`, dan `PATCH /kasir/menu/{menu}/availability` **sudah aktif**.
+- `GET /kasir/pesanan/{order}`, `POST .../cancel`, dan `POST .../check-status` **belum dibuat**.
 - Daftar pesanan memuat order yang dibuat pada hari berjalan (`created_at` hari ini, zona `Asia/Jakarta`), supaya order QRIS yang belum dibayar tetap tampil di tab Belum Dibayar meski belum punya nomor antrean.
 
 ### 2.5 Admin
@@ -398,6 +398,17 @@ Catatan:
 - Jangan mengirim seluruh riwayat; gunakan `sejak` atau filter tab.
 - Pastikan kasir hanya melihat data yang relevan.
 
+Perilaku implementasi 29 Okt 2026 (`KasirController@pollOrders` + `PollOrdersRequest`):
+
+- Tanpa `sejak`: mengirim seluruh pesanan **hari ini** (bukan riwayat semua hari). Filter memakai `orders.created_at` hari berjalan, sama dengan halaman Pesanan Masuk.
+- Dengan `sejak`: hanya mengirim pesanan yang `updated_at >= sejak`. Perbandingan `>=` dipakai karena kolom timestamp MySQL berpresisi detik; satu baris terkirim ulang lebih aman daripada melewatkan perubahan status pada detik yang sama.
+- `waktu_server` diambil **sebelum** query dijalankan, sehingga baris yang berubah saat query berjalan tetap terkirim pada polling berikutnya. Klien memakai nilai ini sebagai `sejak` berikutnya, bukan jam perangkat.
+- `jumlah` selalu berisi hitungan penuh hari ini, termasuk saat `pesanan` kosong, supaya badge tab tetap benar.
+- `sejak` yang tidak bisa diparse menghasilkan `422` pada field `sejak`.
+- Route diberi `throttle:120,1` (120 permintaan/menit per pengguna) — cukup untuk polling 7 detik di beberapa tab.
+- Bentuk tiap item `pesanan` sama dengan `data-orders-data` pada halaman Pesanan Masuk, sehingga klien bisa menggabungkan tanpa transformasi.
+- Belum ada `dibatalkan` di `jumlah`; akan ditambahkan saat pembatalan QRIS dibuat.
+
 ### 4.6 `PATCH /kasir/pesanan/{order}/status`
 
 Request:
@@ -512,7 +523,7 @@ Status 28 Okt 2026: **sudah diimplementasikan** di `KasirController@updateAvaila
 | Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, dan `PATCH /kasir/menu/{menu}/availability` **selesai**; action lain menyusul |
 | Belum ada webhook | `/api/midtrans/notification` | Tambah route + CSRF exception |
 | Belum ada role | `auth` + `role:*` | **Selesai** — middleware `role` aktif di area kasir/admin |
-| Belum ada rate limit | `throttle:*` | Login selesai; checkout/status menyusul |
+| Belum ada rate limit | `throttle:*` | Login dan `GET /kasir/pesanan/poll` selesai; checkout/status menyusul |
 
 ---
 

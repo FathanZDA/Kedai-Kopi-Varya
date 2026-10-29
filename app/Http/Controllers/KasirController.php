@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StatusPesanan;
+use App\Http\Requests\Kasir\PollOrdersRequest;
 use App\Http\Requests\Kasir\StoreOrderRequest;
 use App\Http\Requests\Kasir\UpdateMenuAvailabilityRequest;
 use App\Http\Requests\Kasir\UpdateOrderStatusRequest;
@@ -11,6 +13,9 @@ use App\Models\Category;
 use App\Models\Menu;
 use App\Models\Order;
 use App\Services\OrderService;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 
@@ -20,7 +25,8 @@ use Illuminate\Support\Carbon;
  * Catatan tahap pengerjaan:
  * - Menu dan kategori dibaca dari database.
  * - Buat Pesanan menyimpan order tunai lewat POST /kasir/pesanan.
- * - Pesanan Masuk membaca order dari database dan bisa mengubah status.
+ * - Pesanan Masuk membaca order dari database, bisa mengubah status, dan
+ *   menyegarkan daftar lewat polling GET /kasir/pesanan/poll.
  * - Kelola Menu membaca menu dari database dan mengubah status ketersediaan.
  */
 class KasirController extends Controller
@@ -84,6 +90,31 @@ class KasirController extends Controller
         return (new OrderResource($order))
             ->response()
             ->setStatusCode(200);
+    }
+
+    /**
+     * Polling Pesanan Masuk.
+     *
+     * Mengembalikan pesanan hari ini (atau hanya yang berubah sejak `sejak`),
+     * jumlah per status, dan `waktu_server` untuk dipakai sebagai `sejak`
+     * pada permintaan berikutnya. Kontrak: docs/ROUTES.md §4.5.
+     */
+    public function pollOrders(PollOrdersRequest $request): JsonResponse
+    {
+        // Diambil sebelum query: baris yang berubah saat query berjalan tetap
+        // terkirim pada polling berikutnya, bukan hilang.
+        $waktuServer = now();
+        $pesanan = $this->daftarOrderHariIni($request->sejak());
+
+        return response()->json([
+            'data' => [
+                'waktu_server' => $waktuServer->toIso8601String(),
+                'jumlah' => $this->jumlahPesananHariIni(),
+                'pesanan' => $pesanan
+                    ->map(fn (Order $order): array => $this->payloadPesanan($order))
+                    ->all(),
+            ],
+        ]);
     }
 
     /**
@@ -159,45 +190,91 @@ class KasirController extends Controller
      */
     private function orders(): array
     {
+        return $this->daftarOrderHariIni()
+            ->map(fn (Order $order): array => $this->payloadPesanan($order))
+            ->all();
+    }
+
+    /**
+     * Order yang dibuat hari ini, opsional hanya yang berubah sejak waktu tertentu.
+     *
+     * Perbandingan memakai `>=` karena kolom timestamp MySQL berpresisi detik;
+     * mengirim ulang satu baris lebih aman daripada melewatkan perubahan status
+     * yang terjadi pada detik yang sama dengan `sejak`.
+     *
+     * @return Collection<int, Order>
+     */
+    private function daftarOrderHariIni(?CarbonInterface $sejak = null): Collection
+    {
         return Order::query()
             ->with('items')
             ->whereDate('created_at', now()->toDateString())
+            ->when($sejak, fn (Builder $query) => $query->where('updated_at', '>=', $sejak))
             ->latest('created_at')
-            ->get()
-            ->map(fn (Order $order): array => [
-                'id' => (string) $order->id,
-                'code' => $order->kode_pesanan,
-                'queue' => $order->nomor_antrean === null
-                    ? null
-                    : str_pad((string) $order->nomor_antrean, 3, '0', STR_PAD_LEFT),
-                'customer' => $order->nama_pelanggan,
-                'type' => $order->tipe_pesanan->value,
-                'type_label' => $order->tipe_pesanan->label(),
-                'source' => $order->sumber->value,
-                'status' => $order->status_pesanan->value,
-                'payment' => $order->metode_pembayaran->value,
-                'payment_label' => $order->metode_pembayaran->label(),
-                'payment_status' => $order->status_pembayaran->value,
-                'total' => $order->total,
-                'created_at' => $this->formatWaktu($order->created_at),
-                'midtrans_id' => null,
-                'cash_received' => $order->uang_diterima,
-                'change' => $order->kembalian,
-                'expires_at' => $order->batas_waktu_pembayaran
-                    ? $this->formatWaktu($order->batas_waktu_pembayaran)
-                    : null,
-                'notes' => $order->catatan,
-                'items' => $order->items
-                    ->map(fn ($item): array => [
-                        'name' => $item->nama_menu,
-                        'price' => $item->harga_satuan,
-                        'qty' => $item->jumlah,
-                        'subtotal' => $item->subtotal,
-                        'note' => $item->catatan,
-                    ])
-                    ->all(),
-            ])
-            ->all();
+            ->get();
+    }
+
+    /**
+     * Jumlah pesanan hari ini per status untuk kontrak polling.
+     *
+     * @return array<string, int>
+     */
+    private function jumlahPesananHariIni(): array
+    {
+        $jumlah = Order::query()
+            ->whereDate('created_at', now()->toDateString())
+            ->selectRaw('status_pesanan, COUNT(*) as total')
+            ->groupBy('status_pesanan')
+            ->pluck('total', 'status_pesanan');
+
+        return [
+            'belum_dibayar' => (int) ($jumlah[StatusPesanan::MenungguPembayaran->value] ?? 0),
+            'antre' => (int) ($jumlah[StatusPesanan::Antre->value] ?? 0),
+            'diproses' => (int) ($jumlah[StatusPesanan::Diproses->value] ?? 0),
+            'selesai' => (int) ($jumlah[StatusPesanan::Selesai->value] ?? 0),
+        ];
+    }
+
+    /**
+     * Bentuk data satu pesanan untuk halaman Pesanan Masuk dan polling.
+     *
+     * @return array<string, mixed>
+     */
+    private function payloadPesanan(Order $order): array
+    {
+        return [
+            'id' => (string) $order->id,
+            'code' => $order->kode_pesanan,
+            'queue' => $order->nomor_antrean === null
+                ? null
+                : str_pad((string) $order->nomor_antrean, 3, '0', STR_PAD_LEFT),
+            'customer' => $order->nama_pelanggan,
+            'type' => $order->tipe_pesanan->value,
+            'type_label' => $order->tipe_pesanan->label(),
+            'source' => $order->sumber->value,
+            'status' => $order->status_pesanan->value,
+            'payment' => $order->metode_pembayaran->value,
+            'payment_label' => $order->metode_pembayaran->label(),
+            'payment_status' => $order->status_pembayaran->value,
+            'total' => $order->total,
+            'created_at' => $this->formatWaktu($order->created_at),
+            'midtrans_id' => null,
+            'cash_received' => $order->uang_diterima,
+            'change' => $order->kembalian,
+            'expires_at' => $order->batas_waktu_pembayaran
+                ? $this->formatWaktu($order->batas_waktu_pembayaran)
+                : null,
+            'notes' => $order->catatan,
+            'items' => $order->items
+                ->map(fn ($item): array => [
+                    'name' => $item->nama_menu,
+                    'price' => $item->harga_satuan,
+                    'qty' => $item->jumlah,
+                    'subtotal' => $item->subtotal,
+                    'note' => $item->catatan,
+                ])
+                ->all(),
+        ];
     }
 
     /**

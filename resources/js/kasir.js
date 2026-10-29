@@ -922,6 +922,7 @@ function initPesananMasuk() {
     const root = document.querySelector('[data-kasir-pesanan-masuk]');
     if (!root) return;
 
+    const config = window.KASIR_CONFIG ?? {};
     const dataElement = root.querySelector('[data-orders-data]');
     let orders = [];
 
@@ -1391,6 +1392,105 @@ function initPesananMasuk() {
     });
 
     [detailDialog, confirmDialog].forEach(enableBackdropClose);
+
+    /* ----------------------------- polling ------------------------------- */
+
+    const POLL_INTERVAL = 7000;
+
+    let pollSejak = null;
+    let pollTimer = null;
+    let sedangPolling = false;
+    let gagalPollBeruntun = 0;
+
+    const hentikanPolling = () => {
+        if (pollTimer !== null) {
+            window.clearInterval(pollTimer);
+            pollTimer = null;
+        }
+    };
+
+    /**
+     * Gabungkan hasil polling ke daftar yang sedang tampil.
+     * Objek lama dipertahankan agar dialog detail yang sedang terbuka
+     * ikut terbarui tanpa kehilangan referensi.
+     */
+    const gabungkanPesanan = (daftar) => {
+        let baru = 0;
+        let berubah = false;
+
+        daftar.forEach((masuk) => {
+            const lama = orders.find((order) => order.id === masuk.id);
+
+            if (!lama) {
+                orders.push(masuk);
+                berubah = true;
+                if (masuk.status === 'antre') baru += 1;
+                return;
+            }
+
+            if (JSON.stringify(lama) !== JSON.stringify(masuk)) {
+                Object.assign(lama, masuk);
+                berubah = true;
+            }
+        });
+
+        return { baru, berubah };
+    };
+
+    const poll = async () => {
+        if (sedangPolling || document.hidden) return;
+
+        sedangPolling = true;
+
+        try {
+            const url = new URL(config.routes.pesananPoll, window.location.origin);
+            if (pollSejak) url.searchParams.set('sejak', pollSejak);
+
+            const response = await fetch(url, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+
+            if (response.status === 401 || response.status === 419) {
+                hentikanPolling();
+                showToast('Sesi Anda berakhir. Muat ulang halaman lalu login kembali.');
+                return;
+            }
+
+            if (!response.ok) {
+                gagalPollBeruntun += 1;
+                if (gagalPollBeruntun === 1) {
+                    showToast('Gagal menyegarkan pesanan. Mencoba lagi...');
+                }
+                return;
+            }
+
+            const hasil = await response.json();
+            gagalPollBeruntun = 0;
+            pollSejak = hasil?.data?.waktu_server ?? pollSejak;
+
+            const { baru, berubah } = gabungkanPesanan(hasil?.data?.pesanan ?? []);
+
+            if (baru > 0) {
+                showToast(`${baru} pesanan baru masuk.`);
+            }
+
+            if (berubah) renderOrders();
+        } catch {
+            gagalPollBeruntun += 1;
+            if (gagalPollBeruntun === 1) {
+                showToast('Tidak dapat menyegarkan pesanan. Periksa koneksi.');
+            }
+        } finally {
+            sedangPolling = false;
+        }
+    };
+
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) poll();
+    });
+
+    pollTimer = window.setInterval(poll, POLL_INTERVAL);
 
     renderOrders();
 }
