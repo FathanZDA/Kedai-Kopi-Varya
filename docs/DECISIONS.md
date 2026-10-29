@@ -1,7 +1,7 @@
 # Decision Log — Kedai Kopi Varya
 
 **Status:** FINAL untuk keputusan inti
-**Terakhir diperbarui:** 27 Oktober 2026
+**Terakhir diperbarui:** 29 Oktober 2026
 **Acuan utama:** `PRD.md`
 
 Dokumen ini mencatat keputusan teknis dan bisnis yang mengikat pekerjaan backend. Jika ada konflik, `PRD.md` menang. Keputusan di sini hanya boleh menyimpang dari PRD jika PRD sudah diperbarui pada commit yang sama.
@@ -84,6 +84,8 @@ Jika keputusan berubah, tambahkan baris baru dan tandai yang lama sebagai `SUPER
 | F-49 | Pembatalan & cek status | `POST .../cancel` dan `POST .../check-status` tetap belum dibuat. Tombol batal hanya dirender untuk order `menunggu_pembayaran` yang belum lunas, dan order seperti itu baru ada setelah QRIS aktif. Tombol "Cek Status" demo dihapus agar tidak ada simulasi status pembayaran. | PRD §8.4.8, instruksi user 28 Okt 2026 |
 | F-50 | Ketersediaan menu oleh kasir | Kasir hanya boleh mengubah `menus.tersedia` lewat `PATCH /kasir/menu/{menu}/availability`. Nama, harga, kategori, deskripsi, dan foto tetap milik admin. Status tersedia/habis tidak lagi disimpan di `localStorage`; halaman Buat Pesanan membaca kolom database. | PRD §7.4 K-03, `admin.md` §8 |
 | F-51 | Polling Pesanan Masuk | `GET /kasir/pesanan/poll` mengirim snapshot pesanan **hari ini**; dengan `sejak` hanya pesanan yang `updated_at >= sejak`. Klien memakai `waktu_server` (diambil sebelum query) sebagai `sejak` berikutnya, menggabungkan hasil ke daftar tanpa memuat ulang halaman, dan berhenti polling saat tab tidak aktif. Interval 7 detik, `throttle:120,1`. | PRD §4.2, §7.4 K-02d, `docs/ROUTES.md` §4.5 |
+| F-52 | Checkout QRIS | `POST /pesan/checkout` menyimpan order + item lebih dulu dalam `DB::transaction` sebagai `menunggu_pembayaran` **tanpa nomor antrean**, lalu mencatat satu baris `payments` `{kode_pesanan}-P{n}` dan memanggil Snap lewat `MidtransService` (HTTP client, bukan SDK). Baris percobaan dicatat sebelum HTTP call agar nomor `P{n}` tidak dipakai ulang; percobaan gagal disimpan sebagai `status_transaksi = failure` dan order tetap `menunggu`. Bila `MIDTRANS_SERVER_KEY` belum diatur, endpoint menjawab `503` sebelum order dibuat. `callbacks.finish` belum dikirim sampai halaman `/pesanan/{kode_pesanan}` tersedia. | PRD §8.1.3, §8.4, §11.2, `docs/ROUTES.md` §4.1 |
+| F-53 | Rate limit checkout | `POST /pesan/checkout` (dan pembayaran ulang nanti) memakai limiter `checkout` 10 permintaan/menit per IP, didefinisikan di `AppServiceProvider`. Tamu tetap bisa checkout tanpa login. | `docs/ROUTES.md` §3, PRD §9 |
 
 ---
 
@@ -161,3 +163,4 @@ Catatan: O-16 bersifat operasional dan tidak menghambat pembuatan dokumen, migra
 | 28 Okt 2026 | Halaman Pesanan Masuk membaca order hari ini dari database dan `PATCH /kasir/pesanan/{order}/status` mengubah status `antre → diproses → selesai` lewat `OrderService::ubahStatus`. Tombol "Cek Status" demo dihapus; pembatalan belum tersambung ke server karena belum ada order belum-bayar. | Agent |
 | 28 Okt 2026 | Kelola Menu tersambung ke `PATCH /kasir/menu/{menu}/availability`: kasir hanya mengubah `menus.tersedia`. Override ketersediaan di `localStorage` (`readStorage`/`writeStorage`) dihapus, sehingga area kasir tidak lagi memakai browser storage. | Agent |
 | 29 Okt 2026 | Polling Pesanan Masuk (`GET /kasir/pesanan/poll`) ditambahkan: snapshot hari ini, filter `sejak` berbasis `updated_at`, `waktu_server` sebagai penanda berikutnya, `throttle:120,1`. `kasir.js` menggabungkan hasil polling tanpa reload, menampilkan toast untuk pesanan baru, dan berhenti saat tab tidak aktif. Bug slice 3 (`config` tidak dideklarasikan di `initPesananMasuk`) diperbaiki. | Agent |
+| 29 Okt 2026 | Checkout QRIS Pelanggan B (`POST /pesan/checkout`) ditambahkan: order `menunggu_pembayaran` tanpa nomor antrean, item snapshot dari database, percobaan `payments` `{kode}-P{n}`, transaksi Snap lewat `MidtransService`, `throttle:checkout`, dan UI checkout yang mengosongkan keranjang setelah order dibuat. Model `Payment` dipakai pertama kali. Webhook dan halaman status pesanan belum ada. | Agent |

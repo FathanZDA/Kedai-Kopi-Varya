@@ -44,8 +44,9 @@ Route::get('/lokasi', [PelangganAController::class, 'lokasi'])->name('pelanggan-
 |--------------------------------------------------------------------------
 | Pelanggan B — pemesanan mandiri di kedai (scan QR)
 |--------------------------------------------------------------------------
-| Tampilan UI memakai keranjang sisi klien. Tabel pesanan dan integrasi
-| Midtrans akan ditambahkan pada tahap backend berikutnya.
+| Keranjang masih di sisi klien. Checkout menyimpan order QRIS lewat
+| POST /pesan/checkout dan mengarahkan pelanggan ke halaman Snap Midtrans.
+| Halaman status pesanan dan webhook belum dibuat.
 */
 
 Route::prefix('pesan')->name('pelanggan-b.')->group(function () {
@@ -56,6 +57,10 @@ Route::prefix('pesan')->name('pelanggan-b.')->group(function () {
     Route::get('/keranjang', [PelangganBController::class, 'keranjang'])->name('keranjang');
 
     Route::get('/checkout', [PelangganBController::class, 'checkout'])->name('checkout');
+
+    Route::post('/checkout', [PelangganBController::class, 'storeCheckout'])
+        ->middleware('throttle:checkout')
+        ->name('checkout.store');
 
     Route::get('/pembayaran', [PelangganBController::class, 'pembayaran'])->name('pembayaran');
 

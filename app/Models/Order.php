@@ -59,6 +59,14 @@ class Order extends Model
     }
 
     /**
+     * Percobaan pembayaran QRIS, terlama lebih dulu.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
      * Kasir pembuat order; null untuk order dari QR pelanggan.
      */
     public function kasir(): BelongsTo

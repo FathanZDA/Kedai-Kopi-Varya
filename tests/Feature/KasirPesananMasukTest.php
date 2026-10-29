@@ -156,4 +156,37 @@ class KasirPesananMasukTest extends TestCase
 
         $this->assertSame(StatusPesanan::Antre, $order->fresh()->status_pesanan);
     }
+
+    public function test_order_qris_belum_dibayar_tampil_di_polling_dengan_id_midtrans(): void
+    {
+        $order = $this->buatOrder([
+            'kode_pesanan' => 'QR12CD34',
+            'nomor_antrean' => null,
+            'tanggal_antrean' => null,
+            'sumber' => SumberPesanan::Qr,
+            'status_pesanan' => StatusPesanan::MenungguPembayaran,
+            'metode_pembayaran' => MetodePembayaran::Qris,
+            'status_pembayaran' => StatusPembayaran::Menunggu,
+            'uang_diterima' => null,
+            'kembalian' => null,
+            'cashier_id' => null,
+            'waktu_lunas' => null,
+            'batas_waktu_pembayaran' => now()->addMinutes(15),
+        ]);
+
+        $order->payments()->create([
+            'midtrans_order_id' => 'QR12CD34-P1',
+            'status_transaksi' => 'pending',
+            'status_code' => '201',
+            'gross_amount' => '22000.00',
+        ]);
+
+        $this->actingAs($this->kasir)
+            ->getJson(route('kasir.pesanan.poll'))
+            ->assertOk()
+            ->assertJsonPath('data.jumlah.belum_dibayar', 1)
+            ->assertJsonPath('data.pesanan.0.code', 'QR12CD34')
+            ->assertJsonPath('data.pesanan.0.queue', null)
+            ->assertJsonPath('data.pesanan.0.midtrans_id', 'QR12CD34-P1');
+    }
 }

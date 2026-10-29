@@ -10,6 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ? $title.' — Kedai Kopi Varya' : 'Pesan di Kedai — Kedai Kopi Varya' }}</title>
     <meta name="description" content="{{ $description }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +21,7 @@
             menu: @json(route('pelanggan-b.beranda')),
             cart: @json(route('pelanggan-b.keranjang')),
             checkout: @json(route('pelanggan-b.checkout')),
+            checkoutStore: @json(route('pelanggan-b.checkout.store')),
             payment: @json(route('pelanggan-b.pembayaran')),
             success: @json(route('pelanggan-b.berhasil')),
         };

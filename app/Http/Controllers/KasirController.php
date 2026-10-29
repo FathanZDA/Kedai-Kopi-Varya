@@ -207,7 +207,7 @@ class KasirController extends Controller
     private function daftarOrderHariIni(?CarbonInterface $sejak = null): Collection
     {
         return Order::query()
-            ->with('items')
+            ->with(['items', 'payments'])
             ->whereDate('created_at', now()->toDateString())
             ->when($sejak, fn (Builder $query) => $query->where('updated_at', '>=', $sejak))
             ->latest('created_at')
@@ -258,7 +258,7 @@ class KasirController extends Controller
             'payment_status' => $order->status_pembayaran->value,
             'total' => $order->total,
             'created_at' => $this->formatWaktu($order->created_at),
-            'midtrans_id' => null,
+            'midtrans_id' => $order->payments->sortByDesc('id')->first()?->midtrans_order_id,
             'cash_received' => $order->uang_diterima,
             'change' => $order->kembalian,
             'expires_at' => $order->batas_waktu_pembayaran

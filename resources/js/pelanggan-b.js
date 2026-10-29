@@ -1,18 +1,19 @@
-// Interaksi Pelanggan B: keranjang sisi klien, checkout, dan halaman pembayaran.
-// Tidak ada request ke server pada tahap ini.
+// Interaksi Pelanggan B: keranjang, checkout QRIS, dan halaman pembayaran.
 //
 // Alur data:
 //   menu dari database -> kartu produk
-//   keranjang -> localStorage (sementara sampai slice backend tersedia)
-//   checkout -> sessionStorage (draft pesanan menunggu pembayaran)
+//   keranjang -> localStorage (belum ada endpoint keranjang)
+//   checkout -> POST /pesan/checkout -> order QRIS + halaman pembayaran Snap
 //
-// Integrasi Midtrans belum aktif. Tidak ada simulasi yang menandai pesanan
-// lunas; status lunas hanya boleh berasal dari webhook Midtrans.
+// Keranjang dihapus setelah order berhasil dibuat. Tidak ada data pembayaran
+// atau status lunas yang disimpan di browser: status pembayaran hanya boleh
+// berasal dari webhook Midtrans (dirender oleh server pada slice berikutnya).
+// Halaman /pesan/pembayaran dan /pesan/berhasil masih sisa demo lama dan tidak
+// lagi dipakai alur checkout.
 
 const CART_KEY = 'varya_cart_v1';
 const PENDING_KEY = 'varya_pending_order_v1';
 const LAST_ORDER_KEY = 'varya_last_order_v1';
-const PAYMENT_WINDOW_MS = 15 * 60 * 1000;
 
 const ROUTES = window.VARYA_ROUTES ?? {};
 
@@ -175,9 +176,6 @@ function getLastOrder() {
 
 const cartCount = (cart = getCart()) =>
     cart.reduce((total, item) => total + Number(item.qty || 0), 0);
-
-const cartTotal = (cart = getCart()) =>
-    cart.reduce((total, item) => total + Number(item.price || 0) * Number(item.qty || 0), 0);
 
 function saveCart(cart) {
     storage.set(CART_KEY, cart);
@@ -515,15 +513,40 @@ function productFromRoot(root) {
 /* Checkout                                                                   */
 /* -------------------------------------------------------------------------- */
 
-function makeOrderCode() {
-    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let token = '';
+function csrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+}
 
-    for (let index = 0; index < 8; index += 1) {
-        token += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+function firstErrorMessage(body) {
+    const errors = body?.errors;
+
+    if (!errors || typeof errors !== 'object') return null;
+
+    const first = Object.values(errors)[0];
+
+    if (Array.isArray(first)) return first[0] ?? null;
+
+    return first ? String(first) : null;
+}
+
+function showCheckoutError(message) {
+    const errorBox = document.querySelector('[data-checkout-error]');
+    if (!errorBox) {
+        showToast(message);
+        return;
     }
 
-    return token;
+    errorBox.textContent = message;
+    errorBox.hidden = false;
+    errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function hideCheckoutError() {
+    const errorBox = document.querySelector('[data-checkout-error]');
+    if (!errorBox) return;
+
+    errorBox.hidden = true;
+    errorBox.textContent = '';
 }
 
 function initCheckout() {
@@ -532,14 +555,29 @@ function initCheckout() {
 
     const nameInput = form.querySelector('[data-customer-name]');
     const nameError = form.querySelector('[data-name-error]');
+    const submitButton = form.querySelector('[data-summary-cta]');
+    const submitLabel = submitButton?.innerHTML ?? '';
+
+    const setPending = (pending) => {
+        if (!submitButton) return;
+
+        submitButton.disabled = pending;
+        submitButton.classList.toggle('opacity-60', pending);
+        submitButton.classList.toggle('pointer-events-none', pending);
+        submitButton.setAttribute('aria-busy', String(pending));
+        submitButton.innerHTML = pending ? 'Memproses pembayaran…' : submitLabel;
+    };
 
     nameInput?.addEventListener('input', () => {
         if (nameError) nameError.hidden = true;
         nameInput.removeAttribute('aria-invalid');
+        hideCheckoutError();
     });
 
-    form.addEventListener('submit', (event) => {
+    form.addEventListener('submit', async (event) => {
         event.preventDefault();
+
+        hideCheckoutError();
 
         const name = (nameInput?.value ?? '').trim();
         const cart = getCart();
@@ -557,27 +595,59 @@ function initCheckout() {
             return;
         }
 
-        const type = form.querySelector('[data-order-type]:checked')?.value ?? 'Makan di Tempat';
-        const catatan = (form.querySelector('[data-catatan]')?.value ?? '').trim();
-        const total = cartTotal(cart);
-
-        const order = {
-            code: makeOrderCode(),
-            name,
-            type,
-            catatan,
-            items: cart,
-            subtotal: total,
-            total,
-            paymentMethod: 'QRIS',
-            paymentStatus: 'pending',
-            createdAt: new Date().toISOString(),
-            expiresAt: Date.now() + PAYMENT_WINDOW_MS,
+        const payload = {
+            nama_pelanggan: name,
+            tipe_pesanan: form.querySelector('[data-order-type]:checked')?.value ?? 'dine_in',
+            catatan: (form.querySelector('[data-catatan]')?.value ?? '').trim(),
+            item: cart.map((item) => ({ menu_id: item.id, jumlah: item.qty })),
         };
 
-        session.set(PENDING_KEY, order);
+        setPending(true);
 
-        window.location.href = ROUTES.payment ?? '/pesan/pembayaran';
+        try {
+            const response = await fetch(ROUTES.checkoutStore, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const body = await response.json().catch(() => ({}));
+
+            if (response.ok && body.data?.snap_redirect_url) {
+                // Order tersimpan: keranjang tidak dipakai lagi.
+                storage.remove(CART_KEY);
+                window.location.href = body.data.snap_redirect_url;
+                return;
+            }
+
+            // Order sudah tersimpan tetapi halaman pembayaran gagal dibuat.
+            // Keranjang dikosongkan agar pelanggan tidak membuat pesanan ganda.
+            if (response.status === 500 && body.data?.kode_pesanan) {
+                storage.remove(CART_KEY);
+                syncAll();
+                showCheckoutError(
+                    `Pesanan ${body.data.kode_pesanan} sudah tersimpan, tetapi halaman pembayaran gagal dibuat. Hubungi kasir dengan kode tersebut.`,
+                );
+
+                return;
+            } else if (response.status === 429) {
+                showCheckoutError('Terlalu banyak percobaan checkout. Tunggu sebentar lalu coba lagi.');
+            } else if (response.status === 422) {
+                showCheckoutError(
+                    firstErrorMessage(body) ?? 'Pesanan tidak bisa diproses. Periksa kembali data pesanan.',
+                );
+            } else {
+                showCheckoutError(body.message ?? 'Pesanan gagal diproses. Coba lagi.');
+            }
+        } catch {
+            showCheckoutError('Tidak bisa menghubungi server. Periksa koneksi lalu coba lagi.');
+        }
+
+        setPending(false);
     });
 }
 

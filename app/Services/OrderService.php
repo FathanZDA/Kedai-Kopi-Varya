@@ -6,8 +6,10 @@ use App\Enums\MetodePembayaran;
 use App\Enums\StatusPembayaran;
 use App\Enums\StatusPesanan;
 use App\Enums\SumberPesanan;
+use App\Exceptions\MidtransException;
 use App\Models\Menu;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\QueueCounter;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -18,11 +20,14 @@ use Illuminate\Validation\ValidationException;
 /**
  * Logika bisnis pesanan.
  *
- * Slice ini hanya menangani pembuatan order tunai oleh kasir sesuai
- * docs/DATABASE.md §7.1. Order QRIS dan webhook Midtrans belum ada.
+ * Menangani pembuatan order tunai oleh kasir (docs/DATABASE.md §7.1) dan
+ * order QRIS Pelanggan B yang menunggu pembayaran. Webhook Midtrans belum ada,
+ * sehingga status lunas tidak pernah ditentukan dari sini.
  */
 class OrderService
 {
+    public function __construct(private readonly MidtransService $midtrans) {}
+
     /**
      * Membuat order tunai yang langsung lunas dan mendapat nomor antrean.
      *
@@ -64,6 +69,104 @@ class OrderService
 
             return $order->load('items');
         }, 3);
+    }
+
+    /**
+     * Membuat order QRIS Pelanggan B yang menunggu pembayaran.
+     *
+     * Order dan item disimpan lebih dulu dalam satu transaksi database, lalu
+     * satu percobaan pembayaran (`{kode_pesanan}-P{n}`) dicatat dan transaksi
+     * Snap dibuat. Nomor antrean **tidak** diberikan di sini: nomor baru
+     * dibuat setelah webhook menyatakan lunas.
+     *
+     * Bila Snap gagal, order tetap tersimpan sebagai `menunggu_pembayaran`
+     * dan percobaan ditandai `failure` untuk audit. Pelanggan dapat mencoba
+     * lagi lewat alur pembayaran ulang pada slice berikutnya.
+     *
+     * @param  array{nama_pelanggan: string, tipe_pesanan: string, catatan?: string|null, item: array<int, array{menu_id: int, jumlah: int}>}  $data
+     *
+     * @throws MidtransException
+     */
+    public function buatOrderQris(array $data): Order
+    {
+        $order = DB::transaction(function () use ($data): Order {
+            $items = $this->siapkanItem($data['item']);
+            $total = (int) array_sum(array_column($items, 'subtotal'));
+
+            $order = Order::create([
+                'kode_pesanan' => $this->buatKodePesanan(),
+                'nama_pelanggan' => $data['nama_pelanggan'],
+                'tipe_pesanan' => $data['tipe_pesanan'],
+                'catatan' => $data['catatan'] ?? null,
+                'sumber' => SumberPesanan::Qr,
+                'status_pesanan' => StatusPesanan::MenungguPembayaran,
+                'metode_pembayaran' => MetodePembayaran::Qris,
+                'status_pembayaran' => StatusPembayaran::Menunggu,
+                'total' => $total,
+                'batas_waktu_pembayaran' => now()->addMinutes(MidtransService::BATAS_PEMBAYARAN_MENIT),
+            ]);
+
+            $order->items()->createMany($items);
+
+            return $order->load('items');
+        }, 3);
+
+        $payment = $this->mulaiPercobaanPembayaran($order);
+
+        try {
+            $snap = $this->midtrans->buatTransaksiSnap($order, $payment);
+        } catch (MidtransException $exception) {
+            $this->tandaiPercobaanGagal($payment, $exception);
+
+            throw $exception;
+        }
+
+        $payment->update([
+            'transaction_id' => $snap['transaction_id'] ?? null,
+            'status_transaksi' => $snap['transaction_status'] ?? 'pending',
+            'status_code' => (string) ($snap['status_code'] ?? '201'),
+            'payment_type' => $snap['payment_type'] ?? null,
+            'snap_token' => $snap['token'],
+            'snap_redirect_url' => $snap['redirect_url'],
+            'raw_response' => $snap,
+        ]);
+
+        return $order->load('payments');
+    }
+
+    /**
+     * Catat percobaan pembayaran baru sebelum memanggil Midtrans.
+     *
+     * Nomor percobaan dihitung dari jumlah baris `payments` order, sehingga
+     * percobaan yang gagal tetap memakai nomor `-P{n}` dan tidak dipakai ulang
+     * saat pelanggan membayar ulang (PRD §8.4.4).
+     */
+    private function mulaiPercobaanPembayaran(Order $order): Payment
+    {
+        $nomorPercobaan = $order->payments()->count() + 1;
+
+        return $order->payments()->create([
+            'midtrans_order_id' => $order->kode_pesanan.'-P'.$nomorPercobaan,
+            'status_transaksi' => 'pending',
+            'status_code' => '201',
+            'gross_amount' => number_format($order->total, 2, '.', ''),
+            'waktu_dibuat' => now(),
+        ]);
+    }
+
+    /**
+     * Tandai percobaan yang gagal dibuat di Midtrans agar tidak dianggap aktif.
+     *
+     * Status order tidak diubah: order masih `menunggu` dan bisa dibayar lagi.
+     */
+    private function tandaiPercobaanGagal(Payment $payment, MidtransException $exception): void
+    {
+        $payment->update([
+            'status_transaksi' => 'failure',
+            'status_code' => $exception->statusCode ?? '500',
+            'raw_response' => $exception->rawResponse,
+            'waktu_diproses' => now(),
+        ]);
     }
 
     /**

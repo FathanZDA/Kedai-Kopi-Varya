@@ -1,7 +1,7 @@
 # Kontrak Database — Kedai Kopi Varya
 
 **Status:** FINAL untuk skema inti
-**Terakhir diperbarui:** 27 Oktober 2026
+**Terakhir diperbarui:** 29 Oktober 2026
 **Acuan:** `PRD.md` §10, `docs/DECISIONS.md`
 **Database:** MySQL saja
 
@@ -210,6 +210,14 @@ Index: `order_id`, `menu_id`.
 | `updated_at` | timestamp | yes | null | |
 
 Index: `order_id`, `midtrans_order_id` unik.
+
+Catatan 29 Okt 2026 — dipakai pertama kali oleh checkout QRIS (`OrderService::buatOrderQris`):
+
+- Baris `payments` dicatat **sebelum** Snap dipanggil, dengan `midtrans_order_id = {kode_pesanan}-P{n}` dan `gross_amount` = total order, supaya nomor percobaan tidak dipakai ulang saat pembayaran ulang.
+- Nilai awal `status_transaksi = pending` dan `status_code = 201` adalah status yang diharapkan dari Snap.
+- Bila pembuatan Snap gagal, baris diubah menjadi `status_transaksi = failure` dengan `status_code` dari Midtrans (atau `500` bila gangguan jaringan) dan `raw_response` berisi galat. `snap_token`/`snap_redirect_url` tetap `null`; order tetap `menunggu` dan dapat dibayar ulang.
+- `snap_token`, `snap_redirect_url`, `transaction_id`, `payment_type`, dan `raw_response` diisi setelah Snap berhasil.
+- `waktu_diproses` diisi saat percobaan gagal atau diproses webhook (webhook belum ada).
 
 ### 4.7 `payment_notifications`
 
@@ -464,9 +472,9 @@ erDiagram
 | `promos` | Selesai | Field Indonesia + `mulai`/`berakhir`; `subtitle`/`badge_text` dihapus. |
 | `store_settings` | Selesai | Field PRD; `landmark`/`hours` JSON dihapus. |
 | Jam toko | Selesai | Tabel `store_hours` berisi 7 baris. |
-| `orders` | Selesai | Dibuat di `2026_10_27_000001_buat_tabel_transaksi`; termasuk `cashier_id`. Belum ada model/controller. |
+| `orders` | Selesai | Dibuat di `2026_10_27_000001_buat_tabel_transaksi`; termasuk `cashier_id`. Dipakai order tunai kasir dan order QRIS. |
 | `order_items` | Selesai | Dibuat di migration yang sama; termasuk snapshot dan `catatan`. |
-| `payments` | Selesai | Dibuat di migration yang sama; belum ada integrasi Midtrans. |
+| `payments` | Selesai | Dibuat di migration yang sama; dipakai checkout QRIS (`OrderService::buatOrderQris` + `MidtransService`). Webhook belum ada. |
 | `payment_notifications` | Selesai | Dibuat di migration yang sama; belum ada webhook. |
 | `queue_counters` | Selesai | Dibuat di migration yang sama; logika penomoran menyusul di backend. |
 | Engine database | Selesai | MySQL saja; SQLite tidak dipakai. |

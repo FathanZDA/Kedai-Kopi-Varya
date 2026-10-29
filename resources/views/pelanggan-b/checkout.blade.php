@@ -25,11 +25,18 @@
                 </a>
             </div>
 
+            <p data-checkout-error
+               hidden
+               role="alert"
+               aria-live="assertive"
+               class="mb-5 rounded-lg border-2 border-rust bg-[#fff5f0] px-4 py-3 font-serif text-sm leading-relaxed text-rust"></p>
+
             <form id="checkout-form"
-                  action="{{ route('pelanggan-b.pembayaran') }}"
-                  method="GET"
+                  action="{{ route('pelanggan-b.checkout.store') }}"
+                  method="POST"
                   class="grid gap-6 lg:grid-cols-[1.35fr_1fr] lg:items-start"
                   novalidate>
+                @csrf
                 {{-- Data pemesanan --}}
                 <section class="brut bg-surface" aria-labelledby="data-pemesanan-title">
                     <div class="flex items-center gap-2 border-b-[3px] border-ink bg-[#f1f0f1] px-5 py-3">
@@ -68,7 +75,7 @@
 
                             <div class="mt-2 grid grid-cols-2 gap-3">
                                 <label class="relative cursor-pointer">
-                                    <input type="radio" name="order_type" value="Makan di Tempat" data-order-type checked class="peer sr-only">
+                                    <input type="radio" name="order_type" value="dine_in" data-order-type checked class="peer sr-only">
                                     <span class="flex items-center gap-2.5 rounded-md border-[3px] border-ink bg-surface px-4 py-3 transition-all peer-checked:border-varya-dark peer-checked:bg-varya-light peer-checked:shadow-[3px_3px_0_0_#115231] peer-focus-visible:ring-2 peer-focus-visible:ring-varya/40 [&_.radio-dot]:bg-transparent peer-checked:[&_.radio-dot]:bg-varya-dark">
                                         <span class="grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 border-ink">
                                             <span class="radio-dot h-1.5 w-1.5 rounded-full bg-transparent"></span>
@@ -78,7 +85,7 @@
                                 </label>
 
                                 <label class="relative cursor-pointer">
-                                    <input type="radio" name="order_type" value="Bawa Pulang" data-order-type class="peer sr-only">
+                                    <input type="radio" name="order_type" value="take_away" data-order-type class="peer sr-only">
                                     <span class="flex items-center gap-2.5 rounded-md border-[3px] border-ink bg-surface px-4 py-3 transition-all peer-checked:border-varya-dark peer-checked:bg-varya-light peer-checked:shadow-[3px_3px_0_0_#115231] peer-focus-visible:ring-2 peer-focus-visible:ring-varya/40 [&_.radio-dot]:bg-transparent peer-checked:[&_.radio-dot]:bg-varya-dark">
                                         <span class="grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 border-ink">
                                             <span class="radio-dot h-1.5 w-1.5 rounded-full bg-transparent"></span>

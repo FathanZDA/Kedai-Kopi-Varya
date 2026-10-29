@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Checkout Pelanggan B: 10 percobaan/menit per IP (docs/ROUTES.md §3).
+        // Pembuatan ulang / pembayaran lagi memakai limiter yang sama.
+        RateLimiter::for('checkout', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
     }
 }
