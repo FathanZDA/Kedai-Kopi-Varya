@@ -25,5 +25,8 @@ class AppServiceProvider extends ServiceProvider
         // Checkout Pelanggan B: 10 percobaan/menit per IP (docs/ROUTES.md §3).
         // Pembuatan ulang / pembayaran lagi memakai limiter yang sama.
         RateLimiter::for('checkout', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
+
+        // Polling halaman konfirmasi: 60 permintaan/menit per IP.
+        RateLimiter::for('order-status', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));
     }
 }

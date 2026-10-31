@@ -31,6 +31,7 @@ class PelangganBCheckoutTest extends TestCase
 
         config([
             'services.midtrans.server_key' => 'SB-Mid-server-test',
+            'services.midtrans.client_key' => 'SB-Mid-client-test',
             'services.midtrans.is_production' => false,
             'services.midtrans.snap_sandbox_url' => self::SNAP_URL,
         ]);
@@ -156,6 +157,9 @@ class PelangganBCheckoutTest extends TestCase
                 && $body['customer_details'] === ['first_name' => 'Budi']
                 && $body['enabled_payments'] === ['other_qris']
                 && $body['expiry'] === ['unit' => 'minutes', 'duration' => 15]
+                && $body['callbacks'] === [
+                    'finish' => route('pesanan.status', ['order' => $order->kode_pesanan]),
+                ]
                 && $request->hasHeader('Authorization');
         });
     }
@@ -292,6 +296,19 @@ class PelangganBCheckoutTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_checkout_ditolak_bila_client_key_snap_belum_diatur(): void
+    {
+        config(['services.midtrans.client_key' => null]);
+        $this->fakeSnapSukses();
+
+        $this->postJson(route('pelanggan-b.checkout.store'), $this->payload())
+            ->assertStatus(503)
+            ->assertJsonPath('message', 'Pembayaran QRIS belum tersedia. Silakan hubungi kasir untuk memesan.');
+
+        $this->assertDatabaseCount('orders', 0);
+        Http::assertNothingSent();
+    }
+
     public function test_checkout_dibatasi_sepuluh_percobaan_per_menit(): void
     {
         $this->fakeSnapSukses();
@@ -312,6 +329,9 @@ class PelangganBCheckoutTest extends TestCase
         $this->get(route('pelanggan-b.checkout'))
             ->assertOk()
             ->assertSee('name="csrf-token"', false)
-            ->assertSee(route('pelanggan-b.checkout.store'), false);
+            ->assertSee(route('pelanggan-b.checkout.store'), false)
+            ->assertSee('https://app.sandbox.midtrans.com/snap/snap.js', false)
+            ->assertSee('data-client-key="SB-Mid-client-test"', false)
+            ->assertDontSee('SB-Mid-server-test', false);
     }
 }

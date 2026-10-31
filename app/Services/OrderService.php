@@ -10,7 +10,6 @@ use App\Exceptions\MidtransException;
 use App\Models\Menu;
 use App\Models\Order;
 use App\Models\Payment;
-use App\Models\QueueCounter;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -21,12 +20,15 @@ use Illuminate\Validation\ValidationException;
  * Logika bisnis pesanan.
  *
  * Menangani pembuatan order tunai oleh kasir (docs/DATABASE.md §7.1) dan
- * order QRIS Pelanggan B yang menunggu pembayaran. Webhook Midtrans belum ada,
- * sehingga status lunas tidak pernah ditentukan dari sini.
+ * order QRIS Pelanggan B yang menunggu pembayaran. Status lunas order QRIS
+ * hanya ditentukan oleh webhook Midtrans (`MidtransNotificationService`).
  */
 class OrderService
 {
-    public function __construct(private readonly MidtransService $midtrans) {}
+    public function __construct(
+        private readonly MidtransService $midtrans,
+        private readonly QueueNumberService $nomorAntrean,
+    ) {}
 
     /**
      * Membuat order tunai yang langsung lunas dan mendapat nomor antrean.
@@ -47,10 +49,12 @@ class OrderService
 
             $this->pastikanUangCukup($uangDiterima, $total);
 
+            $tanggalAntrean = now()->toDateString();
+
             $order = Order::create([
                 'kode_pesanan' => $this->buatKodePesanan(),
-                'nomor_antrean' => $this->ambilNomorAntrean(),
-                'tanggal_antrean' => now()->toDateString(),
+                'nomor_antrean' => $this->nomorAntrean->berikutnya($tanggalAntrean),
+                'tanggal_antrean' => $tanggalAntrean,
                 'nama_pelanggan' => $data['nama_pelanggan'],
                 'tipe_pesanan' => $data['tipe_pesanan'],
                 'catatan' => $data['catatan'] ?? null,
@@ -121,6 +125,176 @@ class OrderService
             throw $exception;
         }
 
+        $this->terapkanResponsSnap($payment, $snap);
+
+        return $order->load('payments');
+    }
+
+    /**
+     * Percobaan pembayaran yang masih aktif dan belum melewati batas 15 menit.
+     */
+    public function percobaanAktif(Order $order): ?Payment
+    {
+        if (in_array($order->status_pembayaran, [
+            StatusPembayaran::Lunas,
+            StatusPembayaran::Dibatalkan,
+            StatusPembayaran::PerluDiperiksa,
+        ], true)) {
+            return null;
+        }
+
+        return $order->payments()
+            ->where('status_transaksi', 'pending')
+            ->whereNotNull('snap_token')
+            ->where('waktu_dibuat', '>', now()->subMinutes(MidtransService::BATAS_PEMBAYARAN_MENIT))
+            ->latest('id')
+            ->first();
+    }
+
+    /**
+     * Apakah halaman konfirmasi boleh menampilkan tombol bayar lagi.
+     *
+     * Percobaan `pending` yang masih aktif membuka token yang sama. Percobaan
+     * baru hanya dibuat setelah percobaan terakhir gagal/kedaluwarsa.
+     */
+    public function dapatBayarUlang(Order $order): bool
+    {
+        if ($order->nomor_antrean !== null
+            || in_array($order->status_pembayaran, [
+                StatusPembayaran::Lunas,
+                StatusPembayaran::Dibatalkan,
+                StatusPembayaran::PerluDiperiksa,
+            ], true)
+            || in_array($order->status_pesanan, [
+                StatusPesanan::Antre,
+                StatusPesanan::Diproses,
+                StatusPesanan::Selesai,
+                StatusPesanan::Dibatalkan,
+            ], true)) {
+            return false;
+        }
+
+        if ($this->percobaanAktif($order)) {
+            return true;
+        }
+
+        $terakhir = $order->payments()->latest('id')->first();
+
+        if (! $terakhir) {
+            return true;
+        }
+
+        if ($terakhir->status_transaksi === 'pending') {
+            return $terakhir->waktu_dibuat === null
+                || $terakhir->waktu_dibuat->lte(now()->subMinutes(MidtransService::BATAS_PEMBAYARAN_MENIT));
+        }
+
+        return in_array($terakhir->status_transaksi, [
+            'failure',
+            'deny',
+            'cancel',
+            'expire',
+            'gagal',
+            'kedaluwarsa',
+        ], true);
+    }
+
+    /**
+     * Buka percobaan aktif atau buat percobaan pembayaran berikutnya.
+     *
+     * Satu percobaan aktif dijaga lewat `lockForUpdate` pada order. Panggilan
+     * Snap dilakukan di luar transaksi agar koneksi database tidak tertahan
+     * selama request HTTP.
+     *
+     * @return array{payment: Payment, baru: bool}
+     *
+     * @throws ValidationException
+     * @throws MidtransException
+     */
+    public function bayarLagi(Order $order): array
+    {
+        $hasil = DB::transaction(function () use ($order): array {
+            $terkunci = Order::query()->lockForUpdate()->findOrFail($order->id);
+
+            if (! $this->dapatBayarUlang($terkunci)) {
+                throw ValidationException::withMessages([
+                    'pembayaran' => 'Pesanan ini tidak dapat dibayar ulang.',
+                ]);
+            }
+
+            $aktif = $this->percobaanAktif($terkunci);
+
+            if ($aktif) {
+                return ['payment' => $aktif, 'baru' => false];
+            }
+
+            // Pending yang sudah lewat 15 menit dianggap kedaluwarsa lokal.
+            // Webhook tetap menjadi sumber kebenaran bila notifikasinya datang.
+            $terkunci->payments()
+                ->where('status_transaksi', 'pending')
+                ->where('waktu_dibuat', '<=', now()->subMinutes(MidtransService::BATAS_PEMBAYARAN_MENIT))
+                ->update([
+                    'status_transaksi' => 'kedaluwarsa',
+                    'waktu_diproses' => now(),
+                ]);
+
+            $terakhir = $terkunci->payments()->latest('id')->first();
+
+            if ($terakhir && $terakhir->status_transaksi === 'pending') {
+                throw ValidationException::withMessages([
+                    'pembayaran' => 'Pembayaran sedang dibuat. Coba lagi beberapa detik lagi.',
+                ]);
+            }
+
+            if ($terakhir && ! in_array($terakhir->status_transaksi, [
+                'failure',
+                'deny',
+                'cancel',
+                'expire',
+                'gagal',
+                'kedaluwarsa',
+            ], true)) {
+                throw ValidationException::withMessages([
+                    'pembayaran' => 'Status pembayaran terakhir belum bisa dibuat ulang.',
+                ]);
+            }
+
+            $terkunci->update([
+                'status_pembayaran' => StatusPembayaran::Menunggu,
+                'batas_waktu_pembayaran' => now()->addMinutes(MidtransService::BATAS_PEMBAYARAN_MENIT),
+            ]);
+
+            $payment = $this->mulaiPercobaanPembayaran($terkunci);
+
+            return ['payment' => $payment, 'baru' => true];
+        }, 3);
+
+        if (! $hasil['baru']) {
+            return $hasil;
+        }
+
+        $payment = $hasil['payment'];
+
+        try {
+            $snap = $this->midtrans->buatTransaksiSnap($order->load('items'), $payment);
+        } catch (MidtransException $exception) {
+            $this->tandaiPercobaanGagal($payment, $exception);
+
+            throw $exception;
+        }
+
+        $this->terapkanResponsSnap($payment, $snap);
+
+        return ['payment' => $payment->refresh(), 'baru' => true];
+    }
+
+    /**
+     * Simpan token/redirect dan respons mentah Snap pada baris percobaan.
+     *
+     * @param  array<string, mixed>  $snap
+     */
+    private function terapkanResponsSnap(Payment $payment, array $snap): void
+    {
         $payment->update([
             'transaction_id' => $snap['transaction_id'] ?? null,
             'status_transaksi' => $snap['transaction_status'] ?? 'pending',
@@ -130,8 +304,6 @@ class OrderService
             'snap_redirect_url' => $snap['redirect_url'],
             'raw_response' => $snap,
         ]);
-
-        return $order->load('payments');
     }
 
     /**
@@ -270,35 +442,6 @@ class OrderService
         throw ValidationException::withMessages([
             'uang_diterima' => 'Uang diterima kurang '.$this->rupiah($total - $uangDiterima).' dari total tagihan.',
         ]);
-    }
-
-    /**
-     * Ambil nomor antrean berikutnya untuk hari ini.
-     *
-     * Baris penghitung dikunci dengan lockForUpdate() agar dua transaksi
-     * bersamaan tidak mendapat nomor yang sama. insertOrIgnore menangani
-     * hari pertama saat baris belum ada.
-     */
-    private function ambilNomorAntrean(): int
-    {
-        $tanggal = now()->toDateString();
-
-        QueueCounter::query()->insertOrIgnore([
-            'tanggal' => $tanggal,
-            'nomor_terakhir' => 0,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        $counter = QueueCounter::query()
-            ->where('tanggal', $tanggal)
-            ->lockForUpdate()
-            ->firstOrFail();
-
-        $counter->nomor_terakhir += 1;
-        $counter->save();
-
-        return $counter->nomor_terakhir;
     }
 
     /**

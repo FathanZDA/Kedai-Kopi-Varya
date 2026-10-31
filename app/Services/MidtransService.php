@@ -34,6 +34,18 @@ class MidtransService
     }
 
     /**
+     * Apakah Snap.js bisa dibuka di browser.
+     *
+     * `client_key` bersifat publik dan dipakai Snap.js; `server_key` tetap
+     * hanya dipakai backend.
+     */
+    public function popupTerkonfigurasi(): bool
+    {
+        return $this->terkonfigurasi()
+            && filled(config('services.midtrans.client_key'));
+    }
+
+    /**
      * Buat transaksi Snap untuk satu percobaan pembayaran.
      *
      * @return array<string, mixed> respons Snap (`token`, `redirect_url`, ...)
@@ -119,6 +131,9 @@ class MidtransService
             'expiry' => [
                 'unit' => 'minutes',
                 'duration' => self::BATAS_PEMBAYARAN_MENIT,
+            ],
+            'callbacks' => [
+                'finish' => route('pesanan.status', ['order' => $order->kode_pesanan]),
             ],
         ];
     }

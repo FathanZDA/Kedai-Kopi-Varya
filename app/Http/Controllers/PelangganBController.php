@@ -60,7 +60,7 @@ class PelangganBController extends Controller
         OrderService $orderService,
         MidtransService $midtrans,
     ): JsonResponse {
-        if (! $midtrans->terkonfigurasi()) {
+        if (! $midtrans->popupTerkonfigurasi()) {
             return response()->json([
                 'message' => 'Pembayaran QRIS belum tersedia. Silakan hubungi kasir untuk memesan.',
             ], 503);
@@ -80,16 +80,6 @@ class PelangganBController extends Controller
         return (new CheckoutResource($order))
             ->response()
             ->setStatusCode(201);
-    }
-
-    public function pembayaran()
-    {
-        return view('pelanggan-b.pembayaran', $this->publicData());
-    }
-
-    public function berhasil()
-    {
-        return view('pelanggan-b.berhasil', $this->publicData());
     }
 
     /**

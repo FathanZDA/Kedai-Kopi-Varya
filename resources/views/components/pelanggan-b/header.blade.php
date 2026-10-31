@@ -4,8 +4,7 @@
         'pelanggan-b.produk',
         'pelanggan-b.keranjang',
         'pelanggan-b.checkout',
-        'pelanggan-b.pembayaran',
-        'pelanggan-b.berhasil',
+        'pesanan.status',
     ]);
 
     $links = [

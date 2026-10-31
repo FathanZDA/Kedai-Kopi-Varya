@@ -19,6 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // Pengunjung yang belum login diarahkan ke halaman login.
         $middleware->redirectGuestsTo(fn () => route('login'));
 
+        // Midtrans tidak mengirim token CSRF; webhook diverifikasi lewat
+        // signature_key, bukan CSRF.
+        $middleware->validateCsrfTokens(except: [
+            'api/midtrans/notification',
+        ]);
+
         // Pengguna yang sudah login tidak perlu membuka halaman login lagi.
         $middleware->redirectUsersTo(
             fn () => auth()->user()?->routeBeranda() ?? route('pelanggan-a.beranda')

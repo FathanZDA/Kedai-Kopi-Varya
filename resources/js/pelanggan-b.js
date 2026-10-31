@@ -1,19 +1,16 @@
-// Interaksi Pelanggan B: keranjang, checkout QRIS, dan halaman pembayaran.
+// Interaksi Pelanggan B: keranjang, checkout QRIS, popup Snap, dan status pesanan.
 //
 // Alur data:
 //   menu dari database -> kartu produk
 //   keranjang -> localStorage (belum ada endpoint keranjang)
-//   checkout -> POST /pesan/checkout -> order QRIS + halaman pembayaran Snap
+//   checkout -> POST /pesan/checkout -> popup Snap di halaman ini
+//   setelah popup ditutup -> /pesanan/{kode} untuk status + tiket antrean
 //
 // Keranjang dihapus setelah order berhasil dibuat. Tidak ada data pembayaran
 // atau status lunas yang disimpan di browser: status pembayaran hanya boleh
-// berasal dari webhook Midtrans (dirender oleh server pada slice berikutnya).
-// Halaman /pesan/pembayaran dan /pesan/berhasil masih sisa demo lama dan tidak
-// lagi dipakai alur checkout.
+// berasal dari webhook Midtrans dan dirender oleh server.
 
 const CART_KEY = 'varya_cart_v1';
-const PENDING_KEY = 'varya_pending_order_v1';
-const LAST_ORDER_KEY = 'varya_last_order_v1';
 
 const ROUTES = window.VARYA_ROUTES ?? {};
 
@@ -34,7 +31,7 @@ const TONES = [
 
 let productQty = 1;
 let toastTimer = null;
-let paymentTimer = null;
+let statusPollTimer = null;
 
 /* -------------------------------------------------------------------------- */
 /* Utilitas                                                                   */
@@ -55,25 +52,6 @@ const escapeHtml = (value) =>
     })[char]);
 
 const pad = (value) => String(value).padStart(2, '0');
-
-const formatQueue = (number) => `#${pad(Number(number) || 0)}`;
-
-function formatDate(value) {
-    const date = value ? new Date(value) : new Date();
-
-    if (Number.isNaN(date.getTime())) return '—';
-
-    const formatted = new Intl.DateTimeFormat('id-ID', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Asia/Jakarta',
-    }).format(date);
-
-    return `${formatted} WIB`;
-}
 
 function toneFor(seed) {
     const text = String(seed || 'menu');
@@ -111,31 +89,6 @@ const storage = {
     },
 };
 
-const session = {
-    get(key, fallback = null) {
-        try {
-            const raw = window.sessionStorage.getItem(key);
-            return raw === null ? fallback : JSON.parse(raw);
-        } catch {
-            return fallback;
-        }
-    },
-    set(key, value) {
-        try {
-            window.sessionStorage.setItem(key, JSON.stringify(value));
-        } catch {
-            // abaikan
-        }
-    },
-    remove(key) {
-        try {
-            window.sessionStorage.removeItem(key);
-        } catch {
-            // abaikan
-        }
-    },
-};
-
 /* -------------------------------------------------------------------------- */
 /* Data keranjang                                                             */
 /* -------------------------------------------------------------------------- */
@@ -156,22 +109,6 @@ function getCart() {
             initial: String(item.initial || item.name || '?').charAt(0).toUpperCase(),
             qty: clamp(item.qty, 1, 99),
         }));
-}
-
-function getPendingOrder() {
-    const order = session.get(PENDING_KEY, null);
-
-    if (!order || !Array.isArray(order.items)) return null;
-
-    return order;
-}
-
-function getLastOrder() {
-    const order = session.get(LAST_ORDER_KEY, null);
-
-    if (!order || !Array.isArray(order.items)) return null;
-
-    return order;
 }
 
 const cartCount = (cart = getCart()) =>
@@ -299,21 +236,6 @@ function cartItemRow(item) {
     `;
 }
 
-function ticketItemRow(item) {
-    const subtotal = Number(item.price) * Number(item.qty);
-
-    return `
-        <div class="flex items-center gap-3 border-b border-line pb-3 last:border-0 last:pb-0">
-            ${thumbHtml(item, 'h-14 w-14')}
-            <div class="min-w-0 flex-1">
-                <p class="product-name truncate text-[11px] leading-tight">${escapeHtml(item.name)}</p>
-                <p class="tag mt-0.5 text-[8px] text-muted">${item.qty} &times; ${rupiah(item.price)}</p>
-            </div>
-            <p class="font-display text-sm font-bold whitespace-nowrap text-varya-dark">${rupiah(subtotal)}</p>
-        </div>
-    `;
-}
-
 /* -------------------------------------------------------------------------- */
 /* Sinkronisasi tampilan                                                      */
 /* -------------------------------------------------------------------------- */
@@ -325,10 +247,7 @@ function syncAll() {
     syncMenuCards(cart);
     renderCartPage(cart);
     renderSummary('cart', cart);
-    renderSummary('pending');
-    renderSummary('last');
     syncCheckoutState(cart);
-    syncPaymentMeta();
     updateProductNote(cart);
 }
 
@@ -384,13 +303,7 @@ function renderSummary(source, providedItems = null) {
     const root = document.querySelector(`[data-order-summary][data-summary-source="${source}"]`);
     if (!root) return;
 
-    let items = providedItems;
-
-    if (!items) {
-        if (source === 'cart') items = getCart();
-        else if (source === 'pending') items = getPendingOrder()?.items ?? [];
-        else items = getLastOrder()?.items ?? [];
-    }
+    const items = providedItems ?? (source === 'cart' ? getCart() : []);
 
     const count = items.reduce((total, item) => total + Number(item.qty || 0), 0);
     const subtotal = items.reduce(
@@ -432,18 +345,6 @@ function syncCheckoutState(cart = getCart()) {
 
     const warning = page.querySelector('[data-checkout-empty]');
     if (warning) warning.hidden = cart.length > 0;
-}
-
-function syncPaymentMeta() {
-    const pending = getPendingOrder();
-
-    document.querySelectorAll('[data-payment-code]').forEach((element) => {
-        element.textContent = pending?.code ?? '—';
-    });
-
-    document.querySelectorAll('[data-payment-total]').forEach((element) => {
-        element.textContent = rupiah(pending?.total ?? 0);
-    });
 }
 
 function updateProductNote(cart = getCart()) {
@@ -549,6 +450,42 @@ function hideCheckoutError() {
     errorBox.textContent = '';
 }
 
+function orderStatusUrl(code) {
+    const base = String(ROUTES.orderStatusBase ?? '/pesanan').replace(/\/$/, '');
+
+    return `${base}/${encodeURIComponent(code)}`;
+}
+
+function goToOrderStatus(code) {
+    window.location.href = orderStatusUrl(code);
+}
+
+function openSnapPopup(token, options = {}) {
+    if (!token) {
+        showToast('Token pembayaran tidak ditemukan. Muat ulang halaman lalu coba lagi.');
+        return false;
+    }
+
+    if (typeof window.snap?.pay !== 'function') {
+        showToast('Popup pembayaran Midtrans belum siap. Muat ulang halaman lalu coba lagi.');
+        return false;
+    }
+
+    try {
+        window.snap.pay(token, {
+            onSuccess: () => options.onSuccess?.(),
+            onPending: () => options.onPending?.(),
+            onError: () => options.onError?.(),
+            onClose: () => options.onClose?.(),
+        });
+
+        return true;
+    } catch {
+        showToast('Popup pembayaran tidak dapat dibuka. Muat ulang halaman lalu coba lagi.');
+        return false;
+    }
+}
+
 function initCheckout() {
     const form = document.querySelector('#checkout-form');
     if (!form) return;
@@ -617,21 +554,37 @@ function initCheckout() {
 
             const body = await response.json().catch(() => ({}));
 
-            if (response.ok && body.data?.snap_redirect_url) {
+            if (response.ok && body.data?.kode_pesanan) {
                 // Order tersimpan: keranjang tidak dipakai lagi.
+                const code = body.data.kode_pesanan;
+
                 storage.remove(CART_KEY);
-                window.location.href = body.data.snap_redirect_url;
+                syncAll();
+                setPending(false);
+
+                // Popup tetap berada di website ini; setelah ditutup pelanggan
+                // diarahkan ke halaman status untuk melihat tiket antrean.
+                const dibuka = openSnapPopup(body.data.snap_token, {
+                    onSuccess: () => goToOrderStatus(code),
+                    onPending: () => goToOrderStatus(code),
+                    onError: () => goToOrderStatus(code),
+                    onClose: () => goToOrderStatus(code),
+                });
+
+                if (!dibuka) {
+                    goToOrderStatus(code);
+                }
+
                 return;
             }
 
-            // Order sudah tersimpan tetapi halaman pembayaran gagal dibuat.
-            // Keranjang dikosongkan agar pelanggan tidak membuat pesanan ganda.
+            // Order sudah tersimpan tetapi Snap gagal dibuat. Halaman status
+            // tetap bisa menampilkan rincian dan tombol coba bayar lagi.
             if (response.status === 500 && body.data?.kode_pesanan) {
                 storage.remove(CART_KEY);
                 syncAll();
-                showCheckoutError(
-                    `Pesanan ${body.data.kode_pesanan} sudah tersimpan, tetapi halaman pembayaran gagal dibuat. Hubungi kasir dengan kode tersebut.`,
-                );
+                setPending(false);
+                goToOrderStatus(body.data.kode_pesanan);
 
                 return;
             } else if (response.status === 429) {
@@ -652,154 +605,158 @@ function initCheckout() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Pembayaran QRIS (menunggu integrasi Midtrans)                              */
+/* Status pesanan dan popup pembayaran                                        */
 /* -------------------------------------------------------------------------- */
 
-function initPaymentPage() {
-    const page = document.querySelector('[data-payment-page]');
-    if (!page) return;
+function initPesananStatus() {
+    const root = document.querySelector('[data-pesanan-status]');
+    if (!root) return;
 
-    const pending = getPendingOrder();
-    const content = page.querySelector('[data-payment-content]');
-    const empty = page.querySelector('[data-payment-empty]');
+    const bukaToken = (token) => {
+        openSnapPopup(token, {
+            onSuccess: () => window.location.reload(),
+            onPending: () => mulaiPollingStatus(root),
+            onError: () => {
+                showToast('Pembayaran gagal diproses. Silakan coba lagi.');
+                mulaiPollingStatus(root);
+            },
+            onClose: () => {
+                showToast('Pembayaran belum selesai.');
+                mulaiPollingStatus(root);
+            },
+        });
+    };
 
-    if (!pending) {
-        if (content) content.hidden = true;
-        if (empty) empty.hidden = false;
-        return;
+    const tombolBuka = root.querySelector('[data-buka-pembayaran]');
+    tombolBuka?.addEventListener('click', () => bukaToken(tombolBuka.dataset.snapToken));
+
+    const tombolUlang = root.querySelector('[data-bayar-lagi]');
+    tombolUlang?.addEventListener('click', async () => {
+        const url = tombolUlang.dataset.bayarLagiUrl;
+        if (!url) return;
+
+        const label = tombolUlang.innerHTML;
+
+        tombolUlang.disabled = true;
+        tombolUlang.innerHTML = 'Menyiapkan pembayaran…';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                },
+            });
+
+            const body = await response.json().catch(() => ({}));
+
+            if (response.ok && body.data?.snap_token) {
+                bukaToken(body.data.snap_token);
+                return;
+            }
+
+            if (response.status === 409) {
+                window.location.reload();
+                return;
+            }
+
+            showToast(body.message ?? 'Pembayaran gagal disiapkan. Coba lagi.');
+        } catch {
+            showToast('Tidak bisa menghubungi server. Periksa koneksi lalu coba lagi.');
+        } finally {
+            tombolUlang.disabled = false;
+            tombolUlang.innerHTML = label;
+        }
+    });
+
+    if (root.dataset.currentStatus === 'menunggu') {
+        mulaiPollingStatus(root);
+        mulaiHitungMundur(root);
     }
-
-    if (content) content.hidden = false;
-    if (empty) empty.hidden = true;
-
-    syncPaymentMeta();
-    startPaymentCountdown(page, pending);
 }
 
-function startPaymentCountdown(page, pending) {
-    if (paymentTimer) window.clearInterval(paymentTimer);
+function mulaiPollingStatus(root) {
+    if (statusPollTimer) return;
 
-    const countdown = page.querySelector('[data-payment-countdown]');
-    const status = page.querySelector('[data-payment-status]');
-    const statusText = page.querySelector('[data-payment-status-text]');
-    const dot = page.querySelector('[data-payment-status-dot]');
+    const url = root.dataset.statusUrl;
+    const statusAwal = root.dataset.currentStatus;
+    const pesananAwal = root.dataset.currentOrderStatus;
+
+    if (!url) return;
+
+    const cek = async () => {
+        if (document.hidden) return;
+
+        try {
+            const response = await fetch(url, {
+                headers: { Accept: 'application/json' },
+            });
+
+            if (!response.ok) return;
+
+            const body = await response.json().catch(() => ({}));
+            const data = body.data ?? {};
+
+            if (
+                (data.status_pembayaran && data.status_pembayaran !== statusAwal)
+                || (data.status_pesanan && data.status_pesanan !== pesananAwal)
+            ) {
+                window.location.reload();
+            }
+        } catch {
+            // Jaringan putus sementara; polling berikutnya akan mencoba lagi.
+        }
+    };
+
+    statusPollTimer = window.setInterval(cek, 5000);
+    window.setTimeout(cek, 1500);
+}
+
+function mulaiHitungMundur(root) {
+    const target = root.dataset.batasWaktu;
+    const element = root.querySelector('[data-status-countdown]');
+
+    if (!target || !element) return;
+
+    const batas = new Date(target).getTime();
+
+    if (Number.isNaN(batas)) return;
+
+    let selesai = false;
 
     const tick = () => {
-        const remaining = Number(pending.expiresAt) - Date.now();
+        const sisa = batas - Date.now();
 
-        if (remaining <= 0) {
-            if (countdown) countdown.textContent = '00:00';
-            if (statusText) statusText.textContent = 'Pembayaran kedaluwarsa';
-            if (status) {
-                status.classList.remove('text-varya-dark');
-                status.classList.add('text-rust');
-            }
-            if (dot) {
-                dot.classList.remove('bg-varya');
-                dot.classList.add('bg-rust');
+        if (sisa <= 0) {
+            element.textContent = '00:00';
+
+            if (!selesai) {
+                selesai = true;
+
+                const tombolBuka = root.querySelector('[data-buka-pembayaran]');
+                const tombolUlang = root.querySelector('[data-bayar-lagi]');
+
+                if (tombolUlang) {
+                    tombolBuka?.classList.add('hidden');
+                    tombolUlang.classList.remove('hidden');
+                    tombolUlang.focus();
+                } else {
+                    showToast('Waktu pembayaran habis. Muat ulang halaman untuk mencoba lagi.');
+                }
             }
 
-            window.clearInterval(paymentTimer);
-            paymentTimer = null;
             return;
         }
 
-        const minutes = Math.floor(remaining / 60000);
-        const seconds = Math.floor((remaining % 60000) / 1000);
+        const menit = Math.floor(sisa / 60000);
+        const detik = Math.floor((sisa % 60000) / 1000);
 
-        if (countdown) countdown.textContent = `${pad(minutes)}:${pad(seconds)}`;
+        element.textContent = `${pad(menit)}:${pad(detik)}`;
     };
 
     tick();
-    paymentTimer = window.setInterval(tick, 1000);
-}
-
-/* -------------------------------------------------------------------------- */
-/* Tiket pesanan                                                              */
-/* -------------------------------------------------------------------------- */
-
-function initSuccessPage() {
-    const content = document.querySelector('[data-success-content]');
-    if (!content) return;
-
-    const banner = document.querySelector('[data-success-banner]');
-    const empty = document.querySelector('[data-success-empty]');
-    const order = getLastOrder();
-
-    if (!order) {
-        content.hidden = true;
-        if (empty) empty.hidden = false;
-        if (banner) banner.hidden = true;
-        return;
-    }
-
-    const items = Array.isArray(order.items) ? order.items : [];
-    const count = items.reduce((total, item) => total + Number(item.qty || 0), 0);
-    const subtotal = items.reduce(
-        (total, item) => total + Number(item.price || 0) * Number(item.qty || 0),
-        0,
-    );
-    const queue = formatQueue(order.queueNumber);
-    const type = order.type || 'Makan di Tempat';
-
-    if (banner) banner.hidden = false;
-    if (empty) empty.hidden = true;
-    content.hidden = false;
-
-    document.querySelectorAll('[data-success-name]').forEach((element) => {
-        element.textContent = order.name || 'Pelanggan';
-    });
-
-    document.querySelectorAll('[data-ticket-number]').forEach((element) => {
-        element.textContent = queue;
-    });
-
-    document.querySelectorAll('[data-ticket-number-inline]').forEach((element) => {
-        element.textContent = queue;
-    });
-
-    document.querySelectorAll('[data-ticket-type-short]').forEach((element) => {
-        element.textContent = `/ ${type.toUpperCase()}`;
-    });
-
-    document.querySelectorAll('[data-ticket-code]').forEach((element) => {
-        element.textContent = order.code || '—';
-    });
-
-    document.querySelectorAll('[data-ticket-date]').forEach((element) => {
-        element.textContent = formatDate(order.paidAt || order.createdAt);
-    });
-
-    document.querySelectorAll('[data-ticket-name]').forEach((element) => {
-        element.textContent = order.name || 'Pelanggan';
-    });
-
-    document.querySelectorAll('[data-ticket-type]').forEach((element) => {
-        element.textContent = type;
-    });
-
-    const catatanWrap = document.querySelector('[data-ticket-catatan-wrap]');
-    const catatan = document.querySelector('[data-ticket-catatan]');
-
-    if (catatanWrap) catatanWrap.hidden = !order.catatan;
-    if (catatan) catatan.textContent = order.catatan || '';
-
-    const itemList = document.querySelector('[data-ticket-items]');
-    if (itemList) itemList.innerHTML = items.map(ticketItemRow).join('');
-
-    document.querySelectorAll('[data-ticket-item-count]').forEach((element) => {
-        element.textContent = String(count);
-    });
-
-    document.querySelectorAll('[data-ticket-subtotal]').forEach((element) => {
-        element.textContent = rupiah(subtotal);
-    });
-
-    document.querySelectorAll('[data-ticket-total]').forEach((element) => {
-        element.textContent = rupiah(order.total ?? subtotal);
-    });
-
-    document.title = `Pesanan ${queue} — Kedai Kopi Varya`;
+    window.setInterval(tick, 1000);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -926,15 +883,7 @@ function handleClick(event) {
     }
 
     if (event.target.closest('[data-check-payment]')) {
-        const pending = getPendingOrder();
-
-        if (!pending) {
-            showToast('Tidak ada transaksi aktif');
-        } else if (Date.now() >= Number(pending.expiresAt)) {
-            showToast('Status: pembayaran kedaluwarsa');
-        } else {
-            showToast('Status: menunggu pembayaran QRIS');
-        }
+        showToast('Status pembayaran diperbarui otomatis di halaman konfirmasi.');
     }
 }
 
@@ -946,8 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
     syncAll();
     initProductDetail();
     initCheckout();
-    initPaymentPage();
-    initSuccessPage();
+    initPesananStatus();
 });
 
 document.addEventListener('click', handleClick);

@@ -22,10 +22,16 @@
             cart: @json(route('pelanggan-b.keranjang')),
             checkout: @json(route('pelanggan-b.checkout')),
             checkoutStore: @json(route('pelanggan-b.checkout.store')),
-            payment: @json(route('pelanggan-b.pembayaran')),
-            success: @json(route('pelanggan-b.berhasil')),
+            orderStatusBase: @json(url('/pesanan')),
         };
     </script>
+
+    @if (filled(config('services.midtrans.client_key')))
+        {{-- Snap.js hanya memakai client key publik; server key tetap di backend. --}}
+        <script src="{{ config('services.midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}"
+                data-client-key="{{ config('services.midtrans.client_key') }}"
+                defer></script>
+    @endif
 
     @vite([
         'resources/css/app.css',

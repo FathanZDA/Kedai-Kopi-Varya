@@ -67,6 +67,14 @@ class Order extends Model
     }
 
     /**
+     * Log notifikasi Midtrans untuk order ini.
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(PaymentNotification::class);
+    }
+
+    /**
      * Kasir pembuat order; null untuk order dari QR pelanggan.
      */
     public function kasir(): BelongsTo

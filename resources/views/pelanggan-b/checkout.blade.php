@@ -127,8 +127,9 @@
                                     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 19v2"/>
                                 </svg>
                                 <p class="font-serif text-[12px] leading-relaxed text-ink-soft">
-                                    QRIS dinamis akan muncul di halaman pembayaran Midtrans setelah kamu menekan tombol
-                                    <strong class="font-bold text-ink">Bayar dengan QRIS</strong>. Status lunas diperbarui otomatis.
+                                    QRIS dinamis akan muncul di popup pembayaran Midtrans setelah kamu menekan tombol
+                                    <strong class="font-bold text-ink">Bayar dengan QRIS</strong>. Kamu tetap berada di website ini.
+                                    Status lunas diperbarui otomatis.
                                 </p>
                             </div>
                         </fieldset>
@@ -168,7 +169,7 @@
                                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0" aria-hidden="true">
                                 <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/><path d="m9 12 2 2 4-4"/>
                             </svg>
-                            Kamu akan diarahkan ke halaman pembayaran QRIS Midtrans. Status pesanan diperbarui otomatis.
+                            Kamu akan membuka popup pembayaran QRIS Midtrans tanpa meninggalkan website ini. Status pesanan diperbarui otomatis.
                         </p>
                     </x-slot:cta>
                 </x-pelanggan-b.order-summary>

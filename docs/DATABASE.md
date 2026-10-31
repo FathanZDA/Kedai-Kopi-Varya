@@ -1,7 +1,7 @@
 # Kontrak Database — Kedai Kopi Varya
 
 **Status:** FINAL untuk skema inti
-**Terakhir diperbarui:** 29 Oktober 2026
+**Terakhir diperbarui:** 31 Oktober 2026
 **Acuan:** `PRD.md` §10, `docs/DECISIONS.md`
 **Database:** MySQL saja
 
@@ -217,7 +217,7 @@ Catatan 29 Okt 2026 — dipakai pertama kali oleh checkout QRIS (`OrderService::
 - Nilai awal `status_transaksi = pending` dan `status_code = 201` adalah status yang diharapkan dari Snap.
 - Bila pembuatan Snap gagal, baris diubah menjadi `status_transaksi = failure` dengan `status_code` dari Midtrans (atau `500` bila gangguan jaringan) dan `raw_response` berisi galat. `snap_token`/`snap_redirect_url` tetap `null`; order tetap `menunggu` dan dapat dibayar ulang.
 - `snap_token`, `snap_redirect_url`, `transaction_id`, `payment_type`, dan `raw_response` diisi setelah Snap berhasil.
-- `waktu_diproses` diisi saat percobaan gagal atau diproses webhook (webhook belum ada).
+- `waktu_diproses` diisi saat percobaan gagal atau saat notifikasi webhook diproses.
 
 ### 4.7 `payment_notifications`
 
@@ -237,6 +237,14 @@ Catatan 29 Okt 2026 — dipakai pertama kali oleh checkout QRIS (`OrderService::
 | `processed_at` | timestamp | yes | null | |
 
 Index: `midtrans_order_id`, `order_id`.
+
+Catatan pemakaian (sejak 30 Okt 2026):
+
+- `status_pemrosesan` diisi `diproses` untuk notifikasi sah yang diterapkan, `diabaikan` untuk nominal tidak cocok/duplikat yang tidak mengubah status, dan `gagal` untuk `midtrans_order_id`/order yang tidak ditemukan.
+- `signature_valid = true` untuk semua baris yang disimpan. Notifikasi dengan signature salah hanya ditulis ke log (tidak disimpan) agar request palsu tidak membanjiri tabel.
+- `payload` menyimpan JSON mentah Midtrans, termasuk `signature_key`; nilainya bukan rahasia server.
+- Tabel tidak memakai `created_at`/`updated_at`; model `PaymentNotification` menonaktifkan timestamps.
+- Notifikasi ganda tetap dicatat sebagai baris baru untuk audit, tetapi tidak membuat nomor antrean baru.
 
 ### 4.8 `queue_counters`
 
@@ -349,20 +357,24 @@ Single-store; belum ada `store_setting_id`.
 
 1. Verifikasi signature dan nominal.
 2. Mulai transaksi database.
-3. Kunci baris `orders` dengan `lockForUpdate()`.
+3. Kunci baris `payments` (`lockForUpdate`) lalu `orders` (`lockForUpdate`).
 4. Jika sudah `lunas` dan `nomor_antrean` sudah ada, selesai (idempoten).
 5. Set `status_pembayaran = lunas`, `waktu_lunas`, `status_pesanan = antre`.
-6. Jika `nomor_antrean` kosong, kunci `queue_counters`, naikkan, simpan nomor.
+6. Jika `nomor_antrean` kosong, kunci `queue_counters`, naikkan, simpan nomor lewat `QueueNumberService`.
 7. Simpan log `payment_notifications`.
 8. Commit.
+
+Status 30 Okt 2026: **sudah diimplementasikan** di `App\Services\MidtransNotificationService::proses()`. `payments` diperbarui lebih dulu (`transaction_id`, `status_transaksi`, `status_code`, `fraud_status`, `payment_type`, `waktu_diproses`), lalu status order diterapkan. Pembayaran kedua dari percobaan berbeda pada order yang sudah lunas ditandai `perlu_diperiksa` tanpa mencabut nomor antrean lama. `raw_response` tetap berisi respons Snap; payload webhook ada di `payment_notifications.payload`.
 
 ### 7.3 Pembayaran ulang
 
 1. Kunci order.
-2. Cek percobaan aktif (`menunggu`) yang belum kedaluwarsa.
-3. Jika ada, kembalikan `snap_redirect_url` yang sama.
-4. Jika tidak ada dan percobaan terakhir `gagal`/`kedaluwarsa`, buat `payments` baru dengan `midtrans_order_id = {kode_pesanan}-P{n+1}`.
-5. Commit.
+2. Cek percobaan aktif (`pending`) yang punya `snap_token` dan belum lewat 15 menit.
+3. Jika ada, kembalikan token/URL yang sama tanpa memanggil Midtrans lagi.
+4. Jika tidak ada dan percobaan terakhir `gagal`/`kedaluwarsa`, buat `payments` baru dengan `midtrans_order_id = {kode_pesanan}-P{n+1}`, perbarui `orders.batas_waktu_pembayaran = sekarang + 15 menit`, lalu panggil Snap.
+5. Commit status `pending` sebelum HTTP; bila Snap gagal, tandai percobaan `failure` dan order tetap `menunggu_pembayaran`.
+
+Status 31 Okt 2026: **sudah diimplementasikan** di `App\Services\OrderService::bayarLagi()` + `PesananController@bayarLagi`. Percobaan `pending` yang sudah lewat 15 menit ditandai `kedaluwarsa` lokal sebelum percobaan baru dibuat. Order `lunas`/`dibatalkan`/`perlu_diperiksa` ditolak `409`; nomor antrean tidak pernah dibuat di jalur ini.
 
 ### 7.4 Pembatalan order belum dibayar
 
@@ -474,9 +486,9 @@ erDiagram
 | Jam toko | Selesai | Tabel `store_hours` berisi 7 baris. |
 | `orders` | Selesai | Dibuat di `2026_10_27_000001_buat_tabel_transaksi`; termasuk `cashier_id`. Dipakai order tunai kasir dan order QRIS. |
 | `order_items` | Selesai | Dibuat di migration yang sama; termasuk snapshot dan `catatan`. |
-| `payments` | Selesai | Dibuat di migration yang sama; dipakai checkout QRIS (`OrderService::buatOrderQris` + `MidtransService`). Webhook belum ada. |
-| `payment_notifications` | Selesai | Dibuat di migration yang sama; belum ada webhook. |
-| `queue_counters` | Selesai | Dibuat di migration yang sama; logika penomoran menyusul di backend. |
+| `payments` | Selesai | Dibuat di migration yang sama; dipakai checkout QRIS (`OrderService::buatOrderQris` + `MidtransService`) dan diperbarui webhook (`MidtransNotificationService`). |
+| `payment_notifications` | Selesai | Dibuat di migration yang sama; dipakai webhook sebagai log audit. |
+| `queue_counters` | Selesai | Dibuat di migration yang sama; dipakai `QueueNumberService` untuk order tunai dan order QRIS yang lunas. |
 | Engine database | Selesai | MySQL saja; SQLite tidak dipakai. |
 | Konfigurasi test | Selesai | `phpunit.xml` memakai MySQL `kedai_varya_test`. |
 | Data menu | Selesai | 12 menu kanonik; admin dan kasir membaca database. |

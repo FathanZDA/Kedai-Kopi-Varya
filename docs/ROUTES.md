@@ -1,10 +1,10 @@
 # Kontrak Route & API — Kedai Kopi Varya
 
-**Status:** FINAL untuk route inti; O-16 (tunnel/akun Midtrans) masih OPEN
-**Terakhir diperbarui:** 29 Oktober 2026
+**Status:** FINAL untuk route inti; O-16 (akun/kredensial Midtrans) masih OPEN
+**Terakhir diperbarui:** 31 Oktober 2026
 **Acuan:** `PRD.md` §4.3, §7, §11; `docs/DECISIONS.md`; `routes/web.php`
 
-> Sebagian route target sudah diimplementasikan untuk tampilan. Route autentikasi, transaksi kasir, dan checkout QRIS sudah aktif; webhook, halaman status pesanan, dan pembayaran ulang masih berupa kontrak.
+> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, serta halaman status pesanan dan pembayaran ulang sudah aktif. Rekonsiliasi, pembatalan, laporan, dan CRUD admin belum aktif.
 
 ---
 
@@ -27,8 +27,10 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | GET | `/pesan/keranjang` | `pelanggan-b.keranjang` | `PelangganBController@keranjang` | Masih client-side |
 | GET | `/pesan/checkout` | `pelanggan-b.checkout` | `PelangganBController@checkout` | Form checkout; `POST` sudah ada |
 | POST | `/pesan/checkout` | `pelanggan-b.checkout.store` | `PelangganBController@storeCheckout` | Publik; `throttle:checkout`; order QRIS + Snap |
-| GET | `/pesan/pembayaran` | `pelanggan-b.pembayaran` | `PelangganBController@pembayaran` | Demo lama; akan diganti `/pesanan/{kode_pesanan}` |
-| GET | `/pesan/berhasil` | `pelanggan-b.berhasil` | `PelangganBController@berhasil` | Demo lama; menunggu halaman status |
+| GET | `/pesanan/{order:kode_pesanan}` | `pesanan.status` | `PesananController@show` | Publik; kode acak 8 karakter; hanya order QRIS |
+| GET | `/pesanan/{order:kode_pesanan}/status` | `pesanan.status.json` | `PesananController@status` | Publik; polling; `throttle:order-status` |
+| POST | `/pesanan/{order:kode_pesanan}/bayar-lagi` | `pesanan.bayar-lagi` | `PesananController@bayarLagi` | Publik; `throttle:checkout`; token Snap |
+| POST | `/api/midtrans/notification` | `midtrans.notification` | `MidtransNotificationController@handle` | Publik; tanpa CSRF; verifikasi signature; satu-satunya jalur status lunas QRIS |
 | ANY | `/kasir` | — | Redirect 301 ke `/kasir/pesanan/baru` | `auth` + `role:kasir` |
 | GET | `/kasir/pesanan/baru` | `kasir.pesanan.baru` | `KasirController@buatPesanan` | `auth` + `role:kasir`; menu dari DB |
 | POST | `/kasir/pesanan` | `kasir.pesanan.store` | `KasirController@storeOrder` | `auth` + `role:kasir`; order tunai langsung lunas + nomor antrean |
@@ -47,11 +49,10 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 
 Belum ada:
 
-- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `PATCH /kasir/menu/{menu}/availability`, dan `POST /pesan/checkout`.
-- Halaman status pesanan (`GET /pesanan/{kode_pesanan}`), polling status, dan pembayaran ulang.
-- Route detail pesanan kasir, pembatalan, dan cek status pembayaran.
-- Webhook Midtrans.
-- Rate limiting untuk status pesanan (login, polling kasir, dan checkout sudah dibatasi).
+- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, dan `POST /pesanan/{kode_pesanan}/bayar-lagi`.
+- Rekonsiliasi, pembatalan, cek status pembayaran, laporan, dan CRUD admin.
+- Route detail pesanan kasir dan pembatalan.
+- Rate limiting untuk endpoint lain di luar login, polling kasir, checkout, dan status pesanan.
 
 
 ---
@@ -96,15 +97,15 @@ Saat mengganti `/tentang-kami` menjadi `/tentang`, sediakan redirect 301 dari UR
 | GET | `/pesan/keranjang` | `pelanggan-b.keranjang` | `PelangganBController@keranjang` | — |
 | GET | `/pesan/checkout` | `pelanggan-b.checkout` | `PelangganBController@checkout` | — |
 | POST | `/pesan/checkout` | `pelanggan-b.checkout.store` | `PelangganBController@storeCheckout` | `throttle:checkout` |
-| GET | `/pesanan/{order:kode_pesanan}` | `pelanggan-b.pesanan.show` | `PelangganBController@showOrder` | `throttle:order-status` |
-| GET | `/pesanan/{order:kode_pesanan}/status` | `pelanggan-b.pesanan.status` | `PelangganBController@status` | `throttle:order-status` |
-| POST | `/pesanan/{order:kode_pesanan}/bayar-lagi` | `pelanggan-b.pesanan.retry` | `PelangganBController@retryPayment` | `throttle:checkout` |
+| GET | `/pesanan/{order:kode_pesanan}` | `pesanan.status` | `PesananController@show` | - |
+| GET | `/pesanan/{order:kode_pesanan}/status` | `pesanan.status.json` | `PesananController@status` | `throttle:order-status` |
+| POST | `/pesanan/{order:kode_pesanan}/bayar-lagi` | `pesanan.bayar-lagi` | `PesananController@bayarLagi` | `throttle:checkout` |
 
 Catatan:
 
-- `/pesanan/{order:kode_pesanan}` menggantikan halaman demo `/pesan/pembayaran` dan `/pesan/berhasil`.
+- `/pesanan/{order:kode_pesanan}` menggantikan halaman demo `/pesan/pembayaran` dan `/pesan/berhasil`; kedua route demo sudah dihapus.
 - Halaman ini adalah halaman konfirmasi pembayaran, **bukan** fitur pelacakan.
-- Route model binding memakai `kode_pesanan`, bukan `id`.
+- Route model binding memakai `kode_pesanan`, bukan `id`; route hanya menerima pola 8 karakter `[A-Z0-9]` dan menolak order non-QRIS dengan `404`.
 - `/pesan/menu/{menu:slug}` adalah tambahan UI untuk detail produk; tidak menambah aturan bisnis baru.
 - `POST /pesan/checkout` menggantikan simulasi di `resources/js/pelanggan-b.js`.
 
@@ -279,7 +280,7 @@ Error penting:
 
 Catatan: catatan per item hanya dipakai pada alur kasir; checkout Pelanggan B memakai `orders.catatan` untuk catatan pesanan.
 
-Status 29 Okt 2026: **sudah diimplementasikan** di `PelangganBController@storeCheckout` + `App\Http\Requests\PelangganB\StoreCheckoutRequest` + `App\Services\OrderService::buatOrderQris` + `App\Services\MidtransService` + `App\Http\Resources\CheckoutResource`.
+Status 31 Okt 2026: **sudah diimplementasikan** di `PelangganBController@storeCheckout` + `App\Http\Requests\PelangganB\StoreCheckoutRequest` + `App\Services\OrderService::buatOrderQris` + `App\Services\MidtransService` + `App\Http\Resources\CheckoutResource`.
 
 Perilaku implementasi yang perlu diketahui konsumen endpoint:
 
@@ -287,13 +288,13 @@ Perilaku implementasi yang perlu diketahui konsumen endpoint:
 - Order + item disimpan lebih dulu dalam `DB::transaction`: `sumber = qr`, `metode_pembayaran = qris`, `status_pesanan = menunggu_pembayaran`, `status_pembayaran = menunggu`, `cashier_id = null`, `batas_waktu_pembayaran = sekarang + 15 menit`, **tanpa** `nomor_antrean`/`tanggal_antrean`.
 - Harga, subtotal, dan total selalu dihitung dari `menus.harga`; nilai harga/total dari browser diabaikan.
 - Menu habis, menu sudah di-soft-delete, atau `item` kosong menghasilkan `422` pada field `item` dan tidak ada order/payments yang tersimpan. Panggilan ke Midtrans juga tidak dilakukan.
-- Bila `MIDTRANS_SERVER_KEY` belum diatur, endpoint menjawab `503` **sebelum** order dibuat, supaya tidak ada order yatim yang tidak bisa dibayar.
+- Bila `MIDTRANS_SERVER_KEY` atau `MIDTRANS_CLIENT_KEY` belum diatur, endpoint menjawab `503` **sebelum** order dibuat, supaya tidak ada order yatim yang tidak bisa dibayar.
 - Bila Snap gagal (respons non-2xx, tanpa `token`/`redirect_url`, atau gangguan jaringan), endpoint menjawab `500` dengan `data.kode_pesanan`. Order tetap tersimpan sebagai `menunggu_pembayaran`.
 - Setiap panggilan Snap memakai baris `payments` baru: `midtrans_order_id = {kode_pesanan}-P{n}`. Baris dicatat **sebelum** HTTP call agar nomor percobaan tidak dipakai ulang saat pembayaran ulang (PRD §8.4.4). Percobaan yang gagal diubah menjadi `status_transaksi = failure` dengan `status_code` dari Midtrans (atau `500`) dan `raw_response` berisi galat; `snap_token`/`snap_redirect_url` tetap `null`.
 - Respons `201` mengikuti kontrak: `kode_pesanan`, `total`, `status_pesanan`, `status_pembayaran`, `batas_waktu_pembayaran`, `snap_token`, `snap_redirect_url`.
-- `callbacks.finish` **belum** dikirim karena halaman `/pesanan/{kode_pesanan}` belum ada. Akan ditambahkan pada slice halaman status pesanan.
-- `resources/js/pelanggan-b.js` mengirim JSON + header `X-CSRF-TOKEN`, menonaktifkan tombol saat menyimpan, menampilkan pesan `422`/`429`/`500` di halaman, mengosongkan `localStorage` keranjang setelah order berhasil dibuat, lalu mengarahkan browser ke `snap_redirect_url`.
-- Belum ada simulasi yang menandai pesanan lunas. Status lunas hanya boleh berasal dari webhook (belum dibuat).
+- `callbacks.finish` dikirim ke `route('pesanan.status', $order)`. Popup Snap memakai `snap_token` dan **tidak** mengarahkan browser ke `snap_redirect_url`; pelanggan tetap berada di website ini.
+- `resources/js/pelanggan-b.js` mengirim JSON + header `X-CSRF-TOKEN`, menonaktifkan tombol saat menyimpan, menampilkan pesan `422`/`429`/`503`, membuka popup Snap setelah `201`, mengosongkan `localStorage` keranjang, lalu mengarahkan browser ke `/pesanan/{kode}` saat popup selesai/ditutup. Bila Snap gagal (`500`), browser juga diarahkan ke halaman status agar bisa mencoba bayar lagi.
+- Belum ada simulasi yang menandai pesanan lunas. Status lunas hanya boleh berasal dari webhook; halaman status melakukan polling ke §4.2 sampai status berubah.
 
 ### 4.2 `GET /pesanan/{kode_pesanan}/status`
 
@@ -320,6 +321,8 @@ Catatan:
 - `nomor_antrean` hanya ada setelah lunas.
 - Halaman konfirmasi melakukan polling ke endpoint ini.
 
+Status 31 Okt 2026: **sudah diimplementasikan** di `PesananController@status` + `App\Http\Resources\PesananStatusResource`, dengan `throttle:order-status` 60 permintaan/menit per IP. Kode harus 8 karakter `[A-Z0-9]` dan order harus `sumber = qr`; selain itu `404`. `dapat_bayar_ulang` bernilai `false` bila `MIDTRANS_CLIENT_KEY` tidak tersedia.
+
 ### 4.3 `POST /pesanan/{kode_pesanan}/bayar-lagi`
 
 Response `200`:
@@ -337,6 +340,14 @@ Response `200`:
 
 Jika masih ada percobaan aktif, kembalikan URL yang sama dengan `200`; jangan buat transaksi baru.
 Jika tidak ada percobaan aktif dan status bukan `gagal`/`kedaluwarsa`, kembalikan `409`.
+
+Status 31 Okt 2026: **sudah diimplementasikan** di `OrderService::bayarLagi` + `PesananController@bayarLagi` + `App\Http\Resources\PembayaranUlangResource`.
+
+- Percobaan `pending` yang punya token dan berumur < 15 menit dikembalikan apa adanya dengan `200`; tidak ada HTTP call baru.
+- Percobaan `pending` yang sudah lewat 15 menit ditandai `status_transaksi = kedaluwarsa` secara lokal, lalu percobaan baru `-P{n+1}` dibuat. Webhook tetap sumber kebenaran bila notifikasinya datang.
+- Percobaan baru hanya dibuat bila percobaan terakhir `failure`/`deny`/`cancel`/`expire`/`kedaluwarsa`; order `lunas`, `dibatalkan`, `perlu_diperiksa`, atau percobaan `pending` yang masih berjalan menghasilkan `409`.
+- `503` bila `MIDTRANS_CLIENT_KEY` tidak tersedia; `500` bila Snap gagal (order tetap `menunggu` dan percobaan baru ditandai `failure`).
+- Payload Snap pembayaran ulang juga memuat `callbacks.finish` ke halaman status.
 
 ### 4.4 `POST /kasir/pesanan`
 
@@ -494,6 +505,24 @@ Aturan:
 - Proses idempoten; notifikasi ganda tidak boleh membuat nomor antrean ganda.
 - Simpan payload ke `payment_notifications`.
 
+Status 30 Okt 2026: **sudah diimplementasikan** di `MidtransNotificationController@handle` + `App\Services\MidtransNotificationService` + `App\Models\PaymentNotification`, dengan pengecualian CSRF `api/midtrans/notification` di `bootstrap/app.php`. Nomor antrean memakai `App\Services\QueueNumberService` yang juga dipakai order tunai kasir.
+
+Perilaku implementasi:
+
+- Payload wajib memuat `order_id`, `status_code`, `gross_amount`, `transaction_status`, dan `signature_key`. Bila tidak lengkap: `200` + log, tanpa baris audit (payload rusak tidak akan membaik bila diulang).
+- `MIDTRANS_SERVER_KEY` kosong: `500` + log, tanpa perubahan data. Midtrans boleh mengulang setelah kredensial diisi.
+- Signature salah: `403` + log; payload **tidak** disimpan agar request palsu tidak membanjiri `payment_notifications`.
+- `order_id` tidak cocok dengan `payments.midtrans_order_id`: `200`, dicatat `gagal`.
+- Nominal tidak cocok: `200`, order `perlu_diperiksa` (kecuali sudah lunas), tanpa nomor antrean, dicatat `diabaikan`.
+- `settlement` / `capture+accept`: order `lunas`, `status_pesanan = antre`, nomor antrean dibuat bila belum ada.
+- Notifikasi ganda dari percobaan yang sama: `200`, tidak menambah nomor antrean.
+- `settlement` dari percobaan berbeda pada order yang sudah lunas: order `perlu_diperiksa`, nomor antrean lama dipertahankan (pembayaran kedua).
+- `settlement` setelah pembatalan lokal: `perlu_diperiksa`, tanpa nomor antrean.
+- `refund`/`partial_refund`/`chargeback`/`partial_chargeback` dan status tak dikenal: `perlu_diperiksa`, tidak pernah `lunas`.
+- `pending` tidak menurunkan status yang sudah `gagal`/`kedaluwarsa`/`perlu_diperiksa`.
+- Baris `payments` selalu diperbarui dengan `transaction_id`, `status_transaksi`, `status_code`, `fraud_status`, `payment_type`, dan `waktu_diproses`. `raw_response` (respons Snap) tidak ditimpa; payload webhook disimpan di `payment_notifications.payload`.
+- Panduan pengujian lokal dengan ngrok ada di `docs/MIDTRANS-SETUP.md`.
+
 ### 4.8 `PATCH /kasir/menu/{menu}/availability`
 
 Request:
@@ -536,13 +565,13 @@ Status 28 Okt 2026: **sudah diimplementasikan** di `KasirController@updateAvaila
 |---|---|---|
 | `/tentang-kami` | `/tentang` | Ganti URI + semua `route()`; redirect 301 |
 | `/admin` | `/admin/dashboard` | Ganti URI; redirect |
-| `/pesan/pembayaran` | `/pesanan/{kode_pesanan}` | Hapus halaman demo |
-| `/pesan/berhasil` | `/pesanan/{kode_pesanan}` | Hapus halaman demo |
-| Belum ada login | `/login`, `POST /login`, `POST /logout` | **Selesai** — auth manual + role redirect |
-| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `PATCH /kasir/menu/{menu}/availability`, dan `POST /pesan/checkout` **selesai**; action lain menyusul |
-| Belum ada webhook | `/api/midtrans/notification` | Tambah route + CSRF exception |
-| Belum ada role | `auth` + `role:*` | **Selesai** — middleware `role` aktif di area kasir/admin |
-| Belum ada rate limit | `throttle:*` | Login, `GET /kasir/pesanan/poll`, dan `POST /pesan/checkout` selesai; status pesanan menyusul |
+| `/pesan/pembayaran` | `/pesanan/{kode_pesanan}` | **Selesai** - route dihapus; view lama tidak dipakai |
+| `/pesan/berhasil` | `/pesanan/{kode_pesanan}` | **Selesai** - route dihapus; `berhasil.blade.php` menjadi halaman status server-side |
+| Belum ada login | `/login`, `POST /login`, `POST /logout` | **Selesai** - auth manual + role redirect |
+| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, dan `POST /pesanan/{kode_pesanan}/bayar-lagi` **selesai**; action lain menyusul |
+| Belum ada webhook | `/api/midtrans/notification` | **Selesai** - route + CSRF exception + verifikasi signature |
+| Belum ada role | `auth` + `role:*` | **Selesai** - middleware `role` aktif di area kasir/admin |
+| Belum ada rate limit | `throttle:*` | Login, `GET /kasir/pesanan/poll`, `POST /pesan/checkout`, dan status pesanan **selesai**; webhook sengaja tanpa throttle ketat |
 
 ---
 
@@ -560,4 +589,4 @@ Status 28 Okt 2026: **sudah diimplementasikan** di `KasirController@updateAvaila
 
 ## 7. Keputusan terbuka terkait route
 
-- O-16 — URL publik/tunnel dan akun Midtrans untuk pengujian end-to-end.
+- O-16 — akun/kredensial Midtrans untuk pengujian end-to-end. Tunnel sudah diputuskan memakai ngrok; lihat `docs/MIDTRANS-SETUP.md`.

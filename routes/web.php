@@ -3,8 +3,10 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KasirController;
+use App\Http\Controllers\MidtransNotificationController;
 use App\Http\Controllers\PelangganAController;
 use App\Http\Controllers\PelangganBController;
+use App\Http\Controllers\PesananController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,8 +47,8 @@ Route::get('/lokasi', [PelangganAController::class, 'lokasi'])->name('pelanggan-
 | Pelanggan B — pemesanan mandiri di kedai (scan QR)
 |--------------------------------------------------------------------------
 | Keranjang masih di sisi klien. Checkout menyimpan order QRIS lewat
-| POST /pesan/checkout dan mengarahkan pelanggan ke halaman Snap Midtrans.
-| Halaman status pesanan dan webhook belum dibuat.
+| POST /pesan/checkout dan membuka popup Snap di halaman checkout.
+| Status lunas hanya ditentukan oleh webhook (lihat grup di bawah).
 */
 
 Route::prefix('pesan')->name('pelanggan-b.')->group(function () {
@@ -61,11 +63,42 @@ Route::prefix('pesan')->name('pelanggan-b.')->group(function () {
     Route::post('/checkout', [PelangganBController::class, 'storeCheckout'])
         ->middleware('throttle:checkout')
         ->name('checkout.store');
-
-    Route::get('/pembayaran', [PelangganBController::class, 'pembayaran'])->name('pembayaran');
-
-    Route::get('/berhasil', [PelangganBController::class, 'berhasil'])->name('berhasil');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Konfirmasi dan status pesanan QRIS
+|--------------------------------------------------------------------------
+| Halaman publik dengan kode pesanan acak. Polling hanya membaca status;
+| perubahan lunas tetap berasal dari webhook Midtrans.
+*/
+
+Route::get('/pesanan/{order:kode_pesanan}/status', [PesananController::class, 'status'])
+    ->where('order', '[A-Z0-9]{8}')
+    ->middleware('throttle:order-status')
+    ->name('pesanan.status.json');
+
+Route::post('/pesanan/{order:kode_pesanan}/bayar-lagi', [PesananController::class, 'bayarLagi'])
+    ->where('order', '[A-Z0-9]{8}')
+    ->middleware('throttle:checkout')
+    ->name('pesanan.bayar-lagi');
+
+Route::get('/pesanan/{order:kode_pesanan}', [PesananController::class, 'show'])
+    ->where('order', '[A-Z0-9]{8}')
+    ->name('pesanan.status');
+
+/*
+|--------------------------------------------------------------------------
+| Webhook Midtrans — publik, tanpa auth dan tanpa CSRF
+|--------------------------------------------------------------------------
+| Satu-satunya jalur yang boleh menandai pembayaran QRIS lunas. Signature
+| diverifikasi di controller; path ini dikecualikan dari CSRF di
+| bootstrap/app.php. Jangan menambahkan throttle ketat di sini karena
+| Midtrans dapat mengirim ulang notifikasi.
+*/
+
+Route::post('/api/midtrans/notification', [MidtransNotificationController::class, 'handle'])
+    ->name('midtrans.notification');
 
 /*
 |--------------------------------------------------------------------------

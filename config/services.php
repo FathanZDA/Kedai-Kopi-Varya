@@ -40,7 +40,8 @@ return [
     | Midtrans — QRIS dinamis (Sandbox)
     |--------------------------------------------------------------------------
     |
-    | Kredensial hanya boleh dibaca dari .env dan dipakai di backend.
+    | Server key hanya boleh dibaca backend dan tidak pernah dikirim ke browser.
+    | Client key bersifat publik dan dipakai Snap.js untuk membuka popup.
     | Mode produksi belum diaktifkan pada versi ini; nilai is_production
     | hanya menentukan host Snap yang dipanggil.
     |
