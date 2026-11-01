@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 1 Nov 2026, setelah slice `kasir-qris-ops` (belum di-commit).
+**Terakhir diperbarui:** 1 Nov 2026, setelah slice `auto-expire-reconcile` (belum di-commit).
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `qris-webhook` @ `a9d04ab`; working tree memuat slice `kasir-qris-ops` yang **belum di-commit** |
-| Baseline test | `php artisan test` → **132 passed** (611 assertions) |
+| Branch aktif | `kasir-qris-ops` @ `2fb738f`; working tree memuat slice `auto-expire-reconcile` yang **belum di-commit** |
+| Baseline test | `php artisan test` → **145 passed** (690 assertions) |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user) |
@@ -31,7 +31,8 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `kasir-backend` | `b1cbb96` | Backend kasir: order tunai, pesanan masuk, polling, ketersediaan menu |
 | `qris-checkout` | `450036c` | Checkout QRIS + transaksi Snap + `throttle:checkout` |
 | `qris-webhook` | `a9d04ab` | Webhook Midtrans, popup Snap, halaman status, pembayaran ulang |
-| `kasir-qris-ops` | *belum di-commit* | Pembatalan QRIS + Cek Status kasir |
+| `kasir-qris-ops` | `2fb738f` | Pembatalan QRIS + Cek Status kasir |
+| `auto-expire-reconcile` | *belum di-commit* | Rekonsiliasi terjadwal + penutupan otomatis 24 jam |
 
 ---
 
@@ -45,7 +46,7 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | Admin | **Sebagian** | Menu, kategori, promosi, toko dari DB; transaksi/laporan/CRUD aksi masih data contoh + `localStorage` |
 | Login/role | **Selesai** | `/login`, redirect per role, `role` middleware, rate limit |
 | Database transaksi | **Selesai** | `orders`, `order_items`, `payments`, `payment_notifications`, `queue_counters` |
-| Pembayaran Midtrans | **Sebagian** | Snap create + webhook + nomor antrean + popup + halaman status/bayar lagi + pembatalan + cek status; rekonsiliasi terjadwal dan penutupan 24 jam belum |
+| Pembayaran Midtrans | **Selesai** | Snap create + webhook + nomor antrean + popup + halaman status/bayar lagi + pembatalan + cek status + rekonsiliasi terjadwal + penutupan otomatis 24 jam |
 
 ---
 
@@ -120,7 +121,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ---
 
-## 5. Yang baru selesai: `pesanan-status` dan `kasir-qris-ops`
+## 5. Yang baru selesai: `pesanan-status`, `kasir-qris-ops`, dan `auto-expire-reconcile`
 
 ### 5.1 `pesanan-status`
 
@@ -144,11 +145,11 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Parameter `finish`/`onSuccess` Snap tidak pernah menandai lunas. Status hanya berubah lewat webhook atau Cek Status server-side kasir; halaman status melakukan polling sampai berubah lalu reload.
 - Snap gagal saat checkout (`500`) tetap menyimpan order; browser diarahkan ke halaman status yang menampilkan tombol **Coba Bayar Lagi**.
 - `MIDTRANS_CLIENT_KEY` kosong → checkout/bayar lagi menjawab `503`; `MIDTRANS_SERVER_KEY` kosong tetap membuat webhook `500` untuk dicoba ulang.
-- Setelah 24 jam, pesanan yang belum dibayar otomatis `dibatalkan` (PRD §8.7.6) — slice terpisah bersama rekonsiliasi.
+- Setelah 24 jam, pesanan yang belum dibayar otomatis `dibatalkan` (PRD §8.7.6) — sudah diimplementasikan di §5.3 (`qris:reconcile`).
 
 ### 5.2 `kasir-qris-ops`
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit**. Branch `kasir-qris-ops` disarankan dipotong dari `qris-webhook` @ `a9d04ab`.
+**Status:** selesai dan sudah di-commit di `kasir-qris-ops` @ `2fb738f`.
 
 **Kontrak:** `docs/ROUTES.md` §4.9–4.10, PRD §7.4 K-02e/K-02g, §8.4.9–10, §8.4.10, §11.4–11.5, §7.6 PG-07.
 
@@ -172,11 +173,45 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Midtrans tidak dapat dihubungi → `502`; `MIDTRANS_SERVER_KEY` kosong → `503`; order tetap `menunggu_pembayaran`.
 - Cek Status tidak menimpa `payments.raw_response` dan tidak menulis audit webhook. Tombol ini hanya ada di area kasir, bukan halaman pelanggan.
 
-**Slice setelahnya (belum dikerjakan):**
+### 5.3 `auto-expire-reconcile`
 
-- `auto-expire-reconcile`: rekonsiliasi terjadwal (PRD §11.7 / PG-08), penutupan otomatis order QRIS 24 jam (PRD §8.7.6), dan penanganan `perlu_diperiksa` lanjutan.
-- `admin-crud`: CRUD menu/promosi, simpan informasi toko, laporan & dashboard dari DB.
-- `GET /kasir/pesanan/{order}` bila detail server-side dibutuhkan; sementara detail memakai snapshot polling.
+**Status:** sudah diimplementasikan di working tree, **belum di-commit**. Branch `kasir-qris-ops` (di atas `2fb738f`).
+
+**Kontrak:** PRD §11.7, §8.7.6, §7.6 PG-08; `docs/ROUTES.md` §4.11; `docs/DATABASE.md` §7.5; `docs/DECISIONS.md` F-59/F-60.
+
+**Yang sudah ada:**
+
+1. `app/Services/QrisReconciliationService.php` — dua pekerjaan per putaran: memeriksa pembayaran `pending` berumur > 2 menit ke Midtrans, dan menutup order QRIS berumur > 24 jam. Penutupan memakai `DB::transaction` + `lockForUpdate`, tidak pernah membuat nomor antrean, dan melewati order yang punya bukti `settlement`/`capture` lokal atau percobaan `pending` < 15 menit.
+2. `app/Console/Commands/ReconcileQrisPayments.php` — command `qris:reconcile`, mencetak `N diperiksa, N ditutup, N gagal`.
+3. `routes/console.php` — `Schedule::command('qris:reconcile')->everyFiveMinutes()->withoutOverlapping(10)`.
+4. `bootstrap/app.php` — `->withCommands()` agar command di `app/Console/Commands` terdaftar.
+5. `MidtransService` — `retry(2, 250ms)` untuk `ConnectionException`/5xx dan `status_code = 407` + `transaction_status = expire` diperlakukan sebagai hasil sah.
+6. `OrderService` — log `warning`/`error` pada kegagalan pembatalan/pemeriksaan, dan pesan 409 diubah menjadi "…akan ditutup otomatis setelah 24 jam".
+7. Test: `tests/Feature/QrisReconciliationTest.php` (9 test) + 4 test tambahan di `KasirQrisOpsTest` (407 expire, retry 5xx, 5xx berulang).
+
+**Perilaku penting:**
+
+- Rekonsiliasi memakai `MidtransNotificationService::terapkanStatus`, jalur yang sama dengan webhook, sehingga `settlement` tetap memberi nomor antrean secara idempoten dan `perlu_diperiksa` tetap terbentuk bila nominal tidak cocok.
+- Rekonsiliasi **tidak** menulis `payment_notifications` dan tidak menimpa `payments.raw_response`.
+- Pesanan yang ditutup otomatis: `status_pesanan = dibatalkan`, `status_pembayaran = dibatalkan`, `nomor_antrean` tetap `null`, `queue_counters` tidak bertambah.
+- Order yang punya bukti pembayaran (`payments.status_transaksi = settlement`/`capture`) tidak pernah ditutup meskipun status order sempat tidak sinkron.
+- Kegagalan Midtrans tidak mengubah order; putaran berikutnya mencoba lagi.
+- Penanganan lanjutan `perlu_diperiksa` **bukan** bagian slice ini: `admin.md` dan PRD §126 menyatakan koreksi dilakukan di dashboard Midtrans.
+
+## 5.4 Rencana slice berikutnya (belum dikerjakan)
+
+Urutan ini disusun agar data contoh di admin hilang dari sumber paling dasar ke paling turunan. Satu slice = satu commit; jangan gabungkan.
+
+| # | Slice | Cakupan | Acuan | Kriteria diterima |
+|---|---|---|---|---|
+| 1 | `admin-menu-crud` | `POST /admin/menu`, `PUT/PATCH /admin/menu/{menu}`, `DELETE /admin/menu/{menu}` (soft delete), upload foto, pencarian/filter; hapus simpan demo menu di `admin.js` | PRD AD-02, §8.6; `admin.md` §B; `docs/ROUTES.md` §2.5 | Validasi nama/kategori/harga/foto di server; menu baru langsung tampil di halaman publik; perubahan harga hanya berlaku untuk order baru; menu dihapus hilang dari publik & kasir tetapi snapshot `order_items` tetap utuh |
+| 2 | `admin-promo-crud` | `POST /admin/promosi`, `PUT/PATCH`, `DELETE`, aktif/nonaktif, urutan, periode | PRD AD-04, §8.9; F-35 | Promosi aktif dan dalam periode tampil di landing page sesuai `urutan`; nonaktif/berakhir tidak tampil; gambar tervalidasi |
+| 3 | `admin-store-settings` | `PUT /admin/toko`: `store_settings` + upsert `store_hours` 7 hari | PRD AD-05, §8.9; F-34/F-36 | Perubahan langsung tampil di halaman publik; jam per hari tersimpan dengan `tutup`; tidak ada lagi penyimpanan demo di browser |
+| 4 | `admin-reports` | `GET /admin/laporan` dari `orders`/`order_items`/`payments`; filter bulan+tahun; ringkasan; tabel; `GET /admin/laporan/{order}` | PRD AD-03, §8.8; F-14; `docs/ROUTES.md` §2.5 | Hanya `lunas` dihitung pendapatan; QRIS belum lunas hanya informasi; detail menampilkan item snapshot, `uang_diterima`/`kembalian`, dan `midtrans_order_id` |
+| 5 | `admin-dashboard` | Ringkasan hari ini/bulan, jumlah transaksi lunas, pesanan menunggu/diproses, perbandingan QRIS:tunai, 5 menu terlaris dari `order_items`, 10 transaksi terbaru | PRD AD-01; `admin.md` §A | Angka konsisten dengan laporan bulan yang sama; `recentOrders()`, `popularMenus()`, `transactions()` demo dihapus dari `AdminController` |
+| 6 | `kasir-pesanan-detail` *(opsional)* | `GET /kasir/pesanan/{order}` server-side | `docs/ROUTES.md` §2.4 | Detail dibaca dari database, hanya order hari ini; UI boleh tetap memakai snapshot polling |
+| 7 | `pelanggan-b-cart` *(butuh keputusan)* | Endpoint keranjang server-side **atau** keputusan mempertahankan keranjang di browser | AGENTS §2, F-29 | **Berhenti dan tanya lebih dulu**: `docs/ROUTES.md` belum punya kontrak keranjang, dan checkout sudah memvalidasi harga/ketersediaan di server |
+| 8 | `docs-readme` *(terakhir)* | README project menggantikan README Laravel, bersihkan sisa data demo, putuskan `database/database.sqlite` | AGENTS §11; F-44 | README memuat setup, migrate/seed, test, dan catatan Midtrans; tidak ada data contoh yang tertinggal tanpa penanda |
 
 ## 6. Keputusan yang masih menunggu user
 
@@ -207,8 +242,8 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 ## 8. Aturan singkat untuk sesi baru
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
-2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 132 passed).
-3. Potong branch baru dari ujung terbaru (`qris-webhook` @ `a9d04ab`, lalu `kasir-qris-ops` setelah di-commit), bukan dari `main`.
+2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 145 passed).
+3. Potong branch baru dari ujung terbaru (`kasir-qris-ops` @ `2fb738f`, lalu commit slice `auto-expire-reconcile`), bukan dari `main`.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
 5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata. Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
@@ -222,10 +257,10 @@ Lanjutkan proyek Kedai Kopi Varya. Mulai dengan membaca docs/HANDOFF.md,
 lalu AGENTS.md, PRD.md, docs/DECISIONS.md, docs/ROUTES.md, docs/DATABASE.md.
 
 Verifikasi baseline dulu: git log -1 dan php artisan test (harus hijau;
-saat file ini ditulis 132 passed).
+saat file ini ditulis 145 passed).
 Kalau MySQL mati, nyalakan XAMPP dulu sebelum menyimpulkan ada bug kode.
 
-Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5, dipotong
+Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.4, dipotong
 dari branch terbaru. Ikuti pola yang sudah ada: FormRequest, Service,
 API Resource, DB::transaction + lockForUpdate, enum, named route.
 
@@ -252,7 +287,8 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 29 Okt 2026 | `kasir-backend` | `a491b1c` | Dokumentasi HANDOFF |
 | 29 Okt 2026 | `qris-checkout` | `450036c` | Checkout QRIS + Snap + `throttle:checkout` |
 | 30-31 Okt 2026 | `qris-webhook` | `a9d04ab` | Webhook Midtrans, popup Snap, halaman status/tiket, polling, bayar lagi |
-| 1 Nov 2026 | `kasir-qris-ops` | *belum di-commit* | Pembatalan QRIS + Cek Status kasir |
+| 1 Nov 2026 | `kasir-qris-ops` | `2fb738f` | Pembatalan QRIS + Cek Status kasir |
+| 1 Nov 2026 | `auto-expire-reconcile` | *belum di-commit* | Rekonsiliasi terjadwal + penutupan otomatis 24 jam |
 
 ---
 

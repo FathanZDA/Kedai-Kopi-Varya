@@ -184,6 +184,41 @@ class KasirQrisOpsTest extends TestCase
         $this->assertSame('expire', $payment->status_transaksi);
     }
 
+    public function test_cancel_memakai_status_407_expire_bila_midtrans_menolak_pembatalan(): void
+    {
+        $order = $this->buatOrder();
+        $payment = $this->tambahPembayaran($order);
+
+        $expire = array_merge($this->responsMidtrans($payment, 'expire'), [
+            'status_code' => '407',
+            'status_message' => 'Success, transaction is found',
+        ]);
+
+        Http::fake([
+            self::API_URL.'/'.$payment->midtrans_order_id.'/cancel' => Http::response([
+                'status_code' => '412',
+                'status_message' => 'Transaction already expired.',
+            ], 412),
+            self::API_URL.'/'.$payment->midtrans_order_id.'/status' => Http::response($expire),
+        ]);
+
+        $this->actingAs($this->kasir)
+            ->postJson(route('kasir.pesanan.cancel', ['order' => $order->id]))
+            ->assertOk()
+            ->assertJsonPath('data.status', 'dibatalkan')
+            ->assertJsonPath('data.payment_status', 'dibatalkan')
+            ->assertJsonPath('data.queue', null);
+
+        $order->refresh();
+        $payment->refresh();
+
+        $this->assertSame(StatusPesanan::Dibatalkan, $order->status_pesanan);
+        $this->assertSame(StatusPembayaran::Dibatalkan, $order->status_pembayaran);
+        $this->assertNull($order->nomor_antrean);
+        $this->assertSame('expire', $payment->status_transaksi);
+        $this->assertSame('407', $payment->status_code);
+    }
+
     public function test_cancel_ditolak_bila_status_midtrans_ternyata_settlement(): void
     {
         $order = $this->buatOrder();
@@ -229,7 +264,11 @@ class KasirQrisOpsTest extends TestCase
 
         $this->actingAs($this->kasir)
             ->postJson(route('kasir.pesanan.cancel', ['order' => $order->id]))
-            ->assertStatus(409);
+            ->assertStatus(409)
+            ->assertJsonPath(
+                'message',
+                'Midtrans belum dapat membatalkan transaksi. Pesanan tetap menunggu dan akan ditutup otomatis setelah 24 jam.',
+            );
 
         $order->refresh();
         $payment->refresh();
@@ -238,6 +277,58 @@ class KasirQrisOpsTest extends TestCase
         $this->assertSame(StatusPembayaran::Menunggu, $order->status_pembayaran);
         $this->assertNull($order->nomor_antrean);
         $this->assertSame('pending', $payment->status_transaksi);
+    }
+
+    public function test_cancel_mengulang_pembatalan_setelah_midtrans_5xx_lalu_berhasil(): void
+    {
+        $order = $this->buatOrder();
+        $payment = $this->tambahPembayaran($order);
+
+        Http::fake([
+            self::API_URL.'/'.$payment->midtrans_order_id.'/cancel' => Http::sequence()
+                ->push([
+                    'status_code' => '500',
+                    'status_message' => 'Sorry. Our system is recovering from unexpected issues. Please retry.',
+                ], 500)
+                ->push($this->responsMidtrans($payment, 'cancel'), 200),
+        ]);
+
+        $this->actingAs($this->kasir)
+            ->postJson(route('kasir.pesanan.cancel', ['order' => $order->id]))
+            ->assertOk()
+            ->assertJsonPath('data.status', 'dibatalkan')
+            ->assertJsonPath('data.queue', null);
+
+        $this->assertSame(StatusPesanan::Dibatalkan, $order->refresh()->status_pesanan);
+        $this->assertSame('cancel', $payment->refresh()->status_transaksi);
+        Http::assertSentCount(2);
+    }
+
+    public function test_cancel_5xx_berulang_dan_status_pending_tetap_menunggu(): void
+    {
+        $order = $this->buatOrder();
+        $payment = $this->tambahPembayaran($order);
+
+        Http::fake([
+            self::API_URL.'/'.$payment->midtrans_order_id.'/cancel' => Http::sequence()
+                ->push(['status_code' => '500', 'status_message' => 'Sedang pulih.'], 500)
+                ->push(['status_code' => '500', 'status_message' => 'Sedang pulih.'], 500),
+            self::API_URL.'/'.$payment->midtrans_order_id.'/status' => Http::response(
+                $this->responsMidtrans($payment, 'pending'),
+            ),
+        ]);
+
+        $this->actingAs($this->kasir)
+            ->postJson(route('kasir.pesanan.cancel', ['order' => $order->id]))
+            ->assertStatus(409)
+            ->assertJsonPath(
+                'message',
+                'Midtrans belum dapat membatalkan transaksi. Pesanan tetap menunggu dan akan ditutup otomatis setelah 24 jam.',
+            );
+
+        $this->assertSame(StatusPesanan::MenungguPembayaran, $order->refresh()->status_pesanan);
+        $this->assertSame('pending', $payment->refresh()->status_transaksi);
+        Http::assertSentCount(3);
     }
 
     public function test_cancel_tidak_membatalkan_lokal_bila_respons_cancel_masih_pending(): void
@@ -401,6 +492,37 @@ class KasirQrisOpsTest extends TestCase
             ->assertJsonPath('data.queue', null);
 
         $this->assertSame(StatusPesanan::MenungguPembayaran, $order->refresh()->status_pesanan);
+    }
+
+    public function test_check_status_407_expire_menandai_kedaluwarsa_tanpa_nomor_antrean(): void
+    {
+        $order = $this->buatOrder();
+        $payment = $this->tambahPembayaran($order);
+
+        $expire = array_merge($this->responsMidtrans($payment, 'expire'), [
+            'status_code' => '407',
+            'status_message' => 'Success, transaction is found',
+        ]);
+
+        Http::fake([
+            self::API_URL.'/*' => Http::response($expire),
+        ]);
+
+        $this->actingAs($this->kasir)
+            ->postJson(route('kasir.pesanan.check-status', ['order' => $order->id]))
+            ->assertOk()
+            ->assertJsonPath('data.status', 'menunggu_pembayaran')
+            ->assertJsonPath('data.payment_status', 'kedaluwarsa')
+            ->assertJsonPath('data.queue', null);
+
+        $order->refresh();
+        $payment->refresh();
+
+        $this->assertSame(StatusPesanan::MenungguPembayaran, $order->status_pesanan);
+        $this->assertSame(StatusPembayaran::Kedaluwarsa, $order->status_pembayaran);
+        $this->assertSame('expire', $payment->status_transaksi);
+        $this->assertSame('407', $payment->status_code);
+        $this->assertNull($order->nomor_antrean);
     }
 
     public function test_check_status_tanpa_gross_amount_tidak_menandai_lunas(): void

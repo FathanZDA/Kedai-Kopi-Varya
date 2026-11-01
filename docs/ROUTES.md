@@ -4,7 +4,7 @@
 **Terakhir diperbarui:** 1 November 2026
 **Acuan:** `PRD.md` §4.3, §7, §11; `docs/DECISIONS.md`; `routes/web.php`
 
-> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, dan Cek Status sudah aktif. Rekonsiliasi terjadwal, laporan, dan CRUD admin belum aktif.
+> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, dan proses terjadwal rekonsiliasi sudah aktif. Laporan dan CRUD admin belum aktif.
 
 ---
 
@@ -52,7 +52,8 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 Belum ada:
 
 - Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, dan `POST /pesanan/{kode_pesanan}/bayar-lagi`.
-- Rekonsiliasi terjadwal, laporan, dan CRUD admin.
+- Rekonsiliasi berjalan sebagai command terjadwal `qris:reconcile` (bukan route HTTP), lihat §4.11.
+- Laporan dan CRUD admin.
 - Route detail pesanan kasir (`GET /kasir/pesanan/{order}`); detail saat ini dirender dari data polling.
 - Rate limiting untuk endpoint lain di luar login, polling kasir, pembatalan/Cek Status, checkout, dan status pesanan.
 
@@ -631,6 +632,32 @@ Aturan:
 - Order tanpa percobaan pembayaran atau order non-QRIS ditolak `409`. Midtrans tidak dapat dihubungi → `502`; kredensial kosong → `503`; throttle → `429`.
 - Tombol ini hanya ada di halaman kasir, bukan halaman pelanggan (PRD K-02e, PG-07).
 - Status 1 Nov 2026: **sudah diimplementasikan** di `KasirController@checkPaymentStatus` + `OrderService::periksaStatusPembayaran` + `MidtransService::ambilStatus`.
+
+### 4.11 Proses terjadwal `qris:reconcile` (bukan route HTTP)
+
+Tidak ada endpoint HTTP baru. Proses ini dijalankan scheduler Laravel dan tidak dapat dipanggil dari browser.
+
+```bash
+php artisan qris:reconcile
+```
+
+Jadwal: `routes/console.php` → `Schedule::command('qris:reconcile')->everyFiveMinutes()->withoutOverlapping(10)`.
+
+Keluaran (stdout, satu baris):
+
+```text
+Rekonsiliasi selesai: 3 diperiksa, 1 ditutup, 0 gagal.
+```
+
+Aturan:
+
+- Memeriksa pembayaran `pending` pada order QRIS `menunggu_pembayaran` yang berumur lebih dari 2 menit, lalu memanggil `GET /v2/{midtrans_order_id}/status` dan menerapkannya lewat `MidtransNotificationService::terapkanStatus` (jalur yang sama dengan webhook). Tidak menulis `payment_notifications` dan tidak menimpa `payments.raw_response`.
+- Menutup order QRIS `menunggu_pembayaran` berumur lebih dari 24 jam dengan `status_pembayaran` `menunggu`/`gagal`/`kedaluwarsa` menjadi `status_pesanan = dibatalkan`, `status_pembayaran = dibatalkan`.
+- Tidak pernah membuat nomor antrean atau menambah `queue_counters`.
+- Tidak menutup order yang masih punya bukti `settlement`/`capture` lokal atau percobaan `pending` yang belum lewat 15 menit.
+- Kegagalan Midtrans (jaringan/5xx) atau order yang berubah bersamaan hanya menambah hitungan `gagal` dan menulis log; order tidak diubah.
+- `GET /status` dan `POST /cancel` memakai `retry(2, 250ms)` untuk gangguan jaringan/5xx. Respons `status_code = 407` + `transaction_status = expire` adalah hasil sah (transaksi sudah kedaluwarsa), bukan kegagalan API.
+- Status 1 Nov 2026: **sudah diimplementasikan** di `App\Services\QrisReconciliationService` + `App\Console\Commands\ReconcileQrisPayments`.
 
 ---
 

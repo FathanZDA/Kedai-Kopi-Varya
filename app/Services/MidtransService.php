@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -100,6 +101,8 @@ class MidtransService
                 ->acceptJson()
                 ->connectTimeout(10)
                 ->timeout(20)
+                ->retry(2, 250, fn (\Throwable $exception): bool => $exception instanceof ConnectionException
+                    || ($exception instanceof RequestException && $exception->response?->serverError()), throw: false)
                 ->get($this->urlApi().'/'.rawurlencode($payment->midtrans_order_id).'/status');
         } catch (ConnectionException $exception) {
             throw new MidtransException(
@@ -150,6 +153,8 @@ class MidtransService
                 ->acceptJson()
                 ->connectTimeout(10)
                 ->timeout(20)
+                ->retry(2, 250, fn (\Throwable $exception): bool => $exception instanceof ConnectionException
+                    || ($exception instanceof RequestException && $exception->response?->serverError()), throw: false)
                 ->post($this->urlApi().'/'.rawurlencode($payment->midtrans_order_id).'/cancel');
         } catch (ConnectionException $exception) {
             throw new MidtransException(
@@ -208,8 +213,14 @@ class MidtransService
         $data = is_array($data) ? $data : [];
 
         $statusCode = (string) ($data['status_code'] ?? $response->status());
+        $statusTransaksi = (string) ($data['transaction_status'] ?? '');
 
-        if ($response->failed() || ! in_array($statusCode, ['200', '201'], true)) {
+        // Get Status Midtrans dapat mengembalikan `status_code = 407` dengan
+        // `transaction_status = expire` saat transaksi sudah kedaluwarsa.
+        // Respons ini adalah hasil yang valid, bukan kegagalan API.
+        $kedaluwarsa = $statusCode === '407' && $statusTransaksi === 'expire';
+
+        if (! $kedaluwarsa && ($response->failed() || ! in_array($statusCode, ['200', '201'], true))) {
             throw new MidtransException(
                 "Permintaan {$aksi} ke Midtrans gagal.",
                 $order,

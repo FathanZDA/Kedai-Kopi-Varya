@@ -13,6 +13,7 @@ use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -475,23 +476,37 @@ class OrderService
                 'capture',
             ], true)) {
                 throw ValidationException::withMessages([
-                    'pembayaran' => 'Midtrans belum mengonfirmasi pembatalan; status pesanan tetap menunggu.',
+                    'pembayaran' => 'Midtrans belum dapat membatalkan transaksi. Pesanan tetap menunggu dan akan ditutup otomatis setelah 24 jam.',
                 ]);
             }
 
             return $payload;
         } catch (MidtransException $pembatalan) {
+            Log::warning('Pembatalan Midtrans gagal; memeriksa status pembayaran.', [
+                'kode_pesanan' => $order->kode_pesanan,
+                'midtrans_order_id' => $payment->midtrans_order_id,
+                'status_code' => $pembatalan->statusCode,
+                'pesan' => $pembatalan->getMessage(),
+            ]);
+
             try {
                 $status = $this->midtrans->ambilStatus($payment, $order);
-            } catch (MidtransException) {
+            } catch (MidtransException $pemeriksaan) {
                 // Pembatalan dan pemeriksaan status sama-sama gagal: biarkan
                 // order menunggu agar tidak ada pembatalan tanpa konfirmasi.
+                Log::error('Pembatalan dan pemeriksaan status Midtrans sama-sama gagal.', [
+                    'kode_pesanan' => $order->kode_pesanan,
+                    'midtrans_order_id' => $payment->midtrans_order_id,
+                    'status_pembatalan' => $pembatalan->statusCode,
+                    'status_pemeriksaan' => $pemeriksaan->statusCode,
+                ]);
+
                 throw $pembatalan;
             }
 
             if ($status['transaction_status'] === 'pending') {
                 throw ValidationException::withMessages([
-                    'pembayaran' => 'Midtrans belum mengonfirmasi pembatalan; status pesanan tetap menunggu.',
+                    'pembayaran' => 'Midtrans belum dapat membatalkan transaksi. Pesanan tetap menunggu dan akan ditutup otomatis setelah 24 jam.',
                 ]);
             }
 

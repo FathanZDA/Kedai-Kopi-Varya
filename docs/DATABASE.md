@@ -1,7 +1,7 @@
 # Kontrak Database — Kedai Kopi Varya
 
 **Status:** FINAL untuk skema inti
-**Terakhir diperbarui:** 31 Oktober 2026
+**Terakhir diperbarui:** 1 November 2026
 **Acuan:** `PRD.md` §10, `docs/DECISIONS.md`
 **Database:** MySQL saja
 
@@ -383,6 +383,20 @@ Status 31 Okt 2026: **sudah diimplementasikan** di `App\Services\OrderService::b
 3. Batalkan transaksi Midtrans bila masih aktif.
 4. Set `status_pembayaran = dibatalkan`, `status_pesanan = dibatalkan`.
 5. Jangan membuat nomor antrean.
+
+### 7.5 Rekonsiliasi dan penutupan otomatis
+
+Dijalankan `php artisan qris:reconcile` setiap 5 menit (PRD §11.7). Tidak ada tabel baru; proses ini hanya membaca `orders`/`payments` dan memakai jalur penerapan status yang sama dengan webhook.
+
+1. Ambil order `sumber = qr`, `status_pesanan = menunggu_pembayaran`, yang punya `payments.status_transaksi = pending`.
+2. Lewati percobaan yang `waktu_dibuat` (fallback `created_at`) belum lewat 2 menit.
+3. Panggil `GET /v2/{midtrans_order_id}/status`; terapkan hasilnya lewat `MidtransNotificationService::terapkanStatus` di `DB::transaction` + `lockForUpdate`.
+4. Pemeriksaan ini **tidak** menulis `payment_notifications` (tabel audit webhook) dan tidak menimpa `payments.raw_response`.
+5. Ambil order `sumber = qr`, `status_pesanan = menunggu_pembayaran`, `created_at` lebih dari 24 jam, dan `status_pembayaran` `menunggu`/`gagal`/`kedaluwarsa`.
+6. Lewati order yang punya `payments.status_transaksi` `settlement`/`capture`, atau percobaan `pending` yang belum lewat 15 menit.
+7. Set `status_pembayaran = dibatalkan` dan `status_pesanan = dibatalkan`; jangan membuat nomor antrean dan jangan menambah `queue_counters`.
+
+Status 1 Nov 2026: **sudah diimplementasikan** di `App\Services\QrisReconciliationService` + `App\Console\Commands\ReconcileQrisPayments`, dijadwalkan di `routes/console.php`. Kegagalan Midtrans atau perubahan status bersamaan hanya menghasilkan hitungan `gagal` + log; order tidak diubah.
 
 ---
 
