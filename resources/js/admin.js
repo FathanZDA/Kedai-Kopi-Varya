@@ -1,5 +1,6 @@
 // Interaksi front-end area admin Kedai Kopi Varya.
-// Belum ada pemanggilan API/database. Data contoh berasal dari Blade dan
+// Katalog menu sudah memakai endpoint server (tambah/ubah/hapus/ketersediaan).
+// Promosi, laporan, dan informasi toko masih data contoh dari Blade dan
 // perubahan demo disimpan sementara di localStorage browser.
 
 const CONFIG = window.ADMIN_CONFIG ?? {};
@@ -7,10 +8,11 @@ const ROUTES = CONFIG.routes ?? {};
 const numberFormatter = new Intl.NumberFormat('id-ID');
 
 const STORAGE_KEYS = {
-    menus: 'varya.admin.menus.v2',
     promos: 'varya.admin.promos.v2',
     store: 'varya.admin.store.v2',
 };
+
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
 const EMPTY_IMAGE = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">'
@@ -71,6 +73,38 @@ function enableBackdropClose(dialog) {
     dialog?.addEventListener('click', (event) => {
         if (event.target === dialog) dialog.close();
     });
+}
+
+async function kirimJson(url, method, body = null) {
+    try {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+            },
+            body: body === null ? undefined : JSON.stringify(body),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        return { ok: response.ok, status: response.status, data };
+    } catch {
+        return { ok: false, status: 0, data: {} };
+    }
+}
+
+function pesanKesalahan(hasil) {
+    if (hasil.status === 0) return 'Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.';
+    if (hasil.status === 419) return 'Sesi halaman kedaluwarsa. Muat ulang halaman lalu coba lagi.';
+    if (hasil.status === 403) return 'Kamu tidak punya akses untuk aksi ini.';
+    if (hasil.status === 404) return 'Menu tidak ditemukan. Muat ulang halaman.';
+
+    const errors = hasil.data?.errors ?? {};
+    const pertama = Object.values(errors).flat()[0];
+
+    return pertama ?? hasil.data?.message ?? 'Aksi gagal diproses. Coba lagi.';
 }
 
 let toastTimer = null;
@@ -405,22 +439,15 @@ function initDashboard() {
 /* -------------------------------------------------------------------------- */
 
 function loadMenus() {
-    const stored = readStorage(STORAGE_KEYS.menus, null);
-
-    if (Array.isArray(stored)) return stored;
-
-    const seeded = clone(CONFIG.menus ?? []);
-    writeStorage(STORAGE_KEYS.menus, seeded);
-    return seeded;
+    return clone(CONFIG.menus ?? []);
 }
 
-function saveMenus(menus) {
-    writeStorage(STORAGE_KEYS.menus, menus);
+function kategoriById(id) {
+    return (CONFIG.categories ?? []).find((category) => String(category.id) === String(id)) ?? null;
 }
 
-function categoryLabel(slug) {
-    return (CONFIG.categories ?? []).find((category) => category.slug === slug)?.label
-        ?? (slug ? slug.replaceAll('-', ' ') : 'Kategori');
+function categoryLabel(id) {
+    return kategoriById(id)?.label ?? 'Kategori';
 }
 
 function generateSku(category, menus) {
@@ -554,8 +581,10 @@ function initMenuList() {
         </tr>
     `;
 
+    let daftarMenu = loadMenus();
+
     const render = () => {
-        const menus = loadMenus();
+        const menus = daftarMenu;
         const activeMenus = menus.filter((menu) => !menu.deleted);
         const filtered = filteredMenus(menus);
 
@@ -610,50 +639,65 @@ function initMenuList() {
         render();
     });
 
-    tbody?.addEventListener('click', (event) => {
+    tbody?.addEventListener('click', async (event) => {
         const toggle = event.target.closest('[data-admin-menu-toggle]');
         const remove = event.target.closest('[data-admin-menu-delete]');
 
         if (toggle) {
             const row = toggle.closest('[data-admin-menu-row]');
             const id = Number(row?.dataset.menuId);
-            const menus = loadMenus();
-            const menu = menus.find((item) => item.id === id);
-            if (!menu) return;
+            const menu = daftarMenu.find((item) => item.id === id);
+            if (!menu || toggle.disabled) return;
 
-            menu.available = !menu.available;
-            saveMenus(menus);
+            const tersedia = !menu.available;
+            toggle.disabled = true;
+
+            const hasil = await kirimJson(
+                `${ROUTES.menuAvailabilityBase}/${menu.id}/availability`,
+                'PATCH',
+                { tersedia },
+            );
+
+            toggle.disabled = false;
+
+            if (!hasil.ok) {
+                showToast(pesanKesalahan(hasil));
+                return;
+            }
+
+            menu.available = Boolean(hasil.data?.data?.tersedia ?? tersedia);
             render();
-            showToast(`${menu.name} ditandai ${menu.available ? 'tersedia' : 'habis'}.`);
+            showToast(hasil.data?.message ?? `${menu.name} ditandai ${menu.available ? 'tersedia' : 'habis'}.`);
         }
 
         if (remove) {
             const row = remove.closest('[data-admin-menu-row]');
             const id = Number(row?.dataset.menuId);
-            const menus = loadMenus();
-            const menu = menus.find((item) => item.id === id);
+            const menu = daftarMenu.find((item) => item.id === id);
             if (!menu) return;
 
             askConfirm({
                 title: 'Hapus menu ini?',
-                message: `Menu "${menu.name}" akan dihapus dari daftar penjualan baru. Riwayat pesanan lama tetap tersimpan pada demo ini.`,
+                message: `Menu "${menu.name}" akan dihapus dari daftar penjualan baru. Riwayat pesanan lama tetap tersimpan.`,
                 label: 'Hapus Menu',
-                onConfirm: () => {
-                    menu.deleted = true;
-                    saveMenus(menus);
+                onConfirm: async () => {
+                    const hasil = await kirimJson(`${ROUTES.menuEditBase}/${menu.id}`, 'DELETE');
+
+                    if (!hasil.ok) {
+                        showToast(pesanKesalahan(hasil));
+                        return;
+                    }
+
+                    daftarMenu = daftarMenu.filter((item) => item.id !== menu.id);
                     render();
-                    showToast(`${menu.name} berhasil dihapus (demo).`);
+                    showToast(hasil.data?.message ?? `${menu.name} berhasil dihapus.`);
                 },
             });
         }
     });
 
-    const params = new URLSearchParams(window.location.search);
-    const saved = params.get('saved');
-    const deleted = params.get('deleted');
-
-    if (saved) showToast(`Menu "${saved}" berhasil disimpan (demo).`);
-    if (deleted) showToast(`Menu "${deleted}" berhasil dihapus (demo).`);
+    const flash = root.dataset.adminFlash ?? '';
+    if (flash) showToast(flash);
 
     render();
 }
@@ -668,9 +712,6 @@ function initMenuForm() {
 
     const form = root.querySelector('[data-menu-form]');
     if (!form) return;
-
-    const mode = root.dataset.mode === 'edit' ? 'edit' : 'create';
-    const menuId = Number(root.dataset.menuId) || null;
 
     const fields = {
         name: form.querySelector('[data-field="name"]'),
@@ -699,19 +740,11 @@ function initMenuForm() {
     };
 
     const menus = loadMenus();
-    const storedMenu = menuId ? menus.find((menu) => menu.id === menuId) : null;
-    const current = storedMenu ?? clone(CONFIG.menu ?? {});
+    const current = clone(CONFIG.menu ?? {});
     const fallbackImage = current.image ?? CONFIG.menus?.[0]?.image ?? EMPTY_IMAGE;
 
     let selectedImage = null;
-
-    if (mode === 'edit' && storedMenu) {
-        if (fields.name) fields.name.value = storedMenu.name;
-        if (fields.category) fields.category.value = storedMenu.category;
-        if (fields.price) fields.price.value = storedMenu.price;
-        if (fields.available) fields.available.value = storedMenu.available ? '1' : '0';
-        if (fields.description) fields.description.value = storedMenu.description;
-    }
+    let gambarValid = true;
 
     const setError = (name, message) => {
         const error = form.querySelector(`[data-error-for="${name}"]`);
@@ -734,13 +767,14 @@ function initMenuForm() {
     const updatePreview = () => {
         const name = fields.name?.value.trim() || 'Nama Menu Baru';
         const category = fields.category?.value || '';
+        const kategori = kategoriById(category);
         const price = Number(fields.price?.value) || 0;
         const description = fields.description?.value.trim() || 'Deskripsi menu akan tampil di sini.';
         const available = fields.available?.value !== '0';
 
         if (preview.name) preview.name.textContent = name;
-        if (preview.category) preview.category.textContent = category ? categoryLabel(category) : 'Kategori';
-        if (preview.sku) preview.sku.textContent = current.sku ?? (category ? generateSku(category, menus) : 'SKU-BARU');
+        if (preview.category) preview.category.textContent = kategori?.label ?? 'Kategori';
+        if (preview.sku) preview.sku.textContent = current.sku ?? (kategori ? generateSku(kategori.slug, menus) : 'SKU-BARU');
         if (preview.description) preview.description.textContent = description;
         if (preview.price) preview.price.textContent = rupiah(price);
         if (preview.unavailable) preview.unavailable.classList.toggle('hidden', available);
@@ -766,16 +800,19 @@ function initMenuForm() {
             2 * 1024 * 1024,
             (dataUrl, name) => {
                 selectedImage = dataUrl;
+                gambarValid = true;
                 if (imageName) imageName.textContent = name;
                 updatePreview();
             },
-            (message) => setImageError(message)
+            (message) => {
+                gambarValid = false;
+                setImageError(message);
+            }
         );
     };
 
     imageInput?.addEventListener('change', () => {
         handleImage(imageInput.files?.[0]);
-        imageInput.value = '';
     });
 
     dropzone?.addEventListener('click', (event) => {
@@ -804,7 +841,6 @@ function initMenuForm() {
     });
 
     form.addEventListener('submit', (event) => {
-        event.preventDefault();
         clearErrors();
 
         const name = fields.name?.value.trim() ?? '';
@@ -829,82 +865,32 @@ function initMenuForm() {
         }
 
         if (!valid) {
+            event.preventDefault();
             form.querySelector('[data-error-for]:not([hidden])')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
 
-        const allMenus = loadMenus();
-        const image = selectedImage ?? current.image ?? fallbackImage;
-        const description = fields.description?.value.trim() ?? '';
-        const available = fields.available?.value !== '0';
-
-        if (mode === 'edit' && menuId) {
-            const existing = allMenus.find((menu) => menu.id === menuId);
-
-            if (existing) {
-                Object.assign(existing, {
-                    name,
-                    category,
-                    category_label: categoryLabel(category),
-                    price,
-                    description,
-                    image,
-                    available,
-                    deleted: false,
-                });
-            } else {
-                allMenus.push({
-                    id: menuId,
-                    name,
-                    sku: generateSku(category, allMenus),
-                    category,
-                    category_label: categoryLabel(category),
-                    price,
-                    description,
-                    image,
-                    available,
-                    deleted: false,
-                });
-            }
-
-            saveMenus(allMenus);
-            window.location.assign(`${ROUTES.menus}?saved=${encodeURIComponent(name)}`);
+        if (!gambarValid) {
+            event.preventDefault();
+            setImageError('Periksa kembali file foto yang dipilih.');
             return;
         }
 
-        const nextId = allMenus.reduce((max, menu) => Math.max(max, Number(menu.id) || 0), 0) + 1;
-
-        allMenus.push({
-            id: nextId,
-            name,
-            sku: generateSku(category, allMenus),
-            category,
-            category_label: categoryLabel(category),
-            price,
-            description,
-            image,
-            available,
-            deleted: false,
-        });
-
-        saveMenus(allMenus);
-        window.location.assign(`${ROUTES.menus}?saved=${encodeURIComponent(name)}`);
+        // Validasi lolos: biarkan form dikirim ke server sebagai multipart.
     });
 
-    deleteButton?.addEventListener('click', () => {
-        const allMenus = loadMenus();
-        const menu = allMenus.find((item) => item.id === menuId);
-        if (!menu) return;
+    const deleteForm = document.getElementById('menu-delete-form');
+
+    deleteButton?.addEventListener('click', (event) => {
+        if (!deleteForm) return;
+
+        event.preventDefault();
 
         askConfirm({
             title: 'Hapus menu ini?',
-            message: `Menu "${menu.name}" akan dihapus dari daftar penjualan baru. Riwayat pesanan lama tetap tersimpan pada demo ini.`,
+            message: `Menu "${current.name ?? fields.name?.value ?? 'ini'}" akan dihapus dari daftar penjualan baru. Riwayat pesanan lama tetap tersimpan.`,
             label: 'Hapus Menu',
-            onConfirm: () => {
-                menu.deleted = true;
-                saveMenus(allMenus);
-                window.location.assign(`${ROUTES.menus}?deleted=${encodeURIComponent(menu.name)}`);
-            },
+            onConfirm: () => deleteForm.submit(),
         });
     });
 

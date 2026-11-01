@@ -184,6 +184,67 @@ class MidtransService
     }
 
     /**
+     * Batalkan sesi Snap agar token tidak bisa dipakai lagi.
+     *
+     * Snap baru membuat transaksi di Core API setelah pelanggan membuka
+     * halaman pembayaran. Selama sesi masih hidup, token yang sama tetap bisa
+     * dipakai membayar, sehingga pembatalan lokal hanya aman setelah sesi ini
+     * ditutup (`POST /snap/v1/transactions/{token}/cancel`).
+     *
+     * @throws MidtransException
+     */
+    public function batalkanSesiSnap(Payment $payment, Order $order): void
+    {
+        if (! $this->terkonfigurasi()) {
+            throw new MidtransException('Kredensial Midtrans belum diatur di server.', $order, null, null);
+        }
+
+        if (blank($payment->snap_token)) {
+            throw new MidtransException(
+                'Sesi Snap untuk percobaan ini tidak tercatat.',
+                $order,
+                '404',
+                null,
+            );
+        }
+
+        try {
+            $response = Http::withBasicAuth((string) config('services.midtrans.server_key'), '')
+                ->acceptJson()
+                ->asJson()
+                ->connectTimeout(10)
+                ->timeout(20)
+                ->retry(2, 250, fn (\Throwable $exception): bool => $exception instanceof ConnectionException
+                    || ($exception instanceof RequestException && $exception->response?->serverError()), throw: false)
+                ->post($this->urlSnap().'/'.rawurlencode($payment->snap_token).'/cancel');
+        } catch (ConnectionException $exception) {
+            throw new MidtransException(
+                'Tidak bisa menghubungi Midtrans.',
+                $order,
+                '500',
+                ['error' => $exception->getMessage()],
+            );
+        }
+
+        $data = $response->json();
+        $data = is_array($data) ? $data : [];
+
+        $pesan = strtolower(implode(' ', (array) ($data['error_messages'] ?? [])));
+
+        // Klik ganda: sesi yang sudah dibatalkan tetap dianggap berhasil.
+        if ($response->successful() || str_contains($pesan, 'already canceled')) {
+            return;
+        }
+
+        throw new MidtransException(
+            'Sesi Snap tidak dapat dibatalkan.',
+            $order,
+            (string) ($data['status_code'] ?? $response->status()),
+            $data !== [] ? $data : ['body' => $response->body()],
+        );
+    }
+
+    /**
      * Tolak respons yang bukan milik percobaan pembayaran yang diminta.
      *
      * @param  array<string, mixed>  $data

@@ -23,6 +23,8 @@ class KasirQrisOpsTest extends TestCase
 
     private const API_URL = 'https://api.sandbox.midtrans.com/v2';
 
+    private const SNAP_URL = 'https://app.sandbox.midtrans.com/snap/v1/transactions';
+
     private User $kasir;
 
     protected function setUp(): void
@@ -34,6 +36,7 @@ class KasirQrisOpsTest extends TestCase
             'services.midtrans.client_key' => 'SB-Mid-client-test',
             'services.midtrans.is_production' => false,
             'services.midtrans.api_sandbox_url' => self::API_URL,
+            'services.midtrans.snap_sandbox_url' => self::SNAP_URL,
         ]);
 
         Carbon::setTestNow(Carbon::create(2026, 10, 31, 14, 0, 0, 'Asia/Jakarta'));
@@ -329,6 +332,101 @@ class KasirQrisOpsTest extends TestCase
         $this->assertSame(StatusPesanan::MenungguPembayaran, $order->refresh()->status_pesanan);
         $this->assertSame('pending', $payment->refresh()->status_transaksi);
         Http::assertSentCount(3);
+    }
+
+    public function test_cancel_membatalkan_sesi_snap_bila_transaksi_belum_ada_di_midtrans(): void
+    {
+        $order = $this->buatOrder();
+        $payment = $this->tambahPembayaran($order);
+
+        $tidakAda = [
+            'status_code' => '404',
+            'status_message' => "Transaction doesn't exist.",
+        ];
+
+        Http::fake([
+            self::API_URL.'/'.$payment->midtrans_order_id.'/cancel' => Http::response($tidakAda, 404),
+            self::API_URL.'/'.$payment->midtrans_order_id.'/status' => Http::response($tidakAda, 404),
+            self::SNAP_URL.'/'.$payment->snap_token.'/cancel' => Http::response([
+                'canceled_at' => '2026-10-31T07:00:00.000Z',
+            ]),
+        ]);
+
+        $this->actingAs($this->kasir)
+            ->postJson(route('kasir.pesanan.cancel', ['order' => $order->id]))
+            ->assertOk()
+            ->assertJsonPath('data.status', 'dibatalkan')
+            ->assertJsonPath('data.payment_status', 'dibatalkan')
+            ->assertJsonPath('data.queue', null);
+
+        $order->refresh();
+        $payment->refresh();
+
+        $this->assertSame(StatusPesanan::Dibatalkan, $order->status_pesanan);
+        $this->assertSame(StatusPembayaran::Dibatalkan, $order->status_pembayaran);
+        $this->assertNull($order->nomor_antrean);
+        $this->assertSame('cancel', $payment->status_transaksi);
+        $this->assertDatabaseCount('payment_notifications', 0);
+
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
+            && $request->url() === self::SNAP_URL.'/'.$payment->snap_token.'/cancel');
+    }
+
+    public function test_cancel_tetap_menunggu_bila_sesi_snap_tidak_dapat_dibatalkan(): void
+    {
+        $order = $this->buatOrder();
+        $payment = $this->tambahPembayaran($order);
+
+        $tidakAda = [
+            'status_code' => '404',
+            'status_message' => "Transaction doesn't exist.",
+        ];
+
+        Http::fake([
+            self::API_URL.'/'.$payment->midtrans_order_id.'/cancel' => Http::response($tidakAda, 404),
+            self::API_URL.'/'.$payment->midtrans_order_id.'/status' => Http::response($tidakAda, 404),
+            self::SNAP_URL.'/'.$payment->snap_token.'/cancel' => Http::response([
+                'error_messages' => ['Transaction is on progress'],
+            ], 400),
+        ]);
+
+        $this->actingAs($this->kasir)
+            ->postJson(route('kasir.pesanan.cancel', ['order' => $order->id]))
+            ->assertStatus(502);
+
+        $order->refresh();
+
+        $this->assertSame(StatusPesanan::MenungguPembayaran, $order->status_pesanan);
+        $this->assertSame(StatusPembayaran::Menunggu, $order->status_pembayaran);
+        $this->assertNull($order->nomor_antrean);
+        $this->assertSame('pending', $payment->refresh()->status_transaksi);
+    }
+
+    public function test_cancel_menganggap_sesi_snap_yang_sudah_dibatalkan_sebagai_berhasil(): void
+    {
+        $order = $this->buatOrder();
+        $payment = $this->tambahPembayaran($order);
+
+        $tidakAda = [
+            'status_code' => '404',
+            'status_message' => "Transaction doesn't exist.",
+        ];
+
+        Http::fake([
+            self::API_URL.'/'.$payment->midtrans_order_id.'/cancel' => Http::response($tidakAda, 404),
+            self::API_URL.'/'.$payment->midtrans_order_id.'/status' => Http::response($tidakAda, 404),
+            self::SNAP_URL.'/'.$payment->snap_token.'/cancel' => Http::response([
+                'error_messages' => ['token already canceled'],
+            ], 400),
+        ]);
+
+        $this->actingAs($this->kasir)
+            ->postJson(route('kasir.pesanan.cancel', ['order' => $order->id]))
+            ->assertOk()
+            ->assertJsonPath('data.status', 'dibatalkan');
+
+        $this->assertSame(StatusPesanan::Dibatalkan, $order->refresh()->status_pesanan);
+        $this->assertNull($order->nomor_antrean);
     }
 
     public function test_cancel_tidak_membatalkan_lokal_bila_respons_cancel_masih_pending(): void

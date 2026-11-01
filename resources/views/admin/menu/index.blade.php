@@ -8,7 +8,8 @@
                  :admin="$admin"
                  :config="$config"
                  description="Kelola daftar menu dan ketersediaan stok Kedai Kopi Varya.">
-    <div data-admin-menu-list>
+    <div data-admin-menu-list
+         data-admin-flash="{{ session('status') }}">
         <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
             <div class="max-w-2xl">
                 <h1 class="admin-title text-[32px] sm:text-[36px]">

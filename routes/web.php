@@ -159,7 +159,17 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
         Route::get('/menu/create', [AdminController::class, 'createMenu'])->name('menu.create');
 
+        Route::post('/menu', [AdminController::class, 'storeMenu'])->name('menu.store');
+
         Route::get('/menu/{menu}/edit', [AdminController::class, 'editMenu'])->name('menu.edit');
+
+        Route::match(['put', 'patch'], '/menu/{menu}', [AdminController::class, 'updateMenu'])
+            ->name('menu.update');
+
+        Route::delete('/menu/{menu}', [AdminController::class, 'destroyMenu'])->name('menu.destroy');
+
+        Route::patch('/menu/{menu}/availability', [AdminController::class, 'updateMenuAvailability'])
+            ->name('menu.availability');
 
         Route::get('/laporan', [AdminController::class, 'reports'])->name('reports');
 

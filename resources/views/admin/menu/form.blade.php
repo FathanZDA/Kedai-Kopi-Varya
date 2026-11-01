@@ -24,9 +24,20 @@
             </a>
 
             <p class="tag text-[8px] text-muted">
-                {{ $isEdit ? 'Terakhir diperbarui: Hari ini, 14:20 WIB' : 'Menu baru akan tampil di halaman pelanggan' }}
+                {{ $isEdit ? 'Terakhir diperbarui: '.($menu['updated_at'] ?? '—') : 'Menu baru akan tampil di halaman pelanggan' }}
             </p>
         </div>
+
+        @if ($errors->any())
+            <div class="mt-4 rounded-md border-2 border-rust bg-[#fbe1de] px-4 py-3" role="alert">
+                <p class="tag text-[8px] font-bold text-rust">Periksa kembali data menu:</p>
+                <ul class="mt-2 list-disc space-y-0.5 pl-4 font-serif text-[11px] leading-relaxed text-rust">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <div class="mt-4 border-t-2 border-ink pt-5">
             <p class="tag text-[9px] font-bold text-varya-dark">// {{ $isEdit ? 'Perbarui Katalog' : 'Katalog Baru' }}</p>
@@ -34,7 +45,16 @@
         </div>
 
         <div class="mt-5 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_370px]">
-            <form data-menu-form class="min-w-0" novalidate>
+            <form data-menu-form
+                  class="min-w-0"
+                  method="POST"
+                  action="{{ $isEdit ? route('admin.menu.update', $menu['id']) : route('admin.menu.store') }}"
+                  enctype="multipart/form-data"
+                  novalidate>
+                @csrf
+                @if ($isEdit)
+                    @method('PUT')
+                @endif
                 {{-- 01 Data pokok --}}
                 <section class="admin-card overflow-hidden">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink bg-[#f3f1e7] px-4 py-3">
@@ -53,27 +73,31 @@
                                 <label for="admin-menu-name" class="admin-label">Nama Menu <span class="text-rust">*</span></label>
                                 <input id="admin-menu-name"
                                        type="text"
+                                       name="nama"
                                        data-field="name"
-                                       value="{{ $menu['name'] ?? '' }}"
+                                       value="{{ old('nama', $menu['name'] ?? '') }}"
                                        placeholder="Contoh: Caramel Macchiato Street"
                                        class="admin-input mt-2"
                                        maxlength="80"
                                        autocomplete="off">
-                                <p data-error-for="name" hidden class="mt-1.5 font-mono text-[8px] font-bold text-rust"></p>
+                                <p data-error-for="name" @if (! $errors->has('nama')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('nama') }}</p>
                             </div>
 
                             <div>
                                 <label for="admin-menu-category" class="admin-label">Kategori <span class="text-rust">*</span></label>
-                                <select id="admin-menu-category" data-field="category" class="admin-select mt-2">
+                                <select id="admin-menu-category"
+                                        name="category_id"
+                                        data-field="category"
+                                        class="admin-select mt-2">
                                     <option value="">Pilih Kategori</option>
                                     @foreach ($categories as $category)
-                                        <option value="{{ $category['slug'] }}"
-                                                @selected(($menu['category'] ?? '') === $category['slug'])>
+                                        <option value="{{ $category['id'] }}"
+                                                @selected((string) old('category_id', $menu['category_id'] ?? '') === (string) $category['id'])>
                                             {{ $category['label'] }}
                                         </option>
                                     @endforeach
                                 </select>
-                                <p data-error-for="category" hidden class="mt-1.5 font-mono text-[8px] font-bold text-rust"></p>
+                                <p data-error-for="category" @if (! $errors->has('category_id')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('category_id') }}</p>
                             </div>
 
                             <div>
@@ -84,24 +108,28 @@
                                     </span>
                                     <input id="admin-menu-price"
                                            type="number"
+                                           name="harga"
                                            data-field="price"
-                                           value="{{ $menu['price'] ?? '' }}"
+                                           value="{{ old('harga', $menu['price'] ?? '') }}"
                                            placeholder="Contoh: 28000"
                                            min="1"
                                            step="500"
                                            class="admin-input !pl-12"
                                            inputmode="numeric">
                                 </div>
-                                <p data-error-for="price" hidden class="mt-1.5 font-mono text-[8px] font-bold text-rust"></p>
+                                <p data-error-for="price" @if (! $errors->has('harga')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('harga') }}</p>
                             </div>
 
                             <div>
                                 <label for="admin-menu-available" class="admin-label">Status Ketersediaan <span class="text-rust">*</span></label>
-                                <select id="admin-menu-available" data-field="available" class="admin-select mt-2">
-                                    <option value="1" @selected(($menu['available'] ?? true) === true)>Tersedia</option>
-                                    <option value="0" @selected(($menu['available'] ?? true) === false)>Habis</option>
+                                <select id="admin-menu-available"
+                                        name="tersedia"
+                                        data-field="available"
+                                        class="admin-select mt-2">
+                                    <option value="1" @selected((string) old('tersedia', ($menu['available'] ?? true) ? '1' : '0') === '1')>Tersedia</option>
+                                    <option value="0" @selected((string) old('tersedia', ($menu['available'] ?? true) ? '1' : '0') === '0')>Habis</option>
                                 </select>
-                                <p data-error-for="available" hidden class="mt-1.5 font-mono text-[8px] font-bold text-rust"></p>
+                                <p data-error-for="available" @if (! $errors->has('tersedia')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('tersedia') }}</p>
                             </div>
                         </div>
 
@@ -111,11 +139,13 @@
                                 <span class="tag text-[7px] text-muted"><span data-description-count>0</span> / 300 karakter</span>
                             </div>
                             <textarea id="admin-menu-description"
+                                      name="deskripsi"
                                       data-field="description"
                                       rows="5"
                                       maxlength="300"
                                       placeholder="Jelaskan aroma, rasa, biji kopi asal, profil roasting, dan racikan menu ini..."
-                                      class="admin-textarea mt-2 resize-y">{{ $menu['description'] ?? '' }}</textarea>
+                                      class="admin-textarea mt-2 resize-y">{{ old('deskripsi', $menu['description'] ?? '') }}</textarea>
+                            <p data-error-for="deskripsi" @if (! $errors->has('deskripsi')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('deskripsi') }}</p>
                             <p class="mt-1.5 font-serif text-[10px] text-muted">Teks ini tampil sebagai deskripsi singkat di katalog pelanggan.</p>
                         </div>
                     </div>
@@ -159,6 +189,7 @@
                                 </label>
                                 <input id="admin-menu-image-input"
                                        type="file"
+                                       name="foto"
                                        data-menu-image-input
                                        accept="image/jpeg,image/png,image/webp"
                                        class="sr-only">
@@ -166,7 +197,7 @@
                                     {{ $isEdit ? 'Foto saat ini digunakan' : 'Belum ada file dipilih' }}
                                 </p>
                             </div>
-                            <p data-menu-image-error hidden class="mt-2 font-mono text-[8px] font-bold text-rust"></p>
+                            <p data-menu-image-error @if (! $errors->has('foto')) hidden @endif class="mt-2 font-mono text-[8px] font-bold text-rust">{{ $errors->first('foto') }}</p>
                         </div>
                     </div>
                 </section>
@@ -189,7 +220,7 @@
                 {{-- Aksi --}}
                 <div class="admin-card mt-4 flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
                     @if ($isEdit)
-                        <button type="button" data-menu-delete class="admin-btn-danger sm:order-1">
+                        <button type="submit" form="menu-delete-form" data-menu-delete class="admin-btn-danger sm:order-1">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v5M14 11v5"/>
@@ -211,6 +242,17 @@
                     </div>
                 </div>
             </form>
+
+            @if ($isEdit)
+                <form id="menu-delete-form"
+                      method="POST"
+                      action="{{ route('admin.menu.destroy', $menu['id']) }}"
+                      class="hidden"
+                      aria-hidden="true">
+                    @csrf
+                    @method('DELETE')
+                </form>
+            @endif
 
             {{-- Live preview --}}
             <aside class="xl:sticky xl:top-24">

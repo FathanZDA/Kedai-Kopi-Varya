@@ -489,9 +489,19 @@ class OrderService
                 'pesan' => $pembatalan->getMessage(),
             ]);
 
+            // Transaksi belum ada di Core API karena pelanggan belum membuka
+            // halaman Snap. Batalkan sesinya agar token tidak bisa dipakai.
+            if ($pembatalan->statusCode === '404') {
+                return $this->batalkanLewatSesiSnap($payment, $order, $pembatalan);
+            }
+
             try {
                 $status = $this->midtrans->ambilStatus($payment, $order);
             } catch (MidtransException $pemeriksaan) {
+                if ($pemeriksaan->statusCode === '404') {
+                    return $this->batalkanLewatSesiSnap($payment, $order, $pemeriksaan);
+                }
+
                 // Pembatalan dan pemeriksaan status sama-sama gagal: biarkan
                 // order menunggu agar tidak ada pembatalan tanpa konfirmasi.
                 Log::error('Pembatalan dan pemeriksaan status Midtrans sama-sama gagal.', [
@@ -512,6 +522,49 @@ class OrderService
 
             return $status;
         }
+    }
+
+    /**
+     * Batalkan lewat sesi Snap ketika transaksi Core API belum ada.
+     *
+     * Snap belum mendaftarkan transaksi sebelum pelanggan membuka halaman
+     * pembayaran, sehingga `POST /cancel` dan `GET /status` menjawab `404`.
+     * Selama sesi Snap masih hidup token yang sama tetap bisa dipakai membayar;
+     * pembatalan lokal baru aman setelah sesi itu ditutup.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MidtransException
+     */
+    private function batalkanLewatSesiSnap(Payment $payment, Order $order, MidtransException $sebab): array
+    {
+        try {
+            $this->midtrans->batalkanSesiSnap($payment, $order);
+        } catch (MidtransException $sesi) {
+            Log::error('Sesi Snap tidak dapat dibatalkan; pesanan tetap menunggu.', [
+                'kode_pesanan' => $order->kode_pesanan,
+                'midtrans_order_id' => $payment->midtrans_order_id,
+                'status_awal' => $sebab->statusCode,
+                'status_sesi' => $sesi->statusCode,
+            ]);
+
+            throw $sesi;
+        }
+
+        Log::info('Sesi Snap dibatalkan untuk transaksi yang belum ada di Midtrans.', [
+            'kode_pesanan' => $order->kode_pesanan,
+            'midtrans_order_id' => $payment->midtrans_order_id,
+        ]);
+
+        return [
+            'order_id' => $payment->midtrans_order_id,
+            'transaction_id' => $payment->transaction_id,
+            'transaction_status' => 'cancel',
+            'status_code' => '200',
+            'fraud_status' => null,
+            'gross_amount' => $payment->gross_amount,
+            'payment_type' => $payment->payment_type,
+        ];
     }
 
     /**

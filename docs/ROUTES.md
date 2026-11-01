@@ -4,7 +4,7 @@
 **Terakhir diperbarui:** 1 November 2026
 **Acuan:** `PRD.md` §4.3, §7, §11; `docs/DECISIONS.md`; `routes/web.php`
 
-> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, dan proses terjadwal rekonsiliasi sudah aktif. Laporan dan CRUD admin belum aktif.
+> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, proses terjadwal rekonsiliasi, dan CRUD menu admin sudah aktif. Laporan, promosi, informasi toko, dan transaksi admin belum aktif.
 
 ---
 
@@ -43,17 +43,21 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | ANY | `/admin` | — | Redirect 301 ke `/admin/dashboard` | `auth` + `role:admin` |
 | GET | `/admin/dashboard` | `admin.dashboard` | `AdminController@dashboard` | `auth` + `role:admin`; transaksi contoh |
 | GET | `/admin/menu` | `admin.menu.index` | `AdminController@menus` | `auth` + `role:admin`; menu dari DB |
-| GET | `/admin/menu/create` | `admin.menu.create` | `AdminController@createMenu` | `auth` + `role:admin`; belum ada `POST` |
-| GET | `/admin/menu/{menu}/edit` | `admin.menu.edit` | `AdminController@editMenu` | `auth` + `role:admin`; belum ada `PUT` |
+| GET | `/admin/menu/create` | `admin.menu.create` | `AdminController@createMenu` | `auth` + `role:admin` |
+| POST | `/admin/menu` | `admin.menu.store` | `AdminController@storeMenu` | `auth` + `role:admin`; multipart + foto |
+| GET | `/admin/menu/{menu}/edit` | `admin.menu.edit` | `AdminController@editMenu` | `auth` + `role:admin` |
+| PUT/PATCH | `/admin/menu/{menu}` | `admin.menu.update` | `AdminController@updateMenu` | `auth` + `role:admin`; multipart + foto |
+| DELETE | `/admin/menu/{menu}` | `admin.menu.destroy` | `AdminController@destroyMenu` | `auth` + `role:admin`; soft delete |
+| PATCH | `/admin/menu/{menu}/availability` | `admin.menu.availability` | `AdminController@updateMenuAvailability` | `auth` + `role:admin`; JSON; hanya `tersedia` |
 | GET | `/admin/laporan` | `admin.reports` | `AdminController@reports` | `auth` + `role:admin`; data contoh |
 | GET | `/admin/promosi` | `admin.promos` | `AdminController@promos` | `auth` + `role:admin`; CRUD demo |
 | GET | `/admin/toko` | `admin.store` | `AdminController@store` | `auth` + `role:admin`; simpan demo |
 
 Belum ada:
 
-- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, dan `POST /pesanan/{kode_pesanan}/bayar-lagi`.
+- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, `POST/PUT/PATCH/DELETE /admin/menu`, dan `PATCH /admin/menu/{menu}/availability`.
 - Rekonsiliasi berjalan sebagai command terjadwal `qris:reconcile` (bukan route HTTP), lihat §4.11.
-- Laporan dan CRUD admin.
+- Laporan, promosi, informasi toko, dan transaksi admin.
 - Route detail pesanan kasir (`GET /kasir/pesanan/{order}`); detail saat ini dirender dari data polling.
 - Rate limiting untuk endpoint lain di luar login, polling kasir, pembatalan/Cek Status, checkout, dan status pesanan.
 
@@ -154,8 +158,9 @@ Semua route memakai middleware `auth` + `role:admin`.
 | GET | `/admin/menu/create` | `admin.menu.create` | `AdminController@createMenu` | |
 | POST | `/admin/menu` | `admin.menu.store` | `AdminController@storeMenu` | |
 | GET | `/admin/menu/{menu}/edit` | `admin.menu.edit` | `AdminController@editMenu` | |
-| PUT/PATCH | `/admin/menu/{menu}` | `admin.menu.update` | `AdminController@updateMenu` | |
+| PUT/PATCH | `/admin/menu/{menu}` | `admin.menu.update` | `AdminController@updateMenu` | Multipart; foto opsional |
 | DELETE | `/admin/menu/{menu}` | `admin.menu.destroy` | `AdminController@destroyMenu` | Soft delete |
+| PATCH | `/admin/menu/{menu}/availability` | `admin.menu.availability` | `AdminController@updateMenuAvailability` | JSON; hanya `tersedia` |
 | GET | `/admin/laporan` | `admin.reports` | `AdminController@reports` | Nama route lama dipertahankan |
 | GET | `/admin/laporan/{order}` | `admin.reports.show` | `AdminController@showReportOrder` | Detail transaksi |
 | GET | `/admin/promosi` | `admin.promos` | `AdminController@promos` | |
@@ -593,12 +598,13 @@ Aturan:
   - status `pending` → `409`, order tetap `menunggu_pembayaran`;
   - status `settlement`/`capture` → status pembayaran diterapkan (dapat menjadi `lunas`), lalu pembatalan ditolak `409`.
 - Respons `cancel` dengan HTTP `200` tetap harus berisi status terminal; bila statusnya masih `pending` atau tidak lengkap, pembatalan lokal tidak dilakukan (`409`/`502`).
+- Bila `/cancel` **dan** `/status` sama-sama menjawab `404` (`Transaction doesn't exist` — pelanggan belum membuka halaman Snap, sehingga transaksi belum terdaftar di Core API), backend membatalkan sesi Snap lewat `POST /snap/v1/transactions/{snap_token}/cancel`. Respons `200` (`canceled_at`) atau `token already canceled` membuat pembatalan lokal dilanjutkan; `Transaction is on progress`, `token not found`, atau token tidak tercatat membuat order tetap `menunggu_pembayaran` (`502`/`409`).
 - Bila Midtrans tidak dapat dihubungi, order tetap `menunggu_pembayaran` dan endpoint menjawab `502`. Bila `MIDTRANS_SERVER_KEY` kosong, endpoint menjawab `503`.
 - Pembatalan akhir berjalan di `DB::transaction` + `lockForUpdate`, menetapkan `status_pesanan = dibatalkan` dan `status_pembayaran = dibatalkan` tanpa membuat nomor antrean.
 - Klik ganda bersifat idempoten: order yang sudah `dibatalkan` tetap menjawab `200`.
 - `settlement` yang masuk setelah pembatalan lokal ditangani webhook/Cek Status sebagai `perlu_diperiksa` tanpa nomor antrean (PRD §8.4.10).
 - Error penting: `401` tamu, `403` bukan kasir, `404` order tidak ada, `409` tidak dapat dibatalkan, `429` throttle, `502`/`503` masalah Midtrans.
-- Status 1 Nov 2026: **sudah diimplementasikan** di `KasirController@cancelOrder` + `OrderService::batalkanPesananQris` + `MidtransService::batalkanTransaksi`/`ambilStatus`.
+- Status 1 Nov 2026: **sudah diimplementasikan** di `KasirController@cancelOrder` + `OrderService::batalkanPesananQris` + `MidtransService::batalkanTransaksi`/`ambilStatus`/`batalkanSesiSnap`.
 
 ### 4.10 `POST /kasir/pesanan/{order}/check-status`
 
@@ -659,6 +665,41 @@ Aturan:
 - `GET /status` dan `POST /cancel` memakai `retry(2, 250ms)` untuk gangguan jaringan/5xx. Respons `status_code = 407` + `transaction_status = expire` adalah hasil sah (transaksi sudah kedaluwarsa), bukan kegagalan API.
 - Status 1 Nov 2026: **sudah diimplementasikan** di `App\Services\QrisReconciliationService` + `App\Console\Commands\ReconcileQrisPayments`.
 
+### 4.12 CRUD menu admin
+
+Halaman Kelola Menu memakai form biasa (bukan API JSON) untuk tambah dan ubah menu, sehingga sukses/validasi dijawab dengan redirect + session flash.
+
+`POST /admin/menu` dan `PUT/PATCH /admin/menu/{menu}` menerima `multipart/form-data`:
+
+| Field | Aturan |
+|---|---|
+| `nama` | wajib, string, maks. 80 karakter |
+| `category_id` | wajib, integer, harus ada di `categories` |
+| `harga` | wajib, integer, minimal 1 (Rupiah penuh) |
+| `deskripsi` | opsional, string, maks. 300 karakter |
+| `tersedia` | wajib, boolean (`1`/`0`) |
+| `foto` | opsional, `image`, `mimes:jpg,jpeg,png,webp`, maks. 2 MB |
+
+Aturan:
+
+- Sukses → `302` ke `admin.menu.index` dengan `session('status')`; halaman daftar menampilkan toast dari `data-admin-flash`.
+- Validasi gagal → `302` kembali ke form dengan `errors` dan `old()`; halaman form menampilkan ringkasan error + pesan per field.
+- `slug` dibuat dari `nama` saat menu dibuat (`Str::slug` + akhiran `-2`, `-3`, ... bila bentrok, termasuk terhadap menu yang sudah di-soft-delete) dan **tidak diubah** saat menu diubah agar URL detail tetap stabil.
+- `urutan` menu baru = `max(urutan)` (termasuk baris terhapus) + 1 sehingga tampil paling akhir.
+- Foto disimpan di `public/images/menus` dengan nama `unggahan-{acak}.{ext}`. Saat foto diganti, hanya berkas berprefiks `unggahan-` milik menu itu yang dihapus; foto kanonik seeder tidak pernah disentuh.
+- `DELETE` melakukan soft delete dan mengalihkan kembali ke daftar. Menu hilang dari halaman publik, kasir, dan admin; snapshot `order_items` tetap utuh. Berkas foto tidak dihapus agar menu masih dapat dipulihkan.
+- `PATCH /admin/menu/{menu}/availability` hanya menerima `{"tersedia": true|false}` dan menjawab:
+
+```json
+{
+  "message": "Menu \"Americano Street\" ditandai habis.",
+  "data": { "id": 2, "tersedia": false }
+}
+```
+
+- Error penting: `401` tamu (redirect `/login`), `403` bukan admin, `404` menu tidak ada, `302` + `errors` untuk validasi gagal.
+- Status 1 Nov 2026: **sudah diimplementasikan** di `AdminController@storeMenu`/`updateMenu`/`destroyMenu`/`updateMenuAvailability` + `App\Http\Requests\Admin\MenuRequest`/`UpdateMenuAvailabilityRequest` + `App\Services\MenuCatalogService`.
+
 ---
 
 ## 5. Perbedaan route sekarang vs target
@@ -670,7 +711,7 @@ Aturan:
 | `/pesan/pembayaran` | `/pesanan/{kode_pesanan}` | **Selesai** - route dihapus; view lama tidak dipakai |
 | `/pesan/berhasil` | `/pesanan/{kode_pesanan}` | **Selesai** - route dihapus; `berhasil.blade.php` menjadi halaman status server-side |
 | Belum ada login | `/login`, `POST /login`, `POST /logout` | **Selesai** - auth manual + role redirect |
-| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, dan `POST /pesanan/{kode_pesanan}/bayar-lagi` **selesai**; action lain menyusul |
+| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, serta `POST/PUT/PATCH/DELETE /admin/menu` + `PATCH /admin/menu/{menu}/availability` **selesai**; action lain menyusul |
 | Belum ada webhook | `/api/midtrans/notification` | **Selesai** - route + CSRF exception + verifikasi signature |
 | Belum ada role | `auth` + `role:*` | **Selesai** - middleware `role` aktif di area kasir/admin |
 | Belum ada rate limit | `throttle:*` | Login, `GET /kasir/pesanan/poll`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `POST /pesan/checkout`, dan status pesanan **selesai**; webhook sengaja tanpa throttle ketat |

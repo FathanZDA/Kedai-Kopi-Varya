@@ -13,6 +13,7 @@
             'menus' => route('admin.menu.index'),
             'menuCreate' => route('admin.menu.create'),
             'menuEditBase' => url('/admin/menu'),
+            'menuAvailabilityBase' => url('/admin/menu'),
             'reports' => route('admin.reports'),
             'promos' => route('admin.promos'),
             'store' => route('admin.store'),
@@ -29,6 +30,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ? $title.' — Admin Kedai Kopi Varya' : 'Admin — Kedai Kopi Varya' }}</title>
     <meta name="description" content="{{ $description }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

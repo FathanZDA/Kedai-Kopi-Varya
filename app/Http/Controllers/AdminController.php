@@ -2,22 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\MenuRequest;
+use App\Http\Requests\Admin\UpdateMenuAvailabilityRequest;
 use App\Models\Category;
 use App\Models\Menu;
 use App\Models\Promo;
 use App\Models\StoreHour;
 use App\Models\StoreSetting;
+use App\Services\MenuCatalogService;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Tampilan admin / owner (front-end).
  *
  * Catatan tahap pengerjaan:
  * - Menu, kategori, promosi, dan informasi toko dibaca dari database.
+ * - Tambah, ubah, hapus (soft delete), dan ketersediaan menu sudah tersimpan
+ *   ke database lewat `MenuCatalogService`; foto diunggah ke
+ *   `public/images/menus`.
  * - Pesanan dan laporan masih data demo sampai slice backend tersedia.
- * - Belum ada autentikasi, upload permanen, atau logika backend transaksi.
- * - Perubahan menu, promosi, dan informasi toko masih disimpan sementara di
- *   browser melalui resources/js/admin.js agar alur demo terasa utuh.
+ * - Promosi dan informasi toko masih disimpan sementara di browser melalui
+ *   resources/js/admin.js agar alur demo terasa utuh.
  */
 class AdminController extends Controller
 {
@@ -95,25 +102,22 @@ class AdminController extends Controller
         ]);
     }
 
-    public function editMenu(string $menu)
+    public function storeMenu(MenuRequest $request, MenuCatalogService $katalog): RedirectResponse
+    {
+        $menu = $katalog->buat($request->dataMenu());
+
+        return redirect()
+            ->route('admin.menu.index')
+            ->with('status', "Menu \"{$menu->nama}\" berhasil ditambahkan.");
+    }
+
+    public function editMenu(Menu $menu)
     {
         $admin = $this->admin();
         $menus = $this->menuData();
-        $selected = collect($menus)->firstWhere('id', (int) $menu);
+        $selected = collect($menus)->firstWhere('id', $menu->id);
 
-        // Menu baru dari localStorage belum ada di data contoh controller.
-        // Halaman tetap dirender; admin.js akan mengisi datanya dari browser.
-        $selected ??= [
-            'id' => (int) $menu,
-            'name' => 'Menu Baru',
-            'sku' => 'SKU-BARU',
-            'category' => 'kopi',
-            'category_label' => 'Kopi',
-            'price' => 0,
-            'description' => '',
-            'image' => asset('images/menus/varya-signature.jpg'),
-            'available' => true,
-        ];
+        abort_if($selected === null, 404);
 
         return view('admin.menu.form', [
             'admin' => $admin,
@@ -123,6 +127,41 @@ class AdminController extends Controller
                 'menus' => $menus,
                 'menu' => $selected,
                 'categories' => $this->categories(),
+            ],
+        ]);
+    }
+
+    public function updateMenu(MenuRequest $request, Menu $menu, MenuCatalogService $katalog): RedirectResponse
+    {
+        $katalog->ubah($menu, $request->dataMenu());
+
+        return redirect()
+            ->route('admin.menu.index')
+            ->with('status', "Menu \"{$menu->nama}\" berhasil diperbarui.");
+    }
+
+    public function destroyMenu(Menu $menu, MenuCatalogService $katalog): RedirectResponse
+    {
+        $nama = $menu->nama;
+        $katalog->hapus($menu);
+
+        return redirect()
+            ->route('admin.menu.index')
+            ->with('status', "Menu \"{$nama}\" berhasil dihapus.");
+    }
+
+    public function updateMenuAvailability(
+        UpdateMenuAvailabilityRequest $request,
+        Menu $menu,
+        MenuCatalogService $katalog,
+    ): JsonResponse {
+        $katalog->aturKetersediaan($menu, $request->tersedia());
+
+        return response()->json([
+            'message' => "Menu \"{$menu->nama}\" ditandai ".($menu->tersedia ? 'tersedia' : 'habis').'.',
+            'data' => [
+                'id' => $menu->id,
+                'tersedia' => $menu->tersedia,
             ],
         ]);
     }
@@ -204,6 +243,7 @@ class AdminController extends Controller
             ->ordered()
             ->get()
             ->map(fn (Category $category): array => [
+                'id' => $category->id,
                 'slug' => $category->slug,
                 'label' => $category->nama,
             ])
@@ -234,12 +274,14 @@ class AdminController extends Controller
                     'id' => $menu->id,
                     'name' => $menu->nama,
                     'sku' => ($skuPrefixes[$category] ?? 'SKU').'-'.str_pad((string) $skuCounters[$category], 3, '0', STR_PAD_LEFT),
+                    'category_id' => $menu->category_id,
                     'category' => $category,
                     'category_label' => $menu->category->nama,
                     'price' => $menu->harga,
                     'description' => $menu->deskripsi,
                     'image' => $menu->foto ? asset($menu->foto) : asset('images/menus/varya-signature.jpg'),
                     'available' => $menu->tersedia,
+                    'updated_at' => $menu->updated_at?->locale('id')->translatedFormat('j F Y, H:i').' WIB',
                     'deleted' => false,
                 ];
             })
