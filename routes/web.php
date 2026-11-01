@@ -125,6 +125,14 @@ Route::middleware(['auth', 'role:kasir'])->group(function () {
 
         Route::patch('/pesanan/{order}/status', [KasirController::class, 'updateStatus'])->name('pesanan.status');
 
+        Route::post('/pesanan/{order}/cancel', [KasirController::class, 'cancelOrder'])
+            ->middleware('throttle:30,1')
+            ->name('pesanan.cancel');
+
+        Route::post('/pesanan/{order}/check-status', [KasirController::class, 'checkPaymentStatus'])
+            ->middleware('throttle:30,1')
+            ->name('pesanan.check-status');
+
         Route::get('/pesanan', [KasirController::class, 'pesananMasuk'])->name('pesanan.index');
 
         Route::get('/menu', [KasirController::class, 'kelolaMenu'])->name('menu.index');

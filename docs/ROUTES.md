@@ -1,10 +1,10 @@
 # Kontrak Route & API — Kedai Kopi Varya
 
 **Status:** FINAL untuk route inti; O-16 (akun/kredensial Midtrans) masih OPEN
-**Terakhir diperbarui:** 31 Oktober 2026
+**Terakhir diperbarui:** 1 November 2026
 **Acuan:** `PRD.md` §4.3, §7, §11; `docs/DECISIONS.md`; `routes/web.php`
 
-> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, serta halaman status pesanan dan pembayaran ulang sudah aktif. Rekonsiliasi, pembatalan, laporan, dan CRUD admin belum aktif.
+> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, dan Cek Status sudah aktif. Rekonsiliasi terjadwal, laporan, dan CRUD admin belum aktif.
 
 ---
 
@@ -30,12 +30,14 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | GET | `/pesanan/{order:kode_pesanan}` | `pesanan.status` | `PesananController@show` | Publik; kode acak 8 karakter; hanya order QRIS |
 | GET | `/pesanan/{order:kode_pesanan}/status` | `pesanan.status.json` | `PesananController@status` | Publik; polling; `throttle:order-status` |
 | POST | `/pesanan/{order:kode_pesanan}/bayar-lagi` | `pesanan.bayar-lagi` | `PesananController@bayarLagi` | Publik; `throttle:checkout`; token Snap |
-| POST | `/api/midtrans/notification` | `midtrans.notification` | `MidtransNotificationController@handle` | Publik; tanpa CSRF; verifikasi signature; satu-satunya jalur status lunas QRIS |
+| POST | `/api/midtrans/notification` | `midtrans.notification` | `MidtransNotificationController@handle` | Publik; tanpa CSRF; verifikasi signature; sumber status pembayaran utama |
 | ANY | `/kasir` | — | Redirect 301 ke `/kasir/pesanan/baru` | `auth` + `role:kasir` |
 | GET | `/kasir/pesanan/baru` | `kasir.pesanan.baru` | `KasirController@buatPesanan` | `auth` + `role:kasir`; menu dari DB |
 | POST | `/kasir/pesanan` | `kasir.pesanan.store` | `KasirController@storeOrder` | `auth` + `role:kasir`; order tunai langsung lunas + nomor antrean |
-| GET | `/kasir/pesanan` | `kasir.pesanan.index` | `KasirController@pesananMasuk` | `auth` + `role:kasir`; pesanan hari ini dari DB |
+| GET | `/kasir/pesanan` | `kasir.pesanan.index` | `KasirController@pesananMasuk` | `auth` + `role:kasir`; pesanan hari ini dari DB, tanpa yang dibatalkan |
 | PATCH | `/kasir/pesanan/{order}/status` | `kasir.pesanan.status` | `KasirController@updateStatus` | `auth` + `role:kasir`; `antre → diproses → selesai` |
+| POST | `/kasir/pesanan/{order}/cancel` | `kasir.pesanan.cancel` | `KasirController@cancelOrder` | `auth` + `role:kasir`; `throttle:30,1`; hanya QRIS belum dibayar |
+| POST | `/kasir/pesanan/{order}/check-status` | `kasir.pesanan.check-status` | `KasirController@checkPaymentStatus` | `auth` + `role:kasir`; `throttle:30,1`; cek API status Midtrans |
 | GET | `/kasir/menu` | `kasir.menu.index` | `KasirController@kelolaMenu` | `auth` + `role:kasir`; menu dari DB |
 | PATCH | `/kasir/menu/{menu}/availability` | `kasir.menu.availability` | `KasirController@updateAvailability` | `auth` + `role:kasir`; hanya `tersedia` |
 | ANY | `/admin` | — | Redirect 301 ke `/admin/dashboard` | `auth` + `role:admin` |
@@ -49,10 +51,10 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 
 Belum ada:
 
-- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, dan `POST /pesanan/{kode_pesanan}/bayar-lagi`.
-- Rekonsiliasi, pembatalan, cek status pembayaran, laporan, dan CRUD admin.
-- Route detail pesanan kasir dan pembatalan.
-- Rate limiting untuk endpoint lain di luar login, polling kasir, checkout, dan status pesanan.
+- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, dan `POST /pesanan/{kode_pesanan}/bayar-lagi`.
+- Rekonsiliasi terjadwal, laporan, dan CRUD admin.
+- Route detail pesanan kasir (`GET /kasir/pesanan/{order}`); detail saat ini dirender dari data polling.
+- Rate limiting untuk endpoint lain di luar login, polling kasir, pembatalan/Cek Status, checkout, dan status pesanan.
 
 
 ---
@@ -133,11 +135,12 @@ Catatan:
 - Kasir tidak punya route untuk mengubah item, harga, atau menandai QRIS lunas.
 - `POST /kasir/pesanan` hanya menerima `metode_pembayaran = tunai`; QRIS ditolak.
 
-Status implementasi 29 Okt 2026:
+Status implementasi 1 Nov 2026:
 
-- `GET /kasir/pesanan/baru`, `POST /kasir/pesanan`, `GET /kasir/pesanan`, `GET /kasir/pesanan/poll`, `PATCH /kasir/pesanan/{order}/status`, `GET /kasir/menu`, dan `PATCH /kasir/menu/{menu}/availability` **sudah aktif**.
-- `GET /kasir/pesanan/{order}`, `POST .../cancel`, dan `POST .../check-status` **belum dibuat**.
-- Daftar pesanan memuat order yang dibuat pada hari berjalan (`created_at` hari ini, zona `Asia/Jakarta`), supaya order QRIS yang belum dibayar tetap tampil di tab Belum Dibayar meski belum punya nomor antrean.
+- `GET /kasir/pesanan/baru`, `POST /kasir/pesanan`, `GET /kasir/pesanan`, `GET /kasir/pesanan/poll`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `GET /kasir/menu`, dan `PATCH /kasir/menu/{menu}/availability` **sudah aktif**.
+- `GET /kasir/pesanan/{order}` (`kasir.pesanan.show`) **belum dibuat**; detail pesanan pada UI memakai data snapshot/polling.
+- Daftar pesanan memuat order yang dibuat pada hari berjalan (`created_at` hari ini, zona `Asia/Jakarta`), supaya order QRIS yang belum dibayar tetap tampil di tab Belum Dibayar meski belum punya nomor antrean. Order `dibatalkan` tidak ditampilkan (PRD K-02b), tetapi tetap tersimpan untuk laporan admin.
+- `POST .../cancel` dan `POST .../check-status` memakai `throttle:30,1` per pengguna.
 
 ### 2.5 Admin
 
@@ -437,7 +440,8 @@ Perilaku implementasi 29 Okt 2026 (`KasirController@pollOrders` + `PollOrdersReq
 - Route diberi `throttle:120,1` (120 permintaan/menit per pengguna) — cukup untuk polling 7 detik di beberapa tab.
 - Bentuk tiap item `pesanan` sama dengan `data-orders-data` pada halaman Pesanan Masuk, sehingga klien bisa menggabungkan tanpa transformasi.
 - `midtrans_id` diisi dari `payments.midtrans_order_id` percobaan terakhir (mis. `V7K2M9QX-P1`) dan `null` untuk order tunai. Nomor antrean `null` selama order masih `menunggu_pembayaran`.
-- Belum ada `dibatalkan` di `jumlah`; akan ditambahkan saat pembatalan QRIS dibuat.
+- Order `dibatalkan` tidak dikirim di `pesanan` dan tidak punya kunci di `jumlah`; PRD K-02b meminta pesanan batal tidak tampil secara default tetapi tetap tersedia untuk laporan admin.
+- Setelah pembatalan/Cek Status, klien memperbarui baris dari respons aksi atau polling; pesanan yang dibatalkan dihapus dari daftar lokal.
 
 ### 4.6 `PATCH /kasir/pesanan/{order}/status`
 
@@ -557,6 +561,77 @@ Aturan:
 
 Status 28 Okt 2026: **sudah diimplementasikan** di `KasirController@updateAvailability` + `App\Http\Requests\Kasir\UpdateMenuAvailabilityRequest` + `App\Http\Resources\MenuResource`. Halaman Kelola Menu memanggil endpoint ini; status ketersediaan tidak lagi disimpan di `localStorage`.
 
+### 4.9 `POST /kasir/pesanan/{order}/cancel`
+
+Request tanpa body. `{order}` adalah id numerik order.
+
+Response `200`:
+
+```json
+{
+  "message": "Pesanan QR12CD34 dibatalkan.",
+  "data": {
+    "id": "12",
+    "code": "QR12CD34",
+    "queue": null,
+    "status": "dibatalkan",
+    "payment_status": "dibatalkan",
+    "midtrans_id": "QR12CD34-P1"
+  }
+}
+```
+
+`data` memakai bentuk yang sama dengan item pada `GET /kasir/pesanan/poll`, sehingga klien dapat menghapus baris tanpa transformasi. Field lain tetap ada pada respons sebenarnya.
+
+Aturan:
+
+- Hanya order QRIS yang belum dibayar. Order tunai, order lunas, order `perlu_diperiksa`, atau order yang sudah memiliki nomor antrean ditolak `409`.
+- Bila percobaan terakhir sudah terminal secara lokal (`failure`, `deny`, `cancel`, `expire`, `gagal`, `kedaluwarsa`), pembatalan lokal dilakukan tanpa memanggil Midtrans.
+- Bila percobaan terakhir `pending`, backend memanggil `POST /v2/{midtrans_order_id}/cancel`. Bila Midtrans menolak, backend memanggil `GET /v2/{midtrans_order_id}/status`:
+  - status `cancel`/`expire`/`deny`/`failure` → pembatalan lokal dilanjutkan;
+  - status `pending` → `409`, order tetap `menunggu_pembayaran`;
+  - status `settlement`/`capture` → status pembayaran diterapkan (dapat menjadi `lunas`), lalu pembatalan ditolak `409`.
+- Respons `cancel` dengan HTTP `200` tetap harus berisi status terminal; bila statusnya masih `pending` atau tidak lengkap, pembatalan lokal tidak dilakukan (`409`/`502`).
+- Bila Midtrans tidak dapat dihubungi, order tetap `menunggu_pembayaran` dan endpoint menjawab `502`. Bila `MIDTRANS_SERVER_KEY` kosong, endpoint menjawab `503`.
+- Pembatalan akhir berjalan di `DB::transaction` + `lockForUpdate`, menetapkan `status_pesanan = dibatalkan` dan `status_pembayaran = dibatalkan` tanpa membuat nomor antrean.
+- Klik ganda bersifat idempoten: order yang sudah `dibatalkan` tetap menjawab `200`.
+- `settlement` yang masuk setelah pembatalan lokal ditangani webhook/Cek Status sebagai `perlu_diperiksa` tanpa nomor antrean (PRD §8.4.10).
+- Error penting: `401` tamu, `403` bukan kasir, `404` order tidak ada, `409` tidak dapat dibatalkan, `429` throttle, `502`/`503` masalah Midtrans.
+- Status 1 Nov 2026: **sudah diimplementasikan** di `KasirController@cancelOrder` + `OrderService::batalkanPesananQris` + `MidtransService::batalkanTransaksi`/`ambilStatus`.
+
+### 4.10 `POST /kasir/pesanan/{order}/check-status`
+
+Request tanpa body. Hanya tersedia untuk order QRIS.
+
+Response `200`:
+
+```json
+{
+  "message": "Status pembayaran diperbarui: Lunas.",
+  "data": {
+    "id": "12",
+    "code": "QR12CD34",
+    "queue": "007",
+    "status": "antre",
+    "payment_status": "lunas",
+    "midtrans_id": "QR12CD34-P1"
+  }
+}
+```
+
+Aturan:
+
+- Backend memanggil `GET /v2/{midtrans_order_id}/status` memakai `server_key`; `client_key` dan `server_key` tidak pernah dikirim ke browser. Respons dengan `order_id` yang tidak cocok ditolak `502` tanpa mengubah data.
+- Respons Midtrans diproses melalui `MidtransNotificationService::terapkanStatus`, jalur yang sama dengan webhook, dengan `DB::transaction` + `lockForUpdate`.
+- `settlement`/`capture+accept` dapat menandai order `lunas`, `status_pesanan = antre`, dan membuat nomor antrean secara idempoten. Pemeriksaan berulang tidak menambah nomor antrean.
+- `gross_amount` wajib ada dan cocok dengan `orders.total`; bila tidak, pembayaran menjadi `perlu_diperiksa` tanpa nomor antrean.
+- `settlement` setelah pembatalan lokal menjadi `perlu_diperiksa` tanpa nomor antrean.
+- `pending` tidak menurunkan status yang sudah `gagal`/`kedaluwarsa`/`perlu_diperiksa`.
+- Pemeriksaan status **tidak** menulis `payment_notifications`; tabel itu khusus audit webhook. `payments.raw_response` (respons Snap) juga tidak ditimpa.
+- Order tanpa percobaan pembayaran atau order non-QRIS ditolak `409`. Midtrans tidak dapat dihubungi → `502`; kredensial kosong → `503`; throttle → `429`.
+- Tombol ini hanya ada di halaman kasir, bukan halaman pelanggan (PRD K-02e, PG-07).
+- Status 1 Nov 2026: **sudah diimplementasikan** di `KasirController@checkPaymentStatus` + `OrderService::periksaStatusPembayaran` + `MidtransService::ambilStatus`.
+
 ---
 
 ## 5. Perbedaan route sekarang vs target
@@ -568,10 +643,10 @@ Status 28 Okt 2026: **sudah diimplementasikan** di `KasirController@updateAvaila
 | `/pesan/pembayaran` | `/pesanan/{kode_pesanan}` | **Selesai** - route dihapus; view lama tidak dipakai |
 | `/pesan/berhasil` | `/pesanan/{kode_pesanan}` | **Selesai** - route dihapus; `berhasil.blade.php` menjadi halaman status server-side |
 | Belum ada login | `/login`, `POST /login`, `POST /logout` | **Selesai** - auth manual + role redirect |
-| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, dan `POST /pesanan/{kode_pesanan}/bayar-lagi` **selesai**; action lain menyusul |
+| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, dan `POST /pesanan/{kode_pesanan}/bayar-lagi` **selesai**; action lain menyusul |
 | Belum ada webhook | `/api/midtrans/notification` | **Selesai** - route + CSRF exception + verifikasi signature |
 | Belum ada role | `auth` + `role:*` | **Selesai** - middleware `role` aktif di area kasir/admin |
-| Belum ada rate limit | `throttle:*` | Login, `GET /kasir/pesanan/poll`, `POST /pesan/checkout`, dan status pesanan **selesai**; webhook sengaja tanpa throttle ketat |
+| Belum ada rate limit | `throttle:*` | Login, `GET /kasir/pesanan/poll`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `POST /pesan/checkout`, dan status pesanan **selesai**; webhook sengaja tanpa throttle ketat |
 
 ---
 

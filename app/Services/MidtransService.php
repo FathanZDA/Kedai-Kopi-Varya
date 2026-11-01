@@ -79,6 +79,149 @@ class MidtransService
     }
 
     /**
+     * Ambil status transaksi terbaru langsung dari API Midtrans.
+     *
+     * Dipakai tombol **Cek Status** kasir. Respons tidak pernah menandai
+     * pesanan lunas di sini; `MidtransNotificationService` yang memetakan
+     * status ke order.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MidtransException
+     */
+    public function ambilStatus(Payment $payment, Order $order): array
+    {
+        if (! $this->terkonfigurasi()) {
+            throw new MidtransException('Kredensial Midtrans belum diatur di server.', $order, null, null);
+        }
+
+        try {
+            $response = Http::withBasicAuth((string) config('services.midtrans.server_key'), '')
+                ->acceptJson()
+                ->connectTimeout(10)
+                ->timeout(20)
+                ->get($this->urlApi().'/'.rawurlencode($payment->midtrans_order_id).'/status');
+        } catch (ConnectionException $exception) {
+            throw new MidtransException(
+                'Tidak bisa menghubungi Midtrans.',
+                $order,
+                '500',
+                ['error' => $exception->getMessage()],
+            );
+        }
+
+        $data = $this->bacaResponsApi($response, $order, 'status pembayaran');
+        $this->pastikanOrderId($data, $payment, $order);
+
+        if (blank($data['transaction_status'] ?? null)) {
+            throw new MidtransException(
+                'Respons status Midtrans tidak lengkap.',
+                $order,
+                (string) ($data['status_code'] ?? $response->status()),
+                $data,
+            );
+        }
+
+        $data['order_id'] = $payment->midtrans_order_id;
+        $data['status_code'] = (string) ($data['status_code'] ?? $response->status());
+
+        return $data;
+    }
+
+    /**
+     * Batalkan transaksi Midtrans yang masih aktif.
+     *
+     * Bila Midtrans menolak pembatalan (mis. transaksi sudah kedaluwarsa),
+     * pemanggil harus memeriksa status lewat `ambilStatus()` sebelum
+     * mengubah status lokal.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MidtransException
+     */
+    public function batalkanTransaksi(Payment $payment, Order $order): array
+    {
+        if (! $this->terkonfigurasi()) {
+            throw new MidtransException('Kredensial Midtrans belum diatur di server.', $order, null, null);
+        }
+
+        try {
+            $response = Http::withBasicAuth((string) config('services.midtrans.server_key'), '')
+                ->acceptJson()
+                ->connectTimeout(10)
+                ->timeout(20)
+                ->post($this->urlApi().'/'.rawurlencode($payment->midtrans_order_id).'/cancel');
+        } catch (ConnectionException $exception) {
+            throw new MidtransException(
+                'Tidak bisa menghubungi Midtrans.',
+                $order,
+                '500',
+                ['error' => $exception->getMessage()],
+            );
+        }
+
+        $data = $this->bacaResponsApi($response, $order, 'pembatalan');
+        $this->pastikanOrderId($data, $payment, $order);
+
+        if (blank($data['transaction_status'] ?? null)) {
+            throw new MidtransException(
+                'Respons pembatalan Midtrans tidak lengkap.',
+                $order,
+                (string) ($data['status_code'] ?? $response->status()),
+                $data,
+            );
+        }
+
+        $data['order_id'] = $payment->midtrans_order_id;
+        $data['status_code'] = (string) ($data['status_code'] ?? $response->status());
+
+        return $data;
+    }
+
+    /**
+     * Tolak respons yang bukan milik percobaan pembayaran yang diminta.
+     *
+     * @param  array<string, mixed>  $data
+     *
+     * @throws MidtransException
+     */
+    private function pastikanOrderId(array $data, Payment $payment, Order $order): void
+    {
+        if ((string) ($data['order_id'] ?? '') !== $payment->midtrans_order_id) {
+            throw new MidtransException(
+                'Respons Midtrans tidak cocok dengan percobaan pembayaran.',
+                $order,
+                (string) ($data['status_code'] ?? ''),
+                $data,
+            );
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws MidtransException
+     */
+    private function bacaResponsApi(Response $response, Order $order, string $aksi): array
+    {
+        $data = $response->json();
+        $data = is_array($data) ? $data : [];
+
+        $statusCode = (string) ($data['status_code'] ?? $response->status());
+
+        if ($response->failed() || ! in_array($statusCode, ['200', '201'], true)) {
+            throw new MidtransException(
+                "Permintaan {$aksi} ke Midtrans gagal.",
+                $order,
+                $statusCode,
+                $data !== [] ? $data : ['body' => $response->body()],
+            );
+        }
+
+        return $data;
+    }
+
+    /**
      * @return array<string, mixed>
      *
      * @throws MidtransException
@@ -148,5 +291,17 @@ class MidtransService
         }
 
         return (string) config('services.midtrans.snap_sandbox_url');
+    }
+
+    /**
+     * Basis URL API status/pembatalan Midtrans (`/v2`).
+     */
+    private function urlApi(): string
+    {
+        if (config('services.midtrans.is_production')) {
+            return 'https://api.midtrans.com/v2';
+        }
+
+        return rtrim((string) config('services.midtrans.api_sandbox_url'), '/');
     }
 }

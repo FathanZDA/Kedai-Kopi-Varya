@@ -937,6 +937,8 @@ function initPesananMasuk() {
     let currentPage = 1;
     let currentDetailId = null;
     let pendingCancel = null;
+    let sedangMembatalkan = false;
+    let memeriksaStatus = false;
 
     const tbody = root.querySelector('[data-orders-body]');
     const searchInput = root.querySelector('[data-order-search-input]');
@@ -970,6 +972,7 @@ function initPesananMasuk() {
 
     const confirmDialog = root.querySelector('[data-confirm-dialog]');
     const confirmMessage = root.querySelector('[data-confirm-message]');
+    const confirmOk = root.querySelector('[data-confirm-ok]');
 
     const statusRank = {
         menunggu_pembayaran: 0,
@@ -1086,7 +1089,11 @@ function initPesananMasuk() {
         } else if (order.status === 'diproses') {
             actions += actionButton('finish', 'Selesai', 'primary', order);
         } else if (order.status === 'menunggu_pembayaran') {
-            if (order.payment_status === 'menunggu') {
+            if (order.payment === 'qris') {
+                actions += actionButton('check-status', 'Cek Status', 'secondary', order);
+            }
+
+            if (['menunggu', 'gagal', 'kedaluwarsa'].includes(order.payment_status)) {
                 actions += actionButton('cancel', 'Batalkan', 'danger', order);
             }
         } else if (order.status === 'selesai') {
@@ -1195,9 +1202,15 @@ function initPesananMasuk() {
 
         if (order.status === 'menunggu_pembayaran') {
             let markup = '';
-            if (order.payment_status === 'menunggu') {
+
+            if (order.payment === 'qris') {
+                markup += actionButton('check-status', 'Cek Status', 'secondary', order);
+            }
+
+            if (['menunggu', 'gagal', 'kedaluwarsa'].includes(order.payment_status)) {
                 markup += actionButton('cancel', 'Batalkan Pesanan', 'danger', order);
             }
+
             return markup;
         }
 
@@ -1300,6 +1313,49 @@ function initPesananMasuk() {
         }
     };
 
+    const cekStatus = async (order) => {
+        if (memeriksaStatus) return;
+
+        memeriksaStatus = true;
+        showToast(`Memeriksa status ${order.code}...`);
+
+        try {
+            const hasil = await kirimJson(
+                config.routes.pesananCheckStatus.replace('__ID__', encodeURIComponent(order.id)),
+                null,
+                'POST',
+            );
+
+            if (!hasil.ok) {
+                showToast(pesanKesalahan(hasil.status, hasil.data));
+
+                if (hasil.status === 409) poll();
+
+                return;
+            }
+
+            const masuk = hasil.data?.data;
+
+            if (masuk) Object.assign(order, masuk);
+
+            if (masuk?.status === 'dibatalkan') {
+                orders = orders.filter((item) => item.id !== order.id);
+            }
+
+            closeDialog(detailDialog);
+            renderOrders();
+            showToast(
+                masuk?.queue
+                    ? `Pembayaran ${order.code} lunas. Nomor antrean #${masuk.queue}.`
+                    : (hasil.data?.message ?? 'Status pembayaran diperbarui.'),
+            );
+        } catch {
+            showToast('Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.');
+        } finally {
+            memeriksaStatus = false;
+        }
+    };
+
     const openCancelConfirm = (order) => {
         pendingCancel = order;
 
@@ -1322,6 +1378,11 @@ function initPesananMasuk() {
         if (action === 'cancel') {
             closeDialog(detailDialog);
             openCancelConfirm(order);
+            return;
+        }
+
+        if (action === 'check-status') {
+            cekStatus(order);
             return;
         }
 
@@ -1358,16 +1419,52 @@ function initPesananMasuk() {
         closeDialog(confirmDialog);
     });
 
-    root.querySelector('[data-confirm-ok]')?.addEventListener('click', () => {
-        if (!pendingCancel) return;
+    root.querySelector('[data-confirm-ok]')?.addEventListener('click', async () => {
+        if (!pendingCancel || sedangMembatalkan) return;
 
         const canceled = pendingCancel;
-        orders = orders.filter((order) => order.id !== canceled.id);
+        const label = confirmOk?.textContent ?? 'Ya, Batalkan';
 
-        pendingCancel = null;
-        closeDialog(confirmDialog);
-        showToast(`Pesanan ${canceled.code} dibatalkan.`);
-        renderOrders();
+        sedangMembatalkan = true;
+
+        if (confirmOk) {
+            confirmOk.disabled = true;
+            confirmOk.textContent = 'Membatalkan...';
+        }
+
+        try {
+            const hasil = await kirimJson(
+                config.routes.pesananCancel.replace('__ID__', encodeURIComponent(canceled.id)),
+                null,
+                'POST',
+            );
+
+            if (!hasil.ok) {
+                showToast(pesanKesalahan(hasil.status, hasil.data));
+                pendingCancel = null;
+                closeDialog(confirmDialog);
+
+                if (hasil.status === 409) poll();
+
+                return;
+            }
+
+            orders = orders.filter((order) => order.id !== canceled.id);
+
+            pendingCancel = null;
+            closeDialog(confirmDialog);
+            showToast(hasil.data?.message ?? `Pesanan ${canceled.code} dibatalkan.`);
+            renderOrders();
+        } catch {
+            showToast('Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.');
+        } finally {
+            sedangMembatalkan = false;
+
+            if (confirmOk) {
+                confirmOk.disabled = false;
+                confirmOk.textContent = label;
+            }
+        }
     });
 
     tabButtons.forEach((button) => {

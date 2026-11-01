@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\StatusPesanan;
+use App\Exceptions\MidtransException;
 use App\Http\Requests\Kasir\PollOrdersRequest;
 use App\Http\Requests\Kasir\StoreOrderRequest;
 use App\Http\Requests\Kasir\UpdateMenuAvailabilityRequest;
@@ -12,12 +13,14 @@ use App\Http\Resources\OrderResource;
 use App\Models\Category;
 use App\Models\Menu;
 use App\Models\Order;
+use App\Services\MidtransService;
 use App\Services\OrderService;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Tampilan kasir (front-end).
@@ -27,6 +30,7 @@ use Illuminate\Support\Carbon;
  * - Buat Pesanan menyimpan order tunai lewat POST /kasir/pesanan.
  * - Pesanan Masuk membaca order dari database, bisa mengubah status, dan
  *   menyegarkan daftar lewat polling GET /kasir/pesanan/poll.
+ * - Pembatalan QRIS dan Cek Status memanggil Midtrans lewat service backend.
  * - Kelola Menu membaca menu dari database dan mengubah status ketersediaan.
  */
 class KasirController extends Controller
@@ -93,6 +97,62 @@ class KasirController extends Controller
     }
 
     /**
+     * Batalkan pesanan QRIS yang belum dibayar.
+     *
+     * Pembatalan hanya disimpan setelah Midtrans mengonfirmasi transaksi
+     * sudah cancel/expire. Bila Midtrans tidak bisa dihubungi, order tetap
+     * `menunggu_pembayaran` dan endpoint menjawab `502`/`503`.
+     */
+    public function cancelOrder(
+        Order $order,
+        OrderService $orderService,
+        MidtransService $midtrans,
+    ): JsonResponse {
+        try {
+            $order = $orderService->batalkanPesananQris($order);
+        } catch (ValidationException $exception) {
+            return $this->responsValidasi($exception);
+        } catch (MidtransException) {
+            return $this->responsMidtransGagal($midtrans);
+        }
+
+        $order->load(['items', 'payments']);
+
+        return response()->json([
+            'message' => "Pesanan {$order->kode_pesanan} dibatalkan.",
+            'data' => $this->payloadPesanan($order),
+        ]);
+    }
+
+    /**
+     * Cek status pembayaran QRIS langsung ke API Midtrans.
+     *
+     * Status hasil pemeriksaan diproses idempoten. `settlement` dapat
+     * memberi nomor antrean; `settlement` setelah pembatalan lokal menjadi
+     * `perlu_diperiksa` tanpa nomor antrean.
+     */
+    public function checkPaymentStatus(
+        Order $order,
+        OrderService $orderService,
+        MidtransService $midtrans,
+    ): JsonResponse {
+        try {
+            $order = $orderService->periksaStatusPembayaran($order);
+        } catch (ValidationException $exception) {
+            return $this->responsValidasi($exception);
+        } catch (MidtransException) {
+            return $this->responsMidtransGagal($midtrans);
+        }
+
+        $order->load(['items', 'payments']);
+
+        return response()->json([
+            'message' => "Status pembayaran diperbarui: {$order->status_pembayaran->label()}.",
+            'data' => $this->payloadPesanan($order),
+        ]);
+    }
+
+    /**
      * Polling Pesanan Masuk.
      *
      * Mengembalikan pesanan hari ini (atau hanya yang berubah sejak `sejak`),
@@ -143,6 +203,31 @@ class KasirController extends Controller
             'initial' => $user->inisial(),
             'role' => $user->role->label(),
         ];
+    }
+
+    /**
+     * Ubah pelanggaran aturan bisnis menjadi respons JSON `409`.
+     */
+    private function responsValidasi(ValidationException $exception): JsonResponse
+    {
+        return response()->json([
+            'message' => collect($exception->errors())->flatten()->first()
+                ?? 'Permintaan tidak dapat diproses.',
+        ], 409);
+    }
+
+    /**
+     * Bedakan kredensial yang belum diatur (`503`) dari gangguan Midtrans (`502`).
+     */
+    private function responsMidtransGagal(MidtransService $midtrans): JsonResponse
+    {
+        $terkonfigurasi = $midtrans->terkonfigurasi();
+
+        return response()->json([
+            'message' => $terkonfigurasi
+                ? 'Midtrans tidak dapat dihubungi. Status pesanan belum diubah.'
+                : 'Kredensial Midtrans belum diatur di server.',
+        ], $terkonfigurasi ? 502 : 503);
     }
 
     private function categories(): array
@@ -209,6 +294,7 @@ class KasirController extends Controller
         return Order::query()
             ->with(['items', 'payments'])
             ->whereDate('created_at', now()->toDateString())
+            ->where('status_pesanan', '!=', StatusPesanan::Dibatalkan)
             ->when($sejak, fn (Builder $query) => $query->where('updated_at', '>=', $sejak))
             ->latest('created_at')
             ->get();

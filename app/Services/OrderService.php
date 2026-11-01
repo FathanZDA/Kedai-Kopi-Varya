@@ -21,13 +21,15 @@ use Illuminate\Validation\ValidationException;
  *
  * Menangani pembuatan order tunai oleh kasir (docs/DATABASE.md §7.1) dan
  * order QRIS Pelanggan B yang menunggu pembayaran. Status lunas order QRIS
- * hanya ditentukan oleh webhook Midtrans (`MidtransNotificationService`).
+ * berasal dari webhook atau pemeriksaan status server-side ke Midtrans,
+ * bukan dari penandaan manual kasir.
  */
 class OrderService
 {
     public function __construct(
         private readonly MidtransService $midtrans,
         private readonly QueueNumberService $nomorAntrean,
+        private readonly MidtransNotificationService $notifikasi,
     ) {}
 
     /**
@@ -286,6 +288,259 @@ class OrderService
         $this->terapkanResponsSnap($payment, $snap);
 
         return ['payment' => $payment->refresh(), 'baru' => true];
+    }
+
+    /**
+     * Batalkan pesanan QRIS yang belum dibayar.
+     *
+     * Pembatalan lokal hanya dilakukan setelah Midtrans mengonfirmasi
+     * transaksi aktif sudah `cancel`/`expire`, atau bila percobaan terakhir
+     * memang tidak aktif lagi. Bila Midtrans tidak bisa dihubungi, order
+     * tetap `menunggu` (PRD §8.4.9).
+     *
+     * @throws ValidationException
+     * @throws MidtransException
+     */
+    public function batalkanPesananQris(Order $order): Order
+    {
+        $awal = DB::transaction(function () use ($order): array {
+            $terkunci = Order::query()->lockForUpdate()->findOrFail($order->id);
+
+            if ($this->sudahDibatalkan($terkunci)) {
+                return [
+                    'order' => $terkunci->load(['items', 'payments']),
+                    'payment' => null,
+                ];
+            }
+
+            $this->pastikanDapatDibatalkan($terkunci);
+
+            $terakhir = $terkunci->payments()->latest('id')->first();
+
+            if (! $terakhir) {
+                throw ValidationException::withMessages([
+                    'pembayaran' => 'Pembayaran QRIS belum tercatat. Coba lagi beberapa saat lagi.',
+                ]);
+            }
+
+            // Transaksi yang sudah settlement tidak boleh dibatalkan lokal.
+            // `capture` juga ditolak karena fraud_status belum diputuskan.
+            if (in_array($terakhir->status_transaksi, ['settlement', 'capture'], true)) {
+                throw ValidationException::withMessages([
+                    'pembayaran' => 'Pembayaran sudah lunas atau sedang diverifikasi; pesanan tidak dapat dibatalkan.',
+                ]);
+            }
+
+            return ['order' => $terkunci, 'payment' => $terakhir];
+        }, 3);
+
+        if ($awal['order']->status_pembayaran === StatusPembayaran::Dibatalkan
+            || $awal['order']->status_pesanan === StatusPesanan::Dibatalkan) {
+            return $awal['order'];
+        }
+
+        /** @var Payment $payment */
+        $payment = $awal['payment'];
+
+        $payload = $payment->status_transaksi === 'pending'
+            ? $this->batalkanDiMidtrans($payment, $awal['order'])
+            : $this->payloadStatusLokal($payment);
+
+        // Terapkan status Midtrans lebih dulu (mis. cancel/expire). Bila
+        // ternyata settlement, order sudah menjadi lunas dan langkah final
+        // akan menolak pembatalan lokal.
+        $this->notifikasi->terapkanStatus($payment, $payload);
+
+        return DB::transaction(function () use ($order): Order {
+            $terkunci = Order::query()->lockForUpdate()->findOrFail($order->id);
+
+            if ($this->sudahDibatalkan($terkunci)) {
+                return $terkunci->refresh()->load(['items', 'payments']);
+            }
+
+            if ($terkunci->status_pembayaran === StatusPembayaran::Lunas
+                || $terkunci->status_pembayaran === StatusPembayaran::PerluDiperiksa
+                || $terkunci->nomor_antrean !== null
+                || in_array($terkunci->status_pesanan, [
+                    StatusPesanan::Antre,
+                    StatusPesanan::Diproses,
+                    StatusPesanan::Selesai,
+                ], true)) {
+                throw ValidationException::withMessages([
+                    'pembayaran' => "Status pembayaran berubah menjadi {$terkunci->status_pembayaran->label()}; pesanan tidak dibatalkan.",
+                ]);
+            }
+
+            if (! in_array($terkunci->status_pembayaran, [
+                StatusPembayaran::Menunggu,
+                StatusPembayaran::Gagal,
+                StatusPembayaran::Kedaluwarsa,
+            ], true)) {
+                throw ValidationException::withMessages([
+                    'pembayaran' => 'Status pembayaran terakhir belum dapat dibatalkan.',
+                ]);
+            }
+
+            $terkunci->update([
+                'status_pembayaran' => StatusPembayaran::Dibatalkan,
+                'status_pesanan' => StatusPesanan::Dibatalkan,
+            ]);
+
+            return $terkunci->refresh()->load(['items', 'payments']);
+        }, 3);
+    }
+
+    /**
+     * Cek status pembayaran langsung ke API Midtrans.
+     *
+     * Status hasil pemeriksaan diproses lewat service notifikasi yang sama,
+     * sehingga `settlement` tetap membuat nomor antrean secara idempoten dan
+     * `settlement` setelah pembatalan lokal menjadi `perlu_diperiksa`.
+     *
+     * @throws ValidationException
+     * @throws MidtransException
+     */
+    public function periksaStatusPembayaran(Order $order): Order
+    {
+        $payment = DB::transaction(function () use ($order): Payment {
+            $terkunci = Order::query()->lockForUpdate()->findOrFail($order->id);
+
+            if ($terkunci->sumber !== SumberPesanan::Qr
+                || $terkunci->metode_pembayaran !== MetodePembayaran::Qris) {
+                throw ValidationException::withMessages([
+                    'pesanan' => 'Cek status hanya tersedia untuk pesanan QRIS.',
+                ]);
+            }
+
+            $terakhir = $terkunci->payments()->latest('id')->first();
+
+            if (! $terakhir) {
+                throw ValidationException::withMessages([
+                    'pembayaran' => 'Belum ada percobaan pembayaran QRIS untuk diperiksa.',
+                ]);
+            }
+
+            return $terakhir;
+        }, 3);
+
+        $payload = $this->midtrans->ambilStatus($payment, $order);
+
+        return $this->notifikasi->terapkanStatus($payment, $payload);
+    }
+
+    /**
+     * Payload sintetis untuk percobaan yang sudah terminal secara lokal.
+     *
+     * @return array<string, mixed>
+     */
+    private function payloadStatusLokal(Payment $payment): array
+    {
+        return [
+            'order_id' => $payment->midtrans_order_id,
+            'transaction_id' => $payment->transaction_id,
+            'transaction_status' => $payment->status_transaksi,
+            'status_code' => $payment->status_code ?? '200',
+            'fraud_status' => $payment->fraud_status,
+            'gross_amount' => $payment->gross_amount,
+            'payment_type' => $payment->payment_type,
+        ];
+    }
+
+    /**
+     * Minta Midtrans membatalkan transaksi, lalu periksa status bila ditolak.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws ValidationException
+     * @throws MidtransException
+     */
+    private function batalkanDiMidtrans(Payment $payment, Order $order): array
+    {
+        try {
+            $payload = $this->midtrans->batalkanTransaksi($payment, $order);
+
+            $status = (string) ($payload['transaction_status'] ?? '');
+
+            // Jangan pernah membatalkan lokal hanya karena HTTP 200. Status
+            // harus terminal, atau settlement/capture agar kegagalan bayar
+            // bisa ditangani sebagai konflik oleh langkah final.
+            if (! in_array($status, [
+                'cancel',
+                'expire',
+                'deny',
+                'failure',
+                'gagal',
+                'kedaluwarsa',
+                'settlement',
+                'capture',
+            ], true)) {
+                throw ValidationException::withMessages([
+                    'pembayaran' => 'Midtrans belum mengonfirmasi pembatalan; status pesanan tetap menunggu.',
+                ]);
+            }
+
+            return $payload;
+        } catch (MidtransException $pembatalan) {
+            try {
+                $status = $this->midtrans->ambilStatus($payment, $order);
+            } catch (MidtransException) {
+                // Pembatalan dan pemeriksaan status sama-sama gagal: biarkan
+                // order menunggu agar tidak ada pembatalan tanpa konfirmasi.
+                throw $pembatalan;
+            }
+
+            if ($status['transaction_status'] === 'pending') {
+                throw ValidationException::withMessages([
+                    'pembayaran' => 'Midtrans belum mengonfirmasi pembatalan; status pesanan tetap menunggu.',
+                ]);
+            }
+
+            return $status;
+        }
+    }
+
+    /**
+     * Pesanan dianggap sudah dibatalkan bila salah satu status finalnya sudah
+     * `dibatalkan`. Dipakai agar klik ganda bersifat idempoten.
+     */
+    private function sudahDibatalkan(Order $order): bool
+    {
+        return $order->status_pembayaran === StatusPembayaran::Dibatalkan
+            || $order->status_pesanan === StatusPesanan::Dibatalkan;
+    }
+
+    /**
+     * Tolak pembatalan untuk pesanan lunas, perlu diperiksa, atau bukan QRIS.
+     *
+     * @throws ValidationException
+     */
+    private function pastikanDapatDibatalkan(Order $order): void
+    {
+        if ($order->sumber !== SumberPesanan::Qr
+            || $order->metode_pembayaran !== MetodePembayaran::Qris) {
+            throw ValidationException::withMessages([
+                'pesanan' => 'Hanya pesanan QRIS yang belum dibayar yang dapat dibatalkan.',
+            ]);
+        }
+
+        if ($order->status_pembayaran === StatusPembayaran::Lunas
+            || $order->status_pembayaran === StatusPembayaran::PerluDiperiksa
+            || $order->nomor_antrean !== null
+            || in_array($order->status_pesanan, [
+                StatusPesanan::Antre,
+                StatusPesanan::Diproses,
+                StatusPesanan::Selesai,
+            ], true)) {
+            throw ValidationException::withMessages([
+                'pesanan' => 'Pesanan yang sudah lunas atau perlu diperiksa tidak dapat dibatalkan.',
+            ]);
+        }
+
+        if ($order->status_pesanan !== StatusPesanan::MenungguPembayaran) {
+            throw ValidationException::withMessages([
+                'pesanan' => 'Pesanan ini tidak berada pada status menunggu pembayaran.',
+            ]);
+        }
     }
 
     /**

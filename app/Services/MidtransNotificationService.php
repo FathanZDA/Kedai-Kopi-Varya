@@ -15,10 +15,11 @@ use Illuminate\Support\Str;
 /**
  * Pemrosesan notifikasi pembayaran Midtrans.
  *
- * Webhook adalah satu-satunya sumber status lunas (PRD §8.1.5). Seluruh
- * perubahan status berjalan idempoten di dalam satu transaksi database dan
- * mengunci baris `payments` + `orders` agar notifikasi ganda tidak membuat
- * nomor antrean ganda (PRD §11.4-11.5).
+ * Webhook adalah sumber utama status pembayaran (PRD §8.1.5). Pemeriksaan
+ * status server-side lewat tombol Cek Status memakai jalur pemrosesan yang
+ * sama. Seluruh perubahan status berjalan idempoten di dalam satu transaksi
+ * database dan mengunci baris `payments` + `orders` agar notifikasi ganda
+ * tidak membuat nomor antrean ganda (PRD §11.4-11.5).
  */
 class MidtransNotificationService
 {
@@ -141,41 +142,79 @@ class MidtransNotificationService
                 );
             }
 
-            // Percobaan yang sebelumnya sudah berstatus lunas menandakan
-            // notifikasi ini adalah pengulangan, bukan pembayaran baru.
-            $duplikat = in_array($payment->status_transaksi, ['settlement', 'capture'], true);
+            $hasil = $this->terapkanPayload($payment, $order, $payload);
 
-            $payment->update([
-                'transaction_id' => $this->batasiNullable($payload['transaction_id'] ?? null, 100),
-                'status_transaksi' => $this->batasi((string) $payload['transaction_status'], 50),
-                'status_code' => $this->batasi((string) $payload['status_code'], 10),
-                'fraud_status' => $this->batasiNullable($payload['fraud_status'] ?? null, 20),
-                'payment_type' => $this->batasiNullable($payload['payment_type'] ?? null, 50),
-                'waktu_diproses' => now(),
+            return $this->catat(
+                $payload,
+                $hasil['status'],
+                $hasil['catatan'],
+                $order->id,
+            );
+        }, self::PERCOBAAN_TRANSAKSI);
+    }
+
+    /**
+     * Terapkan status dari API Midtrans tanpa membuat baris audit webhook.
+     *
+     * Dipakai tombol **Cek Status** kasir dan fallback pembatalan. Status
+     * tetap diproses dengan transaksi + kunci baris yang sama seperti webhook,
+     * sehingga nomor antrean tidak pernah dibuat dua kali.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    public function terapkanStatus(Payment $payment, array $payload): Order
+    {
+        return DB::transaction(function () use ($payment, $payload): Order {
+            $terkunci = Payment::query()->lockForUpdate()->findOrFail($payment->id);
+            $order = Order::query()->lockForUpdate()->findOrFail($terkunci->order_id);
+
+            $this->terapkanPayload($terkunci, $order, $payload);
+
+            return $order->refresh()->load(['items', 'payments']);
+        }, self::PERCOBAAN_TRANSAKSI);
+    }
+
+    /**
+     * Perbarui `payments` dan terapkan transisi ke `orders`.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array{catatan: string|null, status: StatusPemrosesanNotifikasi}
+     */
+    private function terapkanPayload(Payment $payment, Order $order, array $payload): array
+    {
+        // Percobaan yang sebelumnya sudah berstatus lunas menandakan
+        // notifikasi ini adalah pengulangan, bukan pembayaran baru.
+        $duplikat = in_array($payment->status_transaksi, ['settlement', 'capture'], true);
+
+        $payment->update([
+            'transaction_id' => $this->batasiNullable($payload['transaction_id'] ?? null, 100),
+            'status_transaksi' => $this->batasi((string) $payload['transaction_status'], 50),
+            'status_code' => $this->batasi((string) ($payload['status_code'] ?? '200'), 10),
+            'fraud_status' => $this->batasiNullable($payload['fraud_status'] ?? null, 20),
+            'payment_type' => $this->batasiNullable($payload['payment_type'] ?? null, 50),
+            'waktu_diproses' => now(),
+        ]);
+
+        if (! $this->nominalCocok($payload['gross_amount'] ?? null, $order->total)) {
+            $this->tandaiPerluDiperiksa($order);
+
+            Log::warning('Nominal Midtrans tidak cocok dengan total pesanan.', [
+                'midtrans_order_id' => $payment->midtrans_order_id,
+                'kode_pesanan' => $order->kode_pesanan,
+                'gross_amount' => $payload['gross_amount'] ?? null,
+                'total' => $order->total,
             ]);
 
-            if (! $this->nominalCocok($payload['gross_amount'], $order->total)) {
-                $this->tandaiPerluDiperiksa($order);
+            return [
+                'catatan' => 'Nominal tidak cocok dengan orders.total; pesanan ditandai perlu diperiksa.',
+                'status' => StatusPemrosesanNotifikasi::Diabaikan,
+            ];
+        }
 
-                Log::warning('Nominal notifikasi Midtrans tidak cocok dengan total pesanan.', [
-                    'midtrans_order_id' => $payment->midtrans_order_id,
-                    'kode_pesanan' => $order->kode_pesanan,
-                    'gross_amount' => $payload['gross_amount'],
-                    'total' => $order->total,
-                ]);
-
-                return $this->catat(
-                    $payload,
-                    StatusPemrosesanNotifikasi::Diabaikan,
-                    'Nominal tidak cocok dengan orders.total; pesanan ditandai perlu diperiksa.',
-                    $order->id,
-                );
-            }
-
-            $catatan = $this->terapkanKeOrder($order, $this->petakanStatus($payload), $duplikat);
-
-            return $this->catat($payload, StatusPemrosesanNotifikasi::Diproses, $catatan, $order->id);
-        }, self::PERCOBAAN_TRANSAKSI);
+        return [
+            'catatan' => $this->terapkanKeOrder($order, $this->petakanStatus($payload), $duplikat),
+            'status' => StatusPemrosesanNotifikasi::Diproses,
+        ];
     }
 
     /**
@@ -197,8 +236,8 @@ class MidtransNotificationService
                 default => StatusPembayaran::PerluDiperiksa,
             },
             'pending' => StatusPembayaran::Menunggu,
-            'deny', 'failure', 'cancel' => StatusPembayaran::Gagal,
-            'expire' => StatusPembayaran::Kedaluwarsa,
+            'deny', 'failure', 'cancel', 'gagal' => StatusPembayaran::Gagal,
+            'expire', 'kedaluwarsa' => StatusPembayaran::Kedaluwarsa,
             'refund', 'partial_refund', 'chargeback', 'partial_chargeback' => StatusPembayaran::PerluDiperiksa,
             default => StatusPembayaran::PerluDiperiksa,
         };
@@ -216,7 +255,8 @@ class MidtransNotificationService
         // Pembatalan lokal menang atas notifikasi selain settlement. Settlement
         // yang tetap masuk (race condition) ditandai perlu diperiksa tanpa
         // nomor antrean (PRD §8.4.10).
-        if ($sekarang === StatusPembayaran::Dibatalkan) {
+        if ($sekarang === StatusPembayaran::Dibatalkan
+            || $order->status_pesanan === StatusPesanan::Dibatalkan) {
             if ($tujuan === StatusPembayaran::Lunas) {
                 $order->status_pembayaran = StatusPembayaran::PerluDiperiksa;
                 $order->save();
