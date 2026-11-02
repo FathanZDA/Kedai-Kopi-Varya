@@ -23,7 +23,7 @@ Sumber aturan bisnis utama adalah `PRD.md`. Detail alur per role ada di `kasir.m
 
 ## 2. Status saat ini
 
-Per 3 November 2026 (slice `kasir-pesanan-detail` di working tree). Ringkasan serah-terima antar sesi (branch, baseline test, slice berikutnya, catatan lingkungan) ada di **`docs/HANDOFF.md`** — baca itu lebih dulu saat memulai sesi baru.
+Per 3 November 2026 (slice `docs-readme` di working tree). Ringkasan serah-terima antar sesi (branch, baseline test, slice berikutnya, catatan lingkungan) ada di **`docs/HANDOFF.md`** — baca itu lebih dulu saat memulai sesi baru.
 
 - **Front-end publik Pelanggan A:** sudah memakai database (`categories`, `menus`, `promos`, `store_settings`, `store_hours`).
 - **Front-end Pelanggan B:** menu dan toko sudah dari database. Keranjang masih `localStorage` (belum ada endpoint keranjang), tetapi **checkout sudah tersambung ke server**: `POST /pesan/checkout` membuat order QRIS `menunggu_pembayaran` tanpa nomor antrean dan mengembalikan `snap_token`; **popup Snap.js** dibuka di halaman checkout (bukan redirect ke Midtrans) dan keranjang dihapus. Nama pelanggan, tipe pesanan, dan catatan tidak lagi disimpan di `sessionStorage`. **Status lunas dan nomor antrean berasal dari webhook Midtrans** (`POST /api/midtrans/notification`) atau Cek Status server-side kasir. Halaman status `/pesanan/{kode}` menampilkan tiket antrean server-side, polling status 5 detik, dan tombol **Coba Bayar Lagi** lewat `POST /pesanan/{kode}/bayar-lagi`.
@@ -46,7 +46,7 @@ Data contoh di controller dan `localStorage` **bukan** sumber kebenaran. Data ka
 - JavaScript modular biasa (bukan Vue/React)
 - Database aplikasi: **MySQL saja**, database `kedai_varya` di `.env`
 - Database test: **MySQL** `kedai_varya_test`; tidak memakai SQLite
-- File `database/database.sqlite` tidak dipakai dan akan dihapus setelah dipastikan tidak berisi data nyata
+- File `database/database.sqlite` tidak dipakai; isinya sudah diperiksa (hanya data seed lama tanpa tabel transaksi) dan penghapusannya menunggu persetujuan user
 - Test: PHPUnit **12.5**
 - Belum ada paket auth tambahan dan belum ada `midtrans/midtrans-php`
 
@@ -217,4 +217,4 @@ Berhenti sebelum melanjutkan jika:
 - Test memakai MySQL `kedai_varya_test`, bukan SQLite.
 - Webhook Midtrans didaftarkan di `routes/web.php` dengan pengecualian CSRF; tidak memakai `routes/api.php`. Panduan sandbox + ngrok ada di `docs/MIDTRANS-SETUP.md`.
 - Integrasi Midtrans memakai HTTP client Laravel (bukan SDK). Kredensial sandbox hanya ada di `.env`; tanpa `MIDTRANS_SERVER_KEY`, checkout menjawab `503` dan webhook `500`.
-- README masih bawaan Laravel dan perlu diganti dengan README project.
+- `README.md` adalah README proyek (setup, seed, test, catatan Midtrans). `.env.example` memuat placeholder `MIDTRANS_*` tanpa kredensial.

@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 3 Nov 2026, setelah `admin-dashboard` di-commit (`5a406c4`); slice `kasir-pesanan-detail` (Detail Pesanan kasir) sudah diimplementasikan di working tree dan **belum di-commit**.
+**Terakhir diperbarui:** 3 Nov 2026, setelah `kasir-pesanan-detail` di-commit (`9e7dfc0`); slice `docs-readme` (README proyek + pembersihan demo) sudah diimplementasikan di working tree dan **belum di-commit**.
 
 ---
 
@@ -10,7 +10,7 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `kasir-pesanan-detail` @ `5a406c4`; working tree memuat slice `kasir-pesanan-detail` yang **belum di-commit** |
+| Branch aktif | `docs-readme` @ `9e7dfc0`; working tree memuat slice `docs-readme` yang **belum di-commit** |
 | Baseline test | `php artisan test` → **200 passed** (1027 assertions) |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
@@ -38,7 +38,8 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `admin-store-settings` | `5acfb66` | Informasi Toko (profil + jam operasional 7 hari) |
 | `admin-reports` | `f212512` | Laporan Transaksi dari DB + filter bulan + rincian transaksi |
 | `admin-dashboard` | `5a406c4` | Dashboard dari DB: ringkasan, menu terlaris, transaksi terbaru |
-| `kasir-pesanan-detail` | *belum di-commit* | Detail pesanan kasir dari DB (`GET /kasir/pesanan/{order}`) |
+| `kasir-pesanan-detail` | `9e7dfc0` | Detail pesanan kasir dari DB (`GET /kasir/pesanan/{order}`) |
+| `docs-readme` | *belum di-commit* | README proyek, `.env.example` Midtrans, catatan SQLite |
 
 ---
 
@@ -365,16 +366,35 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Batas “hari ini” sama dengan daftar/polling (F-47), sehingga pesanan batal konsisten tidak dapat dibuka (PRD K-02b).
 - Dialog tetap tampil instan dari snapshot; respons server menimpa nilai yang mungkin sudah berubah (mis. status pembayaran dari webhook).
 
-## 5.11 Rencana slice berikutnya (belum dikerjakan)
+### 5.11 `docs-readme`
 
-Urutan ini disusun agar data contoh di admin hilang dari sumber paling dasar ke paling turunan. Satu slice = satu commit; jangan gabungkan.
+**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
 
-| # | Slice | Cakupan | Acuan | Kriteria diterima |
-|---|---|---|---|---|
-| 1 | `pelanggan-b-cart` *(butuh keputusan)* | Endpoint keranjang server-side **atau** keputusan mempertahankan keranjang di browser | AGENTS §2, F-29 | **Berhenti dan tanya lebih dulu**: `docs/ROUTES.md` belum punya kontrak keranjang, dan checkout sudah memvalidasi harga/ketersediaan di server |
-| 2 | `docs-readme` *(terakhir)* | README project menggantikan README Laravel, bersihkan sisa data demo, putuskan `database/database.sqlite` | AGENTS §11; F-44 | README memuat setup, migrate/seed, test, dan catatan Midtrans; tidak ada data contoh yang tertinggal tanpa penanda |
+**Kontrak:** AGENTS §11; F-44; `docs/DECISIONS.md` F-68.
 
-Kandidat lain yang butuh keputusan user lebih dulu: **foto tentang kami** (perlu kolom baru di `store_settings`, lihat §6).
+**Yang sudah ada:**
+
+1. `README.md` ditulis ulang sebagai README proyek (bukan bawaan Laravel): daftar fitur per area, catatan aturan penting, stack, kebutuhan, langkah setup lengkap (dependensi, `.env`, database, migrate/seed, build), akun seeder (tanpa kata sandi), folder unggahan, konfigurasi Midtrans + ngrok, scheduler `qris:reconcile`, perintah pemeriksaan, database test, struktur folder, daftar dokumen, dan aturan kerja singkat.
+2. `.env.example` mendapat blok `MIDTRANS_*` kosong beserta URL sandbox, sehingga setup tidak perlu menebak nama variabel. Tidak ada kredensial yang ditulis.
+3. Catatan `database/database.sqlite` ditulis di README: file tidak dipakai; isinya hanya data seed lama (1 user, 12 menu, 5 kategori, 3 promosi, 1 `store_settings`, 7 migration) tanpa tabel transaksi. **File belum dihapus** karena penghapusan berkas menunggu persetujuan user (AGENTS §10).
+4. Baseline tetap **200 passed** (1027 assertions); Pint bersih; `npm.cmd run build` tidak terpengaruh (tidak ada perubahan JS/CSS).
+
+**Perilaku penting:**
+
+- README menyebut keranjang Pelanggan B masih `localStorage` dan foto Tentang Kami masih demo supaya tidak menyesatkan pembaca.
+- Tidak ada kode aplikasi yang berubah pada slice ini; hanya dokumentasi dan template `.env`.
+- Penghapusan `database/database.sqlite` dan keputusan keranjang/foto/`409` masuk daftar tunggu user (§6 dan §5.12).
+
+## 5.12 Kandidat berikutnya (menunggu keputusan user)
+
+Semua slice yang tertulis di rencana sebelumnya sudah selesai. Yang tersisa membutuhkan keputusan user lebih dulu:
+
+| # | Topik | Pilihan | Acuan |
+|---|---|---|---|
+| 1 | `pelanggan-b-cart` | Endpoint keranjang server-side **atau** mempertahankan keranjang di browser | AGENTS §2, F-29; `docs/ROUTES.md` belum punya kontrak keranjang |
+| 2 | Foto Tentang Kami | Tambah kolom `foto_tentang` lewat migration baru + unggah gambar, **atau** hapus panel foto demo | `docs/DECISIONS.md` F-64; §6 |
+| 3 | `409 "menu berubah"` | Tambah harga acuan per item pada request checkout/order agar konflik menu menghasilkan `409`, atau tetap `422` | §6; `docs/ROUTES.md` §4.1/§4.4 |
+| 4 | `database/database.sqlite` | Hapus file (sudah dipastikan hanya data seed lama) atau biarkan | F-44; §7 |
 
 ## 6. Keputusan yang masih menunggu user
 
@@ -407,7 +427,7 @@ Kandidat lain yang butuh keputusan user lebih dulu: **foto tentang kami** (perlu
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
 2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 200 passed).
-3. Potong branch baru dari ujung terbaru (`admin-dashboard` @ `5a406c4` + commit `kasir-pesanan-detail`), bukan dari `main`.
+3. Potong branch baru dari ujung terbaru (`kasir-pesanan-detail` @ `9e7dfc0` + commit `docs-readme`), bukan dari `main`.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
 5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata. Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
@@ -458,7 +478,8 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 2 Nov 2026 | `admin-store-settings` | `5acfb66` | Informasi Toko: profil `store_settings` + jam `store_hours` 7 hari |
 | 3 Nov 2026 | `admin-reports` | `f212512` | Laporan Transaksi dari DB: filter bulan, ringkasan hanya lunas, rincian snapshot item |
 | 3 Nov 2026 | `admin-dashboard` | `5a406c4` | Dashboard dari DB: ringkasan, menu terlaris, 10 transaksi terbaru |
-| 3 Nov 2026 | `kasir-pesanan-detail` | *belum di-commit* | Detail pesanan kasir dari DB untuk dialog Pesanan Masuk |
+| 3 Nov 2026 | `kasir-pesanan-detail` | `9e7dfc0` | Detail pesanan kasir dari DB untuk dialog Pesanan Masuk |
+| 3 Nov 2026 | `docs-readme` | *belum di-commit* | README proyek, template `MIDTRANS_*`, catatan SQLite |
 
 ---
 
