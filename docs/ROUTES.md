@@ -4,7 +4,7 @@
 **Terakhir diperbarui:** 3 November 2026
 **Acuan:** `PRD.md` §4.3, §7, §11; `docs/DECISIONS.md`; `routes/web.php`
 
-> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, proses terjadwal rekonsiliasi, CRUD menu admin, CRUD promosi, Informasi Toko, serta Laporan Transaksi admin sudah aktif. Dashboard admin masih memakai data contoh.
+> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, proses terjadwal rekonsiliasi, CRUD menu admin, CRUD promosi, Informasi Toko, Laporan Transaksi, dan Dashboard admin sudah aktif.
 
 ---
 
@@ -41,7 +41,7 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | GET | `/kasir/menu` | `kasir.menu.index` | `KasirController@kelolaMenu` | `auth` + `role:kasir`; menu dari DB |
 | PATCH | `/kasir/menu/{menu}/availability` | `kasir.menu.availability` | `KasirController@updateAvailability` | `auth` + `role:kasir`; hanya `tersedia` |
 | ANY | `/admin` | — | Redirect 301 ke `/admin/dashboard` | `auth` + `role:admin` |
-| GET | `/admin/dashboard` | `admin.dashboard` | `AdminController@dashboard` | `auth` + `role:admin`; transaksi contoh |
+| GET | `/admin/dashboard` | `admin.dashboard` | `AdminController@dashboard` | `auth` + `role:admin`; ringkasan dari DB |
 | GET | `/admin/menu` | `admin.menu.index` | `AdminController@menus` | `auth` + `role:admin`; menu dari DB |
 | GET | `/admin/menu/create` | `admin.menu.create` | `AdminController@createMenu` | `auth` + `role:admin` |
 | POST | `/admin/menu` | `admin.menu.store` | `AdminController@storeMenu` | `auth` + `role:admin`; multipart + foto |
@@ -64,6 +64,7 @@ Belum ada:
 - Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, `POST/PUT/PATCH/DELETE /admin/menu`, `PATCH /admin/menu/{menu}/availability`, `POST/PUT/PATCH/DELETE /admin/promosi` + `PATCH /admin/promosi/{promo}/status`, serta `PUT /admin/toko`.
 - Rekonsiliasi berjalan sebagai command terjadwal `qris:reconcile` (bukan route HTTP), lihat §4.11.
 - Laporan: ekspor PDF/Excel (Fase 2) dan ringkasan lintas tahun selain daftar bulan pada filter.
+- Dashboard: tidak ada filter periode; angkanya selalu hari ini dan bulan berjalan.
 - Foto Tentang Kami: belum ada kontrak route/kolom; penyimpanan menunggu keputusan skema.
 - Route detail pesanan kasir (`GET /kasir/pesanan/{order}`); detail saat ini dirender dari data polling.
 - Rate limiting untuk endpoint lain di luar login, polling kasir, pembatalan/Cek Status, checkout, dan status pesanan.
@@ -826,6 +827,34 @@ Aturan:
 - Tidak ada route untuk mengubah status pembayaran dari halaman ini (PRD §8.8.5, F-10).
 - Error penting: `401` tamu (redirect `/login`), `403` bukan admin, `404` order tidak ada.
 - Status 3 Nov 2026: **sudah diimplementasikan** di `AdminController@reports`/`showReportOrder` + `App\Services\ReportService`; data contoh laporan di `resources/js/admin.js` (perhitungan ringkasan client-side) sudah dihapus.
+
+### 4.16 Dashboard admin
+
+`GET /admin/dashboard` dirender server dari `orders`, `order_items`, dan `payments` lewat `App\Services\DashboardService`. Tidak ada query string; periode selalu hari ini dan bulan berjalan (`Asia/Jakarta`).
+
+Data yang dikirim ke halaman:
+
+| Bagian | Aturan |
+|---|---|
+| Pendapatan hari ini | `SUM(total)` order `status_pembayaran = lunas` yang `created_at` hari ini |
+| Pendapatan bulan berjalan | idem, rentang awal sampai akhir bulan |
+| Jumlah transaksi lunas | `COUNT` order `lunas` bulan berjalan |
+| Jumlah pesanan hari ini | semua order yang `created_at` hari ini, apa pun statusnya |
+| Pesanan menunggu pembayaran | order hari ini dengan `status_pembayaran = menunggu` |
+| Pesanan diproses | order hari ini dengan `status_pesanan = diproses` |
+| Perbandingan QRIS:tunai | persentase dari pendapatan lunas bulan berjalan |
+| Menu terlaris | 5 menu dengan `SUM(order_items.jumlah)` terbesar dari transaksi `lunas` bulan berjalan, grup per `nama_menu` |
+| Transaksi terbaru | 10 order terbaru (semua status), diurutkan `created_at` lalu `id` menurun |
+
+Aturan:
+
+- Hanya transaksi `lunas` yang masuk pendapatan (PRD §8.8.1); pesanan belum lunas tetap muncul di tabel transaksi terbaru sebagai informasi beserta status pembayarannya.
+- Perbandingan jumlah pesanan memakai hari kemarin (`created_at` kemarin, semua status); bila kemarin tidak ada pesanan, persentase ditampilkan sebagai teks tanpa pembanding.
+- Menu terlaris memakai snapshot `order_items.nama_menu`; harga, kategori, dan foto diambil dari baris `menus` terbaru (termasuk yang sudah di-soft-delete). Menu yang sudah hilang permanen tetap tampil dengan foto bawaan.
+- Tabel transaksi terbaru menampilkan kode pesanan, pelanggan, tipe, jumlah item/porsi, total, metode, dan status pesanan/pembayaran. Filter tab Dine In/Take Away berjalan client-side dari 10 baris itu.
+- Tidak ada route JSON atau filter periode baru; halaman hanya `GET`.
+- Error penting: `401` tamu (redirect `/login`), `403` bukan admin.
+- Status 3 Nov 2026: **sudah diimplementasikan** di `AdminController@dashboard` + `App\Services\DashboardService`; seluruh data contoh dashboard (`recentOrders()`, `popularMenus()`, `transactions()`, `makeTransaction()`, `summarizeMonth()`, `kodePesanan()`, `menuKanonik()`) dihapus dari `AdminController`.
 
 ---
 

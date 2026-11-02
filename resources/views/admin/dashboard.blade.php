@@ -5,7 +5,6 @@
         ->where('available', true)
         ->groupBy('category_label')
         ->map->count();
-    $processingCount = collect($orders)->where('status', 'diproses')->count();
 @endphp
 
 <x-layouts.admin title="Dashboard"
@@ -42,7 +41,7 @@
                         <p class="tag text-[7px] leading-tight font-bold text-white/70">Hari<br>Ini</p>
                     </div>
                     <div class="flex min-w-[68px] flex-col justify-center border-l border-ink px-3 py-3 text-center">
-                        <p class="font-display text-[24px] leading-none font-black">{{ count($orders) }}</p>
+                        <p class="font-display text-[24px] leading-none font-black">{{ $todayOrders }}</p>
                         <p class="tag mt-1 text-[7px] font-bold text-muted">Hari</p>
                     </div>
                     <div class="flex min-w-[86px] flex-col justify-center border-l border-ink px-3 py-3 text-center">
@@ -70,18 +69,29 @@
                 </div>
 
                 <div class="mt-5 flex items-end gap-2">
-                    <span class="font-display text-[44px] leading-none font-black">{{ count($orders) }}</span>
+                    <span class="font-display text-[44px] leading-none font-black">{{ $todayOrders }}</span>
                     <span class="font-display pb-1 text-[18px] leading-none font-bold uppercase text-ink">Pesanan</span>
                 </div>
 
                 <div class="mt-4 flex items-center gap-2 border-t border-line-strong/70 pt-3">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-varya-dark" aria-hidden="true">
-                        <path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>
-                    </svg>
-                    <p class="font-mono text-[8px] leading-relaxed font-bold text-ink-soft">
-                        <strong class="text-varya-dark">+14%</strong> dibanding kemarin ({{ $yesterdayOrders }} pesanan)
-                    </p>
+                    @if ($ordersChangePercent !== null)
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 {{ $ordersChangePercent >= 0 ? 'text-varya-dark' : 'text-rust' }}" aria-hidden="true">
+                            @if ($ordersChangePercent >= 0)
+                                <path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>
+                            @else
+                                <path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/>
+                            @endif
+                        </svg>
+                        <p class="font-mono text-[8px] leading-relaxed font-bold text-ink-soft">
+                            <strong class="{{ $ordersChangePercent >= 0 ? 'text-varya-dark' : 'text-rust' }}">{{ $ordersChangePercent >= 0 ? '+' : '-' }}{{ number_format(abs($ordersChangePercent), 1, ',', '.') }}%</strong>
+                            dibanding kemarin ({{ $yesterdayOrders }} pesanan)
+                        </p>
+                    @else
+                        <p class="font-mono text-[8px] leading-relaxed font-bold text-muted">
+                            Belum ada pesanan kemarin sebagai pembanding
+                        </p>
+                    @endif
                 </div>
             </article>
 
@@ -89,7 +99,7 @@
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <p class="tag text-[9px] font-bold text-ink">Total Pendapatan</p>
-                        <p class="mt-1 font-serif text-[11px] text-muted">Omzet kotor kasir bulan ini</p>
+                        <p class="mt-1 font-serif text-[11px] text-muted">Hanya transaksi lunas &bull; {{ $monthLabel }}</p>
                     </div>
                     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-md border-2 border-ink bg-varya-dark text-white">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -221,7 +231,7 @@
                             </svg>
                         </span>
                         <h2 id="popular-menus-title" class="font-display text-[17px] leading-tight font-black uppercase">
-                            Menu Populer Hari Ini
+                            Menu Terlaris Bulan Ini
                         </h2>
                     </div>
 

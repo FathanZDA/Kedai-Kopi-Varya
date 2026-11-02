@@ -324,6 +324,21 @@ function initDashboard() {
             pill: 'border-[#b58a2b]/40 bg-kasir-amber-soft text-[#8a6415]',
             dot: 'bg-[#c79225]',
         },
+        antre: {
+            label: 'Antre',
+            pill: 'border-ink/30 bg-admin-panel text-ink',
+            dot: 'bg-ink',
+        },
+        menunggu_pembayaran: {
+            label: 'Menunggu Pembayaran',
+            pill: 'border-[#8a3b1d]/30 bg-[#fbe1de] text-[#8a3b1d]',
+            dot: 'bg-rust',
+        },
+        dibatalkan: {
+            label: 'Dibatalkan',
+            pill: 'border-line-strong bg-admin-soft text-muted',
+            dot: 'bg-muted',
+        },
     };
 
     const orderRow = (order) => {
@@ -356,12 +371,12 @@ function initDashboard() {
                 </td>
                 <td class="px-3 py-6">
                     <p class="font-display text-[13px] leading-tight font-bold">${rupiah(order.total)}</p>
-                    <p class="tag mt-1 text-[7px] text-muted">Lunas &bull; ${escapeHtml(order.payment ?? 'QRIS')}</p>
+                    <p class="tag mt-1 text-[7px] text-muted">${escapeHtml(order.payment_status_label ?? '')} &bull; ${escapeHtml(order.payment ?? 'QRIS')}</p>
                 </td>
                 <td class="px-4 py-6">
                     <span class="tag inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[7px] font-bold ${status.pill}">
                         <span class="h-1.5 w-1.5 rounded-full ${status.dot}"></span>
-                        ${status.label}
+                        ${escapeHtml(order.status_label ?? status.label)}
                     </span>
                 </td>
             </tr>
@@ -382,7 +397,7 @@ function initDashboard() {
         if (tbody) tbody.innerHTML = visible.map(orderRow).join('');
 
         if (record) {
-            record.textContent = `Menampilkan ${visible.length} dari ${filtered.length} pesanan tercatat hari ini`;
+            record.textContent = `Menampilkan ${visible.length} dari ${filtered.length} transaksi terbaru`;
         }
 
         renderPagination(pagination, totalPages, state.page, (page) => {
