@@ -121,6 +121,8 @@ Route::middleware(['auth', 'role:kasir'])->group(function () {
             ->middleware('throttle:120,1')
             ->name('pesanan.poll');
 
+        Route::get('/pesanan/{order}', [KasirController::class, 'showOrder'])->name('pesanan.show');
+
         Route::post('/pesanan', [KasirController::class, 'storeOrder'])->name('pesanan.store');
 
         Route::patch('/pesanan/{order}/status', [KasirController::class, 'updateStatus'])->name('pesanan.status');

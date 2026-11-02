@@ -26,6 +26,7 @@
                 pesananStatus: @json(route('kasir.pesanan.status', ['order' => '__ID__'])),
                 pesananCancel: @json(route('kasir.pesanan.cancel', ['order' => '__ID__'])),
                 pesananCheckStatus: @json(route('kasir.pesanan.check-status', ['order' => '__ID__'])),
+                pesananShow: @json(route('kasir.pesanan.show', ['order' => '__ID__'])),
                 pesananMasuk: @json(route('kasir.pesanan.index')),
                 pesananPoll: @json(route('kasir.pesanan.poll')),
                 menuAvailability: @json(route('kasir.menu.availability', ['menu' => '__ID__'])),

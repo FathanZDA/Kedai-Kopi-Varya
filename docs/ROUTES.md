@@ -35,6 +35,7 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | GET | `/kasir/pesanan/baru` | `kasir.pesanan.baru` | `KasirController@buatPesanan` | `auth` + `role:kasir`; menu dari DB |
 | POST | `/kasir/pesanan` | `kasir.pesanan.store` | `KasirController@storeOrder` | `auth` + `role:kasir`; order tunai langsung lunas + nomor antrean |
 | GET | `/kasir/pesanan` | `kasir.pesanan.index` | `KasirController@pesananMasuk` | `auth` + `role:kasir`; pesanan hari ini dari DB, tanpa yang dibatalkan |
+| GET | `/kasir/pesanan/{order}` | `kasir.pesanan.show` | `KasirController@showOrder` | `auth` + `role:kasir`; JSON detail, hanya order hari ini |
 | PATCH | `/kasir/pesanan/{order}/status` | `kasir.pesanan.status` | `KasirController@updateStatus` | `auth` + `role:kasir`; `antre → diproses → selesai` |
 | POST | `/kasir/pesanan/{order}/cancel` | `kasir.pesanan.cancel` | `KasirController@cancelOrder` | `auth` + `role:kasir`; `throttle:30,1`; hanya QRIS belum dibayar |
 | POST | `/kasir/pesanan/{order}/check-status` | `kasir.pesanan.check-status` | `KasirController@checkPaymentStatus` | `auth` + `role:kasir`; `throttle:30,1`; cek API status Midtrans |
@@ -66,7 +67,6 @@ Belum ada:
 - Laporan: ekspor PDF/Excel (Fase 2) dan ringkasan lintas tahun selain daftar bulan pada filter.
 - Dashboard: tidak ada filter periode; angkanya selalu hari ini dan bulan berjalan.
 - Foto Tentang Kami: belum ada kontrak route/kolom; penyimpanan menunggu keputusan skema.
-- Route detail pesanan kasir (`GET /kasir/pesanan/{order}`); detail saat ini dirender dari data polling.
 - Rate limiting untuk endpoint lain di luar login, polling kasir, pembatalan/Cek Status, checkout, dan status pesanan.
 
 
@@ -150,8 +150,8 @@ Catatan:
 
 Status implementasi 1 Nov 2026:
 
-- `GET /kasir/pesanan/baru`, `POST /kasir/pesanan`, `GET /kasir/pesanan`, `GET /kasir/pesanan/poll`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `GET /kasir/menu`, dan `PATCH /kasir/menu/{menu}/availability` **sudah aktif**.
-- `GET /kasir/pesanan/{order}` (`kasir.pesanan.show`) **belum dibuat**; detail pesanan pada UI memakai data snapshot/polling.
+- `GET /kasir/pesanan/baru`, `POST /kasir/pesanan`, `GET /kasir/pesanan`, `GET /kasir/pesanan/poll`, `GET /kasir/pesanan/{order}`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `GET /kasir/menu`, dan `PATCH /kasir/menu/{menu}/availability` **sudah aktif**.
+- `GET /kasir/pesanan/{order}` (`kasir.pesanan.show`) **sudah aktif**: detail dibaca ulang dari database untuk dialog Pesanan Masuk (§4.17).
 - Daftar pesanan memuat order yang dibuat pada hari berjalan (`created_at` hari ini, zona `Asia/Jakarta`), supaya order QRIS yang belum dibayar tetap tampil di tab Belum Dibayar meski belum punya nomor antrean. Order `dibatalkan` tidak ditampilkan (PRD K-02b), tetapi tetap tersimpan untuk laporan admin.
 - `POST .../cancel` dan `POST .../check-status` memakai `throttle:30,1` per pengguna.
 
@@ -855,6 +855,50 @@ Aturan:
 - Tidak ada route JSON atau filter periode baru; halaman hanya `GET`.
 - Error penting: `401` tamu (redirect `/login`), `403` bukan admin.
 - Status 3 Nov 2026: **sudah diimplementasikan** di `AdminController@dashboard` + `App\Services\DashboardService`; seluruh data contoh dashboard (`recentOrders()`, `popularMenus()`, `transactions()`, `makeTransaction()`, `summarizeMonth()`, `kodePesanan()`, `menuKanonik()`) dihapus dari `AdminController`.
+
+### 4.17 Detail pesanan kasir
+
+`GET /kasir/pesanan/{order}` mengembalikan JSON detail satu pesanan untuk dialog Pesanan Masuk. Dipanggil `kasir.js` setiap kali tombol **Detail** ditekan, sehingga isi dialog tidak bergantung pada snapshot polling.
+
+Response `200` memakai bentuk yang sama dengan item `GET /kasir/pesanan/poll`:
+
+```json
+{
+  "data": {
+    "id": "12",
+    "code": "AB12CD34",
+    "queue": "003",
+    "customer": "Anjani",
+    "type": "dine_in",
+    "type_label": "Dine In",
+    "source": "kasir",
+    "status": "antre",
+    "payment": "tunai",
+    "payment_label": "Tunai",
+    "payment_status": "lunas",
+    "total": 44000,
+    "created_at": "29 Okt 2026 • 10:00 WIB",
+    "midtrans_id": null,
+    "cash_received": 50000,
+    "change": 6000,
+    "expires_at": null,
+    "notes": "Tanpa es",
+    "items": [
+      { "name": "Varya Signature", "price": 22000, "qty": 2, "subtotal": 44000, "note": "Less sugar" }
+    ]
+  }
+}
+```
+
+Aturan:
+
+- `{order}` adalah id numerik order.
+- Hanya order yang dibuat **hari ini** (`created_at`, `Asia/Jakarta`) yang dapat dibuka; order hari lain, order `dibatalkan`, dan id yang tidak ada menghasilkan `404`. Ini sama dengan cakupan daftar/polling sehingga pesanan batal tetap tidak tampil (PRD K-02b).
+- Data dibaca langsung dari database (item + `catatan` per item, `orders.catatan`, `uang_diterima`/`kembalian`, `payments.midtrans_order_id` terakhir). Tidak ada perubahan data; route ini hanya `GET`.
+- Tidak ada otorisasi tambahan selain middleware `auth` + `role:kasir`.
+- Di klien, dialog langsung dibuka dengan snapshot lalu diperbarui dari respons ini. Bila server menjawab `404`, dialog ditutup, daftar di-polling ulang, dan pengguna diberi tahu.
+- Status 3 Nov 2026: **sudah diimplementasikan** di `KasirController@showOrder` + `resources/js/kasir.js` (`config.routes.pesananShow`).
+
 
 ---
 

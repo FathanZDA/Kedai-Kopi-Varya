@@ -178,6 +178,24 @@ class KasirController extends Controller
     }
 
     /**
+     * Detail satu pesanan hari ini untuk dialog Pesanan Masuk.
+     *
+     * Dibaca ulang dari database (bukan snapshot polling): item beserta
+     * catatan, data tunai, dan ID Midtrans. Order hari lain, order yang
+     * dibatalkan, dan id yang tidak ada menghasilkan 404. Kontrak:
+     * docs/ROUTES.md §4.17.
+     */
+    public function showOrder(Order $order): JsonResponse
+    {
+        abort_unless($order->created_at?->isToday(), 404);
+        abort_if($order->status_pesanan === StatusPesanan::Dibatalkan, 404);
+
+        $order->load(['items', 'payments']);
+
+        return response()->json(['data' => $this->payloadPesanan($order)]);
+    }
+
+    /**
      * Ubah status ketersediaan menu (Tersedia/Habis).
      *
      * Kasir hanya boleh mengubah kolom `tersedia`; data menu lain milik admin.

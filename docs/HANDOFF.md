@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 3 Nov 2026, setelah `admin-reports` di-commit (`f212512`); slice `admin-dashboard` (Dashboard) sudah diimplementasikan di working tree dan **belum di-commit**.
+**Terakhir diperbarui:** 3 Nov 2026, setelah `admin-dashboard` di-commit (`5a406c4`); slice `kasir-pesanan-detail` (Detail Pesanan kasir) sudah diimplementasikan di working tree dan **belum di-commit**.
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `admin-dashboard` @ `f212512`; working tree memuat slice `admin-dashboard` yang **belum di-commit** |
-| Baseline test | `php artisan test` → **194 passed** (1000 assertions) |
+| Branch aktif | `kasir-pesanan-detail` @ `5a406c4`; working tree memuat slice `kasir-pesanan-detail` yang **belum di-commit** |
+| Baseline test | `php artisan test` → **200 passed** (1027 assertions) |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user) |
@@ -37,7 +37,8 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `admin-promo-crud` | `cd07b7a` | CRUD promosi admin + unggah gambar + status aktif |
 | `admin-store-settings` | `5acfb66` | Informasi Toko (profil + jam operasional 7 hari) |
 | `admin-reports` | `f212512` | Laporan Transaksi dari DB + filter bulan + rincian transaksi |
-| `admin-dashboard` | *belum di-commit* | Dashboard dari DB: ringkasan, menu terlaris, transaksi terbaru |
+| `admin-dashboard` | `5a406c4` | Dashboard dari DB: ringkasan, menu terlaris, transaksi terbaru |
+| `kasir-pesanan-detail` | *belum di-commit* | Detail pesanan kasir dari DB (`GET /kasir/pesanan/{order}`) |
 
 ---
 
@@ -47,7 +48,7 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 |---|---|---|
 | Publik Pelanggan A | **Selesai** | Semua data dari database |
 | Pelanggan B | **Sebagian** | Menu/toko dari DB; keranjang masih `localStorage`; checkout → order QRIS + Snap; webhook sudah menandai lunas; halaman status, tiket antrean, polling, dan bayar lagi sudah ada |
-| Kasir | **Selesai** | Buat Pesanan, Pesanan Masuk, pembatalan QRIS, Cek Status, dan Kelola Menu |
+| Kasir | **Selesai** | Buat Pesanan, Pesanan Masuk, detail pesanan dari DB, pembatalan QRIS, Cek Status, dan Kelola Menu |
 | Admin | **Selesai (kecuali foto)** | CRUD menu, CRUD promosi, Informasi Toko, Laporan Transaksi, dan Dashboard sudah dari DB; foto tentang kami masih demo |
 | Login/role | **Selesai** | `/login`, redirect per role, `role` middleware, rate limit |
 | Database transaksi | **Selesai** | `orders`, `order_items`, `payments`, `payment_notifications`, `queue_counters` |
@@ -65,6 +66,7 @@ Route aktif (`routes/web.php`, semua `auth` + `role:kasir`):
 | POST | `/kasir/pesanan` | `kasir.pesanan.store` |
 | GET | `/kasir/pesanan` | `kasir.pesanan.index` |
 | GET | `/kasir/pesanan/poll` | `kasir.pesanan.poll` (`throttle:120,1`) |
+| GET | `/kasir/pesanan/{order}` | `kasir.pesanan.show` |
 | PATCH | `/kasir/pesanan/{order}/status` | `kasir.pesanan.status` |
 | POST | `/kasir/pesanan/{order}/cancel` | `kasir.pesanan.cancel` (`throttle:30,1`) |
 | POST | `/kasir/pesanan/{order}/check-status` | `kasir.pesanan.check-status` (`throttle:30,1`) |
@@ -78,10 +80,9 @@ Test terkait:
 - `tests/Feature/KasirPesananPollTest.php` — snapshot, `sejak`, role, validasi
 - `tests/Feature/KasirMenuAvailabilityTest.php` — toggle ketersediaan
 - `tests/Feature/KasirQrisOpsTest.php` — pembatalan, fallback status Midtrans, Cek Status, idempotensi nomor antrean, role
+- `tests/Feature/KasirPesananDetailTest.php` — detail dari DB, ID Midtrans terakhir, batas hari ini, order batal, role
 
-Yang **belum** dibuat di kasir:
-
-- `GET /kasir/pesanan/{order}` (`kasir.pesanan.show`); detail saat ini memakai data snapshot/polling.
+Tidak ada route kasir yang belum dibuat.
 
 Catatan: tombol **Batalkan** hanya dirender untuk order `menunggu_pembayaran` yang belum lunas. Tombol **Cek Status** tampil untuk QRIS yang belum dibayar dan memanggil API Midtrans dari server. Pesanan yang dibatalkan tidak ditampilkan di daftar/polling, tetapi tetap tersimpan untuk laporan admin.
 
@@ -126,7 +127,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ---
 
-## 5. Yang baru selesai: `pesanan-status`, `kasir-qris-ops`, `auto-expire-reconcile`, `kasir-cancel-snap-session`, `admin-menu-crud`, `admin-promo-crud`, `admin-store-settings`, `admin-reports`, dan `admin-dashboard`
+## 5. Yang baru selesai: `pesanan-status`, `kasir-qris-ops`, `auto-expire-reconcile`, `kasir-cancel-snap-session`, `admin-menu-crud`, `admin-promo-crud`, `admin-store-settings`, `admin-reports`, `admin-dashboard`, dan `kasir-pesanan-detail`
 
 ### 5.1 `pesanan-status`
 
@@ -343,15 +344,35 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Tidak ada kolom, migration, route, atau dependency baru.
 - Foto/menu yang sudah dihapus permanen tetap muncul di daftar terlaris lewat snapshot nama dengan foto bawaan.
 
-## 5.10 Rencana slice berikutnya (belum dikerjakan)
+### 5.10 `kasir-pesanan-detail`
+
+**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+
+**Kontrak:** PRD K-02c; `docs/DECISIONS.md` F-67; `docs/ROUTES.md` §4.17.
+
+**Yang sudah ada:**
+
+1. `GET /kasir/pesanan/{order}` (`kasir.pesanan.show`) — JSON detail satu pesanan, bentuk data sama dengan item polling sehingga klien tidak perlu transformasi.
+2. `KasirController@showOrder` — hanya order `created_at` hari ini (`Asia/Jakarta`), order `dibatalkan` dan id tidak dikenal `404`; data dimuat dari `items` + `payments` terakhir.
+3. `resources/js/kasir.js` — `openDetail` membuka dialog memakai snapshot lalu memuat ulang detail dari server; `404` menutup dialog, memberi tahu pengguna, dan memicu polling.
+4. `resources/views/components/layouts/kasir.blade.php` — `config.routes.pesananShow` baru.
+5. Test baru: `tests/Feature/KasirPesananDetailTest.php` (6 test, 27 assertions): detail tunai lengkap dengan catatan item, ID Midtrans percobaan terakhir untuk QRIS, order kemarin `404`, order batal `404`, id tidak dikenal `404`, tamu `401` + admin `403`.
+6. Baseline setelah slice ini **200 passed** (1027 assertions); Pint bersih; `npm.cmd run build` berhasil.
+
+**Perilaku penting:**
+
+- Detail tidak mengubah data apa pun; tidak ada route tulis baru, migration, atau dependency.
+- Batas “hari ini” sama dengan daftar/polling (F-47), sehingga pesanan batal konsisten tidak dapat dibuka (PRD K-02b).
+- Dialog tetap tampil instan dari snapshot; respons server menimpa nilai yang mungkin sudah berubah (mis. status pembayaran dari webhook).
+
+## 5.11 Rencana slice berikutnya (belum dikerjakan)
 
 Urutan ini disusun agar data contoh di admin hilang dari sumber paling dasar ke paling turunan. Satu slice = satu commit; jangan gabungkan.
 
 | # | Slice | Cakupan | Acuan | Kriteria diterima |
 |---|---|---|---|---|
-| 1 | `kasir-pesanan-detail` *(opsional)* | `GET /kasir/pesanan/{order}` server-side | `docs/ROUTES.md` §2.4 | Detail dibaca dari database, hanya order hari ini; UI boleh tetap memakai snapshot polling |
-| 2 | `pelanggan-b-cart` *(butuh keputusan)* | Endpoint keranjang server-side **atau** keputusan mempertahankan keranjang di browser | AGENTS §2, F-29 | **Berhenti dan tanya lebih dulu**: `docs/ROUTES.md` belum punya kontrak keranjang, dan checkout sudah memvalidasi harga/ketersediaan di server |
-| 3 | `docs-readme` *(terakhir)* | README project menggantikan README Laravel, bersihkan sisa data demo, putuskan `database/database.sqlite` | AGENTS §11; F-44 | README memuat setup, migrate/seed, test, dan catatan Midtrans; tidak ada data contoh yang tertinggal tanpa penanda |
+| 1 | `pelanggan-b-cart` *(butuh keputusan)* | Endpoint keranjang server-side **atau** keputusan mempertahankan keranjang di browser | AGENTS §2, F-29 | **Berhenti dan tanya lebih dulu**: `docs/ROUTES.md` belum punya kontrak keranjang, dan checkout sudah memvalidasi harga/ketersediaan di server |
+| 2 | `docs-readme` *(terakhir)* | README project menggantikan README Laravel, bersihkan sisa data demo, putuskan `database/database.sqlite` | AGENTS §11; F-44 | README memuat setup, migrate/seed, test, dan catatan Midtrans; tidak ada data contoh yang tertinggal tanpa penanda |
 
 Kandidat lain yang butuh keputusan user lebih dulu: **foto tentang kami** (perlu kolom baru di `store_settings`, lihat §6).
 
@@ -385,8 +406,8 @@ Kandidat lain yang butuh keputusan user lebih dulu: **foto tentang kami** (perlu
 ## 8. Aturan singkat untuk sesi baru
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
-2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 194 passed).
-3. Potong branch baru dari ujung terbaru (`admin-reports` @ `f212512` + commit `admin-dashboard`), bukan dari `main`.
+2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 200 passed).
+3. Potong branch baru dari ujung terbaru (`admin-dashboard` @ `5a406c4` + commit `kasir-pesanan-detail`), bukan dari `main`.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
 5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata. Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
@@ -436,7 +457,8 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 1 Nov 2026 | `admin-promo-crud` | `cd07b7a` | CRUD promosi admin + unggah gambar + status aktif |
 | 2 Nov 2026 | `admin-store-settings` | `5acfb66` | Informasi Toko: profil `store_settings` + jam `store_hours` 7 hari |
 | 3 Nov 2026 | `admin-reports` | `f212512` | Laporan Transaksi dari DB: filter bulan, ringkasan hanya lunas, rincian snapshot item |
-| 3 Nov 2026 | `admin-dashboard` | *belum di-commit* | Dashboard dari DB: ringkasan, menu terlaris, 10 transaksi terbaru |
+| 3 Nov 2026 | `admin-dashboard` | `5a406c4` | Dashboard dari DB: ringkasan, menu terlaris, 10 transaksi terbaru |
+| 3 Nov 2026 | `kasir-pesanan-detail` | *belum di-commit* | Detail pesanan kasir dari DB untuk dialog Pesanan Masuk |
 
 ---
 

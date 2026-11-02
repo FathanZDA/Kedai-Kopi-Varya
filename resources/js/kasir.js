@@ -1217,9 +1217,7 @@ function initPesananMasuk() {
         return '';
     };
 
-    const openDetail = (order) => {
-        currentDetailId = order.id;
-
+    const renderDetail = (order) => {
         const status = statusMeta(order.status);
         const payment = paymentMeta(order.payment_status);
         const type = typeMeta(order.type);
@@ -1273,8 +1271,48 @@ function initPesananMasuk() {
         if (detailExpires) detailExpires.textContent = order.expires_at ?? '—';
 
         if (detailActions) detailActions.innerHTML = detailActionsMarkup(order);
+    };
 
+    const openDetail = async (order) => {
+        currentDetailId = order.id;
+
+        renderDetail(order);
         openDialog(detailDialog);
+
+        // Detail diambil ulang dari database agar catatan, item, dan status
+        // pembayaran tidak bergantung pada snapshot polling.
+        try {
+            const respons = await fetch(
+                config.routes.pesananShow.replace('__ID__', encodeURIComponent(order.id)),
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                },
+            );
+
+            if (respons.status === 404) {
+                closeDialog(detailDialog);
+                showToast('Pesanan tidak ditemukan atau sudah dibatalkan. Daftar diperbarui.');
+                poll();
+                return;
+            }
+
+            if (!respons.ok) {
+                showToast(pesanKesalahan(respons.status));
+                return;
+            }
+
+            const hasil = await respons.json();
+
+            if (String(currentDetailId) !== String(order.id)) return;
+
+            Object.assign(order, hasil.data ?? {});
+            renderDetail(order);
+        } catch {
+            showToast('Tidak dapat memuat detail pesanan dari server.');
+        }
     };
 
     /* ------------------------- aksi status pesanan ----------------------- */
