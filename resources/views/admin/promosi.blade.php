@@ -1,5 +1,8 @@
 @php
     $aboutImage = $store['about_image'];
+    $editPromoId = old('promo_id');
+    $formAction = $editPromoId ? route('admin.promos.update', $editPromoId) : route('admin.promos.store');
+    $previewPromoImage = $promos[0]['image'] ?? asset('images/menus/varya-signature.jpg');
 @endphp
 
 <x-layouts.admin title="Iklan & Promosi"
@@ -7,7 +10,7 @@
                  :admin="$admin"
                  :config="$config"
                  description="Kelola slider banner dan konten promosi Kedai Kopi Varya.">
-    <div data-admin-promotions>
+    <div data-admin-promotions data-admin-flash="{{ session('status') }}">
         <div class="max-w-3xl">
             <p class="tag text-[9px] font-bold text-varya-dark">// Konten Landing Page</p>
             <h1 class="admin-title mt-2 text-[34px] sm:text-[44px]">
@@ -17,6 +20,17 @@
                 Atur banner utama dan foto tentang kami. Satu gambar dipakai otomatis untuk tampilan desktop dan mobile.
             </p>
         </div>
+
+        @if ($errors->any())
+            <div class="mt-4 rounded-md border-2 border-rust bg-[#fbe1de] px-4 py-3" role="alert">
+                <p class="tag text-[8px] font-bold text-rust">Periksa kembali data promosi:</p>
+                <ul class="mt-2 list-disc space-y-0.5 pl-4 font-serif text-[11px] leading-relaxed text-rust">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <div class="mt-5 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
             <div class="min-w-0 space-y-5">
@@ -142,7 +156,17 @@
 
             {{-- Editor promosi --}}
             <aside class="xl:sticky xl:top-24">
-                <form data-promo-form class="admin-card overflow-hidden" novalidate>
+                <form data-promo-form
+                      class="admin-card overflow-hidden"
+                      method="POST"
+                      action="{{ $formAction }}"
+                      enctype="multipart/form-data"
+                      data-store-action="{{ route('admin.promos.store') }}"
+                      data-update-base="{{ url('/admin/promosi') }}"
+                      novalidate>
+                    @csrf
+                    <input type="hidden" name="_method" value="{{ $editPromoId ? 'PUT' : 'POST' }}" data-promo-method>
+                    <input type="hidden" name="promo_id" value="{{ $editPromoId }}" data-promo-id-field>
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink bg-[#f3f1e7] px-4 py-3">
                         <div class="flex items-center gap-2">
                             <span class="grid h-7 w-7 place-items-center rounded-sm border-2 border-ink bg-admin-panel">
@@ -152,7 +176,7 @@
                                 </svg>
                             </span>
                             <h2 data-promo-editor-title class="font-display text-[17px] leading-tight font-black uppercase">
-                                Editor Promosi Baru
+                                {{ $editPromoId ? 'Edit Promosi' : 'Editor Promosi Baru' }}
                             </h2>
                         </div>
                         <span class="tag rounded border border-line-strong bg-white px-2 py-1 text-[7px] font-bold text-ink-soft">Formulir Input</span>
@@ -163,22 +187,26 @@
                             <label for="promo-title" class="admin-label">Judul Promosi <span class="text-rust">*</span></label>
                             <input id="promo-title"
                                    type="text"
+                                   name="judul"
                                    data-promo-field="title"
+                                   value="{{ old('judul', '') }}"
                                    placeholder="Contoh: Ngopi Sore Varya"
                                    class="admin-input mt-2"
                                    maxlength="80"
                                    autocomplete="off">
-                            <p data-promo-error="title" hidden class="mt-1.5 font-mono text-[8px] font-bold text-rust"></p>
+                            <p data-promo-error="title" @if (! $errors->has('judul')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('judul') }}</p>
                         </div>
 
                         <div>
                             <label for="promo-description" class="admin-label">Deskripsi Singkat</label>
                             <textarea id="promo-description"
+                                      name="deskripsi"
                                       data-promo-field="description"
                                       rows="3"
                                       maxlength="220"
                                       placeholder="Jelaskan penawaran atau suasana promo..."
-                                      class="admin-textarea mt-2 resize-y"></textarea>
+                                      class="admin-textarea mt-2 resize-y">{{ old('deskripsi', '') }}</textarea>
+                            <p data-promo-error="description" @if (! $errors->has('deskripsi')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('deskripsi') }}</p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
@@ -186,15 +214,22 @@
                                 <label for="promo-order" class="admin-label">Urutan Tampil</label>
                                 <input id="promo-order"
                                        type="number"
+                                       name="urutan"
                                        data-promo-field="order"
                                        min="1"
-                                       value="1"
+                                       value="{{ old('urutan', count($promos) + 1) }}"
                                        class="admin-input mt-2">
-                                <p data-promo-error="order" hidden class="mt-1.5 font-mono text-[8px] font-bold text-rust"></p>
+                                <p data-promo-error="order" @if (! $errors->has('urutan')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('urutan') }}</p>
                             </div>
 
                             <label class="mt-6 flex cursor-pointer items-center gap-2 rounded-md border-2 border-line-strong bg-admin-soft px-3 py-2.5">
-                                <input type="checkbox" data-promo-field="active" class="h-4 w-4 accent-varya-dark" checked>
+                                <input type="hidden" name="aktif" value="0">
+                                <input type="checkbox"
+                                       name="aktif"
+                                       value="1"
+                                       data-promo-field="active"
+                                       class="h-4 w-4 accent-varya-dark"
+                                       @checked((string) old('aktif', '1') === '1')>
                                 <span class="tag text-[8px] font-bold">Tampilkan</span>
                             </label>
                         </div>
@@ -202,12 +237,22 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label for="promo-start" class="admin-label">Periode Mulai</label>
-                                <input id="promo-start" type="date" data-promo-field="period_start" class="admin-input mt-2">
+                                <input id="promo-start"
+                                       type="date"
+                                       name="mulai"
+                                       value="{{ old('mulai', '') }}"
+                                       data-promo-field="period_start"
+                                       class="admin-input mt-2">
                             </div>
                             <div>
                                 <label for="promo-end" class="admin-label">Periode Selesai</label>
-                                <input id="promo-end" type="date" data-promo-field="period_end" class="admin-input mt-2">
-                                <p data-promo-error="period" hidden class="mt-1.5 font-mono text-[8px] font-bold text-rust"></p>
+                                <input id="promo-end"
+                                       type="date"
+                                       name="berakhir"
+                                       value="{{ old('berakhir', '') }}"
+                                       data-promo-field="period_end"
+                                       class="admin-input mt-2">
+                                <p data-promo-error="period" @if (! $errors->has('berakhir')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('berakhir') }}</p>
                             </div>
                         </div>
 
@@ -229,10 +274,10 @@
                                        class="mt-2 inline-flex cursor-pointer items-center justify-center rounded border-2 border-ink bg-white px-3 py-1.5 font-mono text-[8px] font-bold uppercase shadow-[2px_2px_0_0_#1b1c1d]">
                                     Pilih dari Komputer
                                 </label>
-                                <input id="promo-image-input" type="file" data-promo-image-input accept="image/jpeg,image/png,image/webp" class="sr-only">
+                                <input id="promo-image-input" type="file" name="gambar" data-promo-image-input accept="image/jpeg,image/png,image/webp" class="sr-only">
                                 <p data-promo-image-name class="mt-1.5 max-w-full truncate font-mono text-[8px] text-muted">Belum ada file dipilih</p>
                             </div>
-                            <p data-promo-error="image" hidden class="mt-1.5 font-mono text-[8px] font-bold text-rust"></p>
+                            <p data-promo-error="image" @if (! $errors->has('gambar')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('gambar') }}</p>
                         </div>
 
                         <div>
@@ -244,7 +289,7 @@
                                         <span class="tag rounded bg-varya-dark px-1 py-0.5 text-[6px] font-bold">16:9</span>
                                     </div>
                                     <div class="admin-preview-frame aspect-video rounded-b-md">
-                                        <img data-promo-editor-desktop src="{{ $promos[0]['image'] }}" alt="Pratinjau banner desktop" class="h-full w-full object-cover">
+                                        <img data-promo-editor-desktop src="{{ $previewPromoImage }}" alt="Pratinjau banner desktop" class="h-full w-full object-cover">
                                     </div>
                                 </figure>
 
@@ -254,7 +299,7 @@
                                         <span class="tag rounded bg-varya-light px-1 py-0.5 text-[6px] font-bold text-ink">1:1</span>
                                     </div>
                                     <div class="admin-preview-frame aspect-square rounded-b-md">
-                                        <img data-promo-editor-mobile src="{{ $promos[0]['image'] }}" alt="Pratinjau banner mobile" class="h-full w-full object-cover">
+                                        <img data-promo-editor-mobile src="{{ $previewPromoImage }}" alt="Pratinjau banner mobile" class="h-full w-full object-cover">
                                     </div>
                                 </figure>
                             </div>
@@ -274,7 +319,7 @@
 
                             <div class="mt-2 grid grid-cols-2 gap-2">
                                 <button type="button" data-promo-reset class="admin-btn-secondary">Promosi Baru</button>
-                                <button type="button" data-promo-cancel-edit class="admin-btn-secondary" hidden>Batal Edit</button>
+                                <button type="button" data-promo-cancel-edit class="admin-btn-secondary" @if (! $editPromoId) hidden @endif>Batal Edit</button>
                             </div>
                         </div>
                     </div>

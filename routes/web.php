@@ -175,6 +175,17 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
         Route::get('/promosi', [AdminController::class, 'promos'])->name('promos');
 
+        Route::post('/promosi', [AdminController::class, 'storePromo'])->name('promos.store');
+
+        Route::match(['put', 'patch'], '/promosi/{promo}', [AdminController::class, 'updatePromo'])
+            ->name('promos.update');
+
+        Route::delete('/promosi/{promo}', [AdminController::class, 'destroyPromo'])
+            ->name('promos.destroy');
+
+        Route::patch('/promosi/{promo}/status', [AdminController::class, 'updatePromoStatus'])
+            ->name('promos.status');
+
         Route::get('/toko', [AdminController::class, 'store'])->name('store');
     });
 });

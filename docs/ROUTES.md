@@ -4,7 +4,7 @@
 **Terakhir diperbarui:** 1 November 2026
 **Acuan:** `PRD.md` §4.3, §7, §11; `docs/DECISIONS.md`; `routes/web.php`
 
-> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, proses terjadwal rekonsiliasi, dan CRUD menu admin sudah aktif. Laporan, promosi, informasi toko, dan transaksi admin belum aktif.
+> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, proses terjadwal rekonsiliasi, CRUD menu admin, dan CRUD promosi sudah aktif. Laporan, informasi toko, dan transaksi admin belum aktif.
 
 ---
 
@@ -50,14 +50,18 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | DELETE | `/admin/menu/{menu}` | `admin.menu.destroy` | `AdminController@destroyMenu` | `auth` + `role:admin`; soft delete |
 | PATCH | `/admin/menu/{menu}/availability` | `admin.menu.availability` | `AdminController@updateMenuAvailability` | `auth` + `role:admin`; JSON; hanya `tersedia` |
 | GET | `/admin/laporan` | `admin.reports` | `AdminController@reports` | `auth` + `role:admin`; data contoh |
-| GET | `/admin/promosi` | `admin.promos` | `AdminController@promos` | `auth` + `role:admin`; CRUD demo |
+| GET | `/admin/promosi` | `admin.promos` | `AdminController@promos` | `auth` + `role:admin`; daftar + editor |
+| POST | `/admin/promosi` | `admin.promos.store` | `AdminController@storePromo` | `auth` + `role:admin`; multipart + gambar |
+| PUT/PATCH | `/admin/promosi/{promo}` | `admin.promos.update` | `AdminController@updatePromo` | `auth` + `role:admin`; multipart + gambar |
+| DELETE | `/admin/promosi/{promo}` | `admin.promos.destroy` | `AdminController@destroyPromo` | `auth` + `role:admin`; hard delete |
+| PATCH | `/admin/promosi/{promo}/status` | `admin.promos.status` | `AdminController@updatePromoStatus` | `auth` + `role:admin`; JSON; hanya `aktif` |
 | GET | `/admin/toko` | `admin.store` | `AdminController@store` | `auth` + `role:admin`; simpan demo |
 
 Belum ada:
 
-- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, `POST/PUT/PATCH/DELETE /admin/menu`, dan `PATCH /admin/menu/{menu}/availability`.
+- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, `POST/PUT/PATCH/DELETE /admin/menu`, `PATCH /admin/menu/{menu}/availability`, serta `POST/PUT/PATCH/DELETE /admin/promosi` + `PATCH /admin/promosi/{promo}/status`.
 - Rekonsiliasi berjalan sebagai command terjadwal `qris:reconcile` (bukan route HTTP), lihat §4.11.
-- Laporan, promosi, informasi toko, dan transaksi admin.
+- Laporan, informasi toko, dan transaksi admin.
 - Route detail pesanan kasir (`GET /kasir/pesanan/{order}`); detail saat ini dirender dari data polling.
 - Rate limiting untuk endpoint lain di luar login, polling kasir, pembatalan/Cek Status, checkout, dan status pesanan.
 
@@ -164,9 +168,10 @@ Semua route memakai middleware `auth` + `role:admin`.
 | GET | `/admin/laporan` | `admin.reports` | `AdminController@reports` | Nama route lama dipertahankan |
 | GET | `/admin/laporan/{order}` | `admin.reports.show` | `AdminController@showReportOrder` | Detail transaksi |
 | GET | `/admin/promosi` | `admin.promos` | `AdminController@promos` | |
-| POST | `/admin/promosi` | `admin.promos.store` | `AdminController@storePromo` | |
-| PUT/PATCH | `/admin/promosi/{promo}` | `admin.promos.update` | `AdminController@updatePromo` | |
-| DELETE | `/admin/promosi/{promo}` | `admin.promos.destroy` | `AdminController@destroyPromo` | |
+| POST | `/admin/promosi` | `admin.promos.store` | `AdminController@storePromo` | Multipart; gambar opsional |
+| PUT/PATCH | `/admin/promosi/{promo}` | `admin.promos.update` | `AdminController@updatePromo` | Multipart; gambar opsional |
+| DELETE | `/admin/promosi/{promo}` | `admin.promos.destroy` | `AdminController@destroyPromo` | Hard delete |
+| PATCH | `/admin/promosi/{promo}/status` | `admin.promos.status` | `AdminController@updatePromoStatus` | JSON; hanya `aktif` |
 | GET | `/admin/toko` | `admin.store` | `AdminController@store` | |
 | PUT | `/admin/toko` | `admin.store.update` | `AdminController@updateStore` | |
 
@@ -700,6 +705,42 @@ Aturan:
 - Error penting: `401` tamu (redirect `/login`), `403` bukan admin, `404` menu tidak ada, `302` + `errors` untuk validasi gagal.
 - Status 1 Nov 2026: **sudah diimplementasikan** di `AdminController@storeMenu`/`updateMenu`/`destroyMenu`/`updateMenuAvailability` + `App\Http\Requests\Admin\MenuRequest`/`UpdateMenuAvailabilityRequest` + `App\Services\MenuCatalogService`.
 
+### 4.13 CRUD promosi admin
+
+Halaman Iklan & Promosi memakai form biasa (multipart) untuk tambah dan ubah, plus `fetch` untuk status dan hapus.
+
+`POST /admin/promosi` dan `PUT/PATCH /admin/promosi/{promo}` menerima `multipart/form-data`:
+
+| Field | Aturan |
+|---|---|
+| `judul` | wajib, string, maks. 80 karakter |
+| `deskripsi` | opsional, string, maks. 220 karakter |
+| `urutan` | wajib, integer, 1–999 |
+| `aktif` | wajib, boolean (`1`/`0`) |
+| `mulai` | opsional, tanggal |
+| `berakhir` | opsional, tanggal, tidak boleh lebih awal dari `mulai` |
+| `gambar` | opsional, `image`, `mimes:jpg,jpeg,png,webp`, maks. 3 MB |
+
+Aturan:
+
+- Sukses → `302` ke `admin.promos` dengan `session('status')`; halaman menampilkan toast dari `data-admin-flash`.
+- Validasi gagal → `302` kembali dengan `errors` dan `old()`; form tetap dalam mode edit bila `promo_id` lama dikirim (field tersembunyi), sehingga perubahan tidak hilang.
+- Gambar disimpan di `public/images/promos` dengan nama `unggahan-promo-{acak}.{ext}`. Gambar kanonik seeder (`images/menus/*`) tidak pernah dihapus. Saat gambar diganti atau promosi dihapus, hanya berkas berprefiks `unggahan-promo-` milik promosi itu yang dihapus.
+- Promosi memakai hard delete (tabel `promos` tidak punya `deleted_at`).
+- `PATCH /admin/promosi/{promo}/status` hanya menerima `{"aktif": true|false}` dan menjawab:
+
+```json
+{
+  "message": "Promosi \"Ngopi Sore Varya\" dinonaktifkan.",
+  "data": { "id": 1, "aktif": false }
+}
+```
+
+- `DELETE /admin/promosi/{promo}` menjawab JSON `{message, data:{id}}` bila klien mengirim `Accept: application/json` (dipakai `admin.js`); permintaan form biasa diarahkan kembali ke daftar.
+- Hanya promosi `aktif = true` yang periodenya sedang berjalan (`Promo::active()`) yang tampil di landing page.
+- Error penting: `401` tamu (redirect `/login`), `403` bukan admin, `404` promosi tidak ada, `302` + `errors` untuk validasi gagal.
+- Status 1 Nov 2026: **sudah diimplementasikan** di `AdminController@storePromo`/`updatePromo`/`destroyPromo`/`updatePromoStatus` + `App\Http\Requests\Admin\PromoRequest`/`UpdatePromoStatusRequest` + `App\Services\PromoService`.
+
 ---
 
 ## 5. Perbedaan route sekarang vs target
@@ -711,7 +752,7 @@ Aturan:
 | `/pesan/pembayaran` | `/pesanan/{kode_pesanan}` | **Selesai** - route dihapus; view lama tidak dipakai |
 | `/pesan/berhasil` | `/pesanan/{kode_pesanan}` | **Selesai** - route dihapus; `berhasil.blade.php` menjadi halaman status server-side |
 | Belum ada login | `/login`, `POST /login`, `POST /logout` | **Selesai** - auth manual + role redirect |
-| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, serta `POST/PUT/PATCH/DELETE /admin/menu` + `PATCH /admin/menu/{menu}/availability` **selesai**; action lain menyusul |
+| Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, `POST/PUT/PATCH/DELETE /admin/menu` + `PATCH /admin/menu/{menu}/availability`, serta `POST/PUT/PATCH/DELETE /admin/promosi` + `PATCH /admin/promosi/{promo}/status` **selesai**; action lain menyusul |
 | Belum ada webhook | `/api/midtrans/notification` | **Selesai** - route + CSRF exception + verifikasi signature |
 | Belum ada role | `auth` + `role:*` | **Selesai** - middleware `role` aktif di area kasir/admin |
 | Belum ada rate limit | `throttle:*` | Login, `GET /kasir/pesanan/poll`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `POST /pesan/checkout`, dan status pesanan **selesai**; webhook sengaja tanpa throttle ketat |

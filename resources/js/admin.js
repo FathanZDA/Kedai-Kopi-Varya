@@ -1,14 +1,13 @@
 // Interaksi front-end area admin Kedai Kopi Varya.
-// Katalog menu sudah memakai endpoint server (tambah/ubah/hapus/ketersediaan).
-// Promosi, laporan, dan informasi toko masih data contoh dari Blade dan
-// perubahan demo disimpan sementara di localStorage browser.
+// Katalog menu dan promosi sudah memakai endpoint server (tambah/ubah/hapus/
+// status). Foto tentang kami, laporan, dan informasi toko masih demo: data
+// contoh berasal dari Blade dan disimpan sementara di localStorage browser.
 
 const CONFIG = window.ADMIN_CONFIG ?? {};
 const ROUTES = CONFIG.routes ?? {};
 const numberFormatter = new Intl.NumberFormat('id-ID');
 
 const STORAGE_KEYS = {
-    promos: 'varya.admin.promos.v2',
     store: 'varya.admin.store.v2',
 };
 
@@ -1323,21 +1322,17 @@ function initPromotions() {
     const aboutDialogMobile = aboutDialog?.querySelector('[data-about-dialog-mobile]');
     const aboutError = aboutDialog?.querySelector('[data-about-error]');
 
+    const methodField = form?.querySelector('[data-promo-method]');
+    const idField = form?.querySelector('[data-promo-id-field]');
+
     const defaultPromoImage = () => CONFIG.promos?.[0]?.image ?? EMPTY_IMAGE;
 
-    const loadPromos = () => {
-        const stored = readStorage(STORAGE_KEYS.promos, null);
-        if (Array.isArray(stored)) return stored;
+    const loadPromos = () => clone(CONFIG.promos ?? []);
 
-        const seeded = clone(CONFIG.promos ?? []);
-        writeStorage(STORAGE_KEYS.promos, seeded);
-        return seeded;
-    };
-
-    const savePromos = (promos) => writeStorage(STORAGE_KEYS.promos, promos);
+    let daftarPromo = loadPromos();
 
     const state = {
-        editingId: null,
+        editingId: Number(idField?.value) || null,
         editorImage: null,
         editorBaseImage: defaultPromoImage(),
         aboutImage: CONFIG.aboutImage ?? EMPTY_IMAGE,
@@ -1450,7 +1445,7 @@ function initPromotions() {
     `;
 
     const render = () => {
-        const promos = loadPromos().slice().sort((a, b) => Number(a.order) - Number(b.order));
+        const promos = daftarPromo.slice().sort((a, b) => Number(a.order) - Number(b.order));
 
         if (list) {
             list.innerHTML = promos.length > 0
@@ -1461,13 +1456,25 @@ function initPromotions() {
         if (empty) empty.hidden = promos.length > 0;
     };
 
+    const setEditorMode = (promo) => {
+        if (form) {
+            form.action = promo
+                ? `${ROUTES.promos}/${promo.id}`
+                : (form.dataset.storeAction ?? ROUTES.promos);
+        }
+
+        if (methodField) methodField.value = promo ? 'PUT' : 'POST';
+        if (idField) idField.value = promo?.id ?? '';
+    };
+
     const fillEditor = (promo) => {
         state.editingId = promo?.id ?? null;
         setEditorImage(promo?.image ?? defaultPromoImage());
+        setEditorMode(promo);
 
         if (fields.title) fields.title.value = promo?.title ?? '';
         if (fields.description) fields.description.value = promo?.description ?? '';
-        if (fields.order) fields.order.value = promo?.order ?? (loadPromos().length + 1);
+        if (fields.order) fields.order.value = promo?.order ?? (daftarPromo.length + 1);
         if (fields.active) fields.active.checked = promo?.active ?? true;
         if (fields.periodStart) fields.periodStart.value = promo?.period_start ?? '';
         if (fields.periodEnd) fields.periodEnd.value = promo?.period_end ?? '';
@@ -1479,6 +1486,8 @@ function initPromotions() {
         clearErrors();
     };
 
+    let gambarValid = true;
+
     const handleEditorImage = (file) => {
         setError('image', '');
 
@@ -1487,17 +1496,20 @@ function initPromotions() {
             3 * 1024 * 1024,
             (dataUrl, name) => {
                 state.editorImage = dataUrl;
+                gambarValid = true;
                 if (editorDesktop) editorDesktop.src = dataUrl;
                 if (editorMobile) editorMobile.src = dataUrl;
                 if (imageName) imageName.textContent = name;
             },
-            (message) => setError('image', message)
+            (message) => {
+                gambarValid = false;
+                setError('image', message);
+            }
         );
     };
 
     imageInput?.addEventListener('change', () => {
         handleEditorImage(imageInput.files?.[0]);
-        imageInput.value = '';
     });
 
     dropzone?.addEventListener('click', (event) => {
@@ -1521,7 +1533,6 @@ function initPromotions() {
     });
 
     form?.addEventListener('submit', (event) => {
-        event.preventDefault();
         clearErrors();
 
         const title = fields.title?.value.trim() ?? '';
@@ -1546,42 +1557,18 @@ function initPromotions() {
             valid = false;
         }
 
-        if (!valid) return;
-
-        const promos = loadPromos();
-        const image = state.editorImage ?? state.editorBaseImage ?? defaultPromoImage();
-
-        if (state.editingId) {
-            const promo = promos.find((item) => item.id === state.editingId);
-            if (promo) {
-                Object.assign(promo, {
-                    title,
-                    description: fields.description?.value.trim() ?? '',
-                    order,
-                    active: Boolean(fields.active?.checked),
-                    period_start: start || null,
-                    period_end: end || null,
-                    image,
-                });
-            }
-        } else {
-            const nextId = promos.reduce((max, promo) => Math.max(max, Number(promo.id) || 0), 0) + 1;
-            promos.push({
-                id: nextId,
-                title,
-                description: fields.description?.value.trim() ?? '',
-                order,
-                active: Boolean(fields.active?.checked),
-                period_start: start || null,
-                period_end: end || null,
-                image,
-            });
+        if (!valid) {
+            event.preventDefault();
+            return;
         }
 
-        savePromos(promos);
-        render();
-        fillEditor(null);
-        showToast(`Promosi "${title}" berhasil disimpan (demo).`);
+        if (!gambarValid) {
+            event.preventDefault();
+            setError('image', 'Periksa kembali file gambar yang dipilih.');
+            return;
+        }
+
+        // Validasi lolos: form dikirim ke server sebagai multipart (POST/PUT).
     });
 
     const resetEditor = () => {
@@ -1595,20 +1582,26 @@ function initPromotions() {
     resetButton?.addEventListener('click', resetEditor);
     cancelEdit?.addEventListener('click', resetEditor);
 
-    list?.addEventListener('click', (event) => {
+    list?.addEventListener('click', async (event) => {
         const card = event.target.closest('[data-promo-card]');
         if (!card) return;
 
         const id = Number(card.dataset.promoId);
-        const promos = loadPromos();
-        const promo = promos.find((item) => item.id === id);
+        const promo = daftarPromo.find((item) => item.id === id);
         if (!promo) return;
 
         if (event.target.closest('[data-promo-toggle]')) {
-            promo.active = !promo.active;
-            savePromos(promos);
+            const aktif = !promo.active;
+            const hasil = await kirimJson(`${ROUTES.promos}/${promo.id}/status`, 'PATCH', { aktif });
+
+            if (!hasil.ok) {
+                showToast(pesanKesalahan(hasil));
+                return;
+            }
+
+            promo.active = Boolean(hasil.data?.data?.aktif ?? aktif);
             render();
-            showToast(`Promosi "${promo.title}" ${promo.active ? 'diaktifkan' : 'dinonaktifkan'}.`);
+            showToast(hasil.data?.message ?? `Promosi "${promo.title}" ${promo.active ? 'diaktifkan' : 'dinonaktifkan'}.`);
             return;
         }
 
@@ -1623,14 +1616,20 @@ function initPromotions() {
         if (event.target.closest('[data-promo-delete]')) {
             askConfirm({
                 title: 'Hapus promosi ini?',
-                message: `Promosi "${promo.title}" akan dihapus dari slider landing page. Tindakan ini hanya berlaku pada demo front-end.`,
+                message: `Promosi "${promo.title}" akan dihapus dari slider landing page. Riwayat transaksi tidak terpengaruh.`,
                 label: 'Hapus Promosi',
-                onConfirm: () => {
-                    const remaining = loadPromos().filter((item) => item.id !== id);
-                    savePromos(remaining);
-                    if (state.editingId === id) fillEditor(null);
+                onConfirm: async () => {
+                    const hasil = await kirimJson(`${ROUTES.promos}/${promo.id}`, 'DELETE');
+
+                    if (!hasil.ok) {
+                        showToast(pesanKesalahan(hasil));
+                        return;
+                    }
+
+                    daftarPromo = daftarPromo.filter((item) => item.id !== promo.id);
+                    if (state.editingId === promo.id) resetEditor();
                     render();
-                    showToast(`Promosi "${promo.title}" berhasil dihapus (demo).`);
+                    showToast(hasil.data?.message ?? `Promosi "${promo.title}" berhasil dihapus.`);
                 },
             });
         }
@@ -1734,8 +1733,10 @@ function initPromotions() {
         });
     });
 
+    const flash = root.dataset.adminFlash ?? '';
+    if (flash) showToast(flash);
+
     render();
-    fillEditor(null);
 }
 
 /* -------------------------------------------------------------------------- */

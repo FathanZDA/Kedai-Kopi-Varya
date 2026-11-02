@@ -3,16 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Admin\MenuRequest;
+use App\Http\Requests\Admin\PromoRequest;
 use App\Http\Requests\Admin\UpdateMenuAvailabilityRequest;
+use App\Http\Requests\Admin\UpdatePromoStatusRequest;
 use App\Models\Category;
 use App\Models\Menu;
 use App\Models\Promo;
 use App\Models\StoreHour;
 use App\Models\StoreSetting;
 use App\Services\MenuCatalogService;
+use App\Services\PromoService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 /**
  * Tampilan admin / owner (front-end).
@@ -22,9 +26,10 @@ use Illuminate\Http\RedirectResponse;
  * - Tambah, ubah, hapus (soft delete), dan ketersediaan menu sudah tersimpan
  *   ke database lewat `MenuCatalogService`; foto diunggah ke
  *   `public/images/menus`.
- * - Pesanan dan laporan masih data demo sampai slice backend tersedia.
- * - Promosi dan informasi toko masih disimpan sementara di browser melalui
- *   resources/js/admin.js agar alur demo terasa utuh.
+ * - Promosi juga sudah tersimpan ke database (`PromoService`), termasuk
+ *   status aktif dan unggah gambar ke `public/images/promos`.
+ * - Pesanan, laporan, dan informasi toko masih data demo sampai slice backend
+ *   tersedia.
  */
 class AdminController extends Controller
 {
@@ -208,6 +213,62 @@ class AdminController extends Controller
             'config' => [
                 'promos' => $promos,
                 'aboutImage' => $store['about_image'],
+            ],
+        ]);
+    }
+
+    public function storePromo(PromoRequest $request, PromoService $promoService): RedirectResponse
+    {
+        $promo = $promoService->buat($request->dataPromo());
+
+        return redirect()
+            ->route('admin.promos')
+            ->with('status', "Promosi \"{$promo->judul}\" berhasil ditambahkan.");
+    }
+
+    public function updatePromo(PromoRequest $request, Promo $promo, PromoService $promoService): RedirectResponse
+    {
+        $promoService->ubah($promo, $request->dataPromo());
+
+        return redirect()
+            ->route('admin.promos')
+            ->with('status', "Promosi \"{$promo->judul}\" berhasil diperbarui.");
+    }
+
+    public function destroyPromo(
+        Request $request,
+        Promo $promo,
+        PromoService $promoService,
+    ): RedirectResponse|JsonResponse {
+        $judul = $promo->judul;
+        $id = $promo->id;
+
+        $promoService->hapus($promo);
+
+        $pesan = "Promosi \"{$judul}\" berhasil dihapus.";
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $pesan,
+                'data' => ['id' => $id],
+            ]);
+        }
+
+        return redirect()->route('admin.promos')->with('status', $pesan);
+    }
+
+    public function updatePromoStatus(
+        UpdatePromoStatusRequest $request,
+        Promo $promo,
+        PromoService $promoService,
+    ): JsonResponse {
+        $promoService->aturStatus($promo, $request->aktif());
+
+        return response()->json([
+            'message' => "Promosi \"{$promo->judul}\" ".($promo->aktif ? 'diaktifkan' : 'dinonaktifkan').'.',
+            'data' => [
+                'id' => $promo->id,
+                'aktif' => $promo->aktif,
             ],
         ]);
     }
