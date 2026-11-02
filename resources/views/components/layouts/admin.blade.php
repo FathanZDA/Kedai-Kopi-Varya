@@ -15,6 +15,7 @@
             'menuEditBase' => url('/admin/menu'),
             'menuAvailabilityBase' => url('/admin/menu'),
             'reports' => route('admin.reports'),
+            'reportOrderBase' => url('/admin/laporan'),
             'promos' => route('admin.promos'),
             'store' => route('admin.store'),
             'situs' => route('pelanggan-a.beranda'),

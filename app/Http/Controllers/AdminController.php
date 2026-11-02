@@ -9,11 +9,13 @@ use App\Http\Requests\Admin\UpdateMenuAvailabilityRequest;
 use App\Http\Requests\Admin\UpdatePromoStatusRequest;
 use App\Models\Category;
 use App\Models\Menu;
+use App\Models\Order;
 use App\Models\Promo;
 use App\Models\StoreHour;
 use App\Models\StoreSetting;
 use App\Services\MenuCatalogService;
 use App\Services\PromoService;
+use App\Services\ReportService;
 use App\Services\StoreSettingsService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -32,7 +34,8 @@ use Illuminate\Http\Request;
  *   status aktif dan unggah gambar ke `public/images/promos`.
  * - Informasi toko (profil, jam operasional, alamat, kontak, fasilitas) sudah
  *   tersimpan lewat `StoreSettingsService` (`PUT /admin/toko`).
- * - Pesanan dan laporan masih data demo sampai slice backend tersedia.
+ * - Laporan transaksi sudah membaca `orders`, `order_items`, dan `payments`
+ *   lewat `ReportService`; dashboard masih memakai data contoh.
  */
 class AdminController extends Controller
 {
@@ -174,33 +177,32 @@ class AdminController extends Controller
         ]);
     }
 
-    public function reports()
+    public function reports(Request $request, ReportService $laporan)
     {
-        $admin = $this->admin();
-        $transactions = $this->transactions();
-        $defaultMonth = '2026-10';
-        $months = collect($transactions)
-            ->map(fn (array $transaction): array => [
-                'value' => $transaction['month'],
-                'label' => $transaction['month_label'],
-            ])
-            ->unique('value')
-            ->sortByDesc('value')
-            ->values()
-            ->all();
+        $bulan = $laporan->bulanValid($request->query('bulan'));
+        $transaksi = $laporan->transaksi($bulan);
+        $bulanList = $laporan->daftarBulan($bulan);
 
         return view('admin.laporan', [
-            'admin' => $admin,
-            'transactions' => $transactions,
-            'months' => $months,
-            'defaultMonth' => $defaultMonth,
-            'summary' => $this->summarizeMonth($transactions, $defaultMonth),
+            'admin' => $this->admin(),
+            'transactions' => $transaksi,
+            'months' => $bulanList,
+            'defaultMonth' => $bulan,
+            'summary' => $laporan->ringkasan($bulan),
             'config' => [
-                'transactions' => $transactions,
-                'months' => $months,
-                'defaultMonth' => $defaultMonth,
+                'transactions' => $transaksi,
+                'months' => $bulanList,
+                'defaultMonth' => $bulan,
             ],
         ]);
+    }
+
+    /**
+     * Rincian satu transaksi untuk dialog laporan.
+     */
+    public function showReportOrder(Order $order, ReportService $laporan): JsonResponse
+    {
+        return response()->json(['data' => $laporan->detail($order)]);
     }
 
     public function promos()

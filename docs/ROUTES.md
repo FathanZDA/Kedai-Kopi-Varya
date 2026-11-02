@@ -1,10 +1,10 @@
 # Kontrak Route & API — Kedai Kopi Varya
 
 **Status:** FINAL untuk route inti; O-16 (akun/kredensial Midtrans) masih OPEN
-**Terakhir diperbarui:** 2 November 2026
+**Terakhir diperbarui:** 3 November 2026
 **Acuan:** `PRD.md` §4.3, §7, §11; `docs/DECISIONS.md`; `routes/web.php`
 
-> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, proses terjadwal rekonsiliasi, CRUD menu admin, CRUD promosi, dan Informasi Toko sudah aktif. Laporan dan transaksi admin belum aktif.
+> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, proses terjadwal rekonsiliasi, CRUD menu admin, CRUD promosi, Informasi Toko, serta Laporan Transaksi admin sudah aktif. Dashboard admin masih memakai data contoh.
 
 ---
 
@@ -49,7 +49,8 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | PUT/PATCH | `/admin/menu/{menu}` | `admin.menu.update` | `AdminController@updateMenu` | `auth` + `role:admin`; multipart + foto |
 | DELETE | `/admin/menu/{menu}` | `admin.menu.destroy` | `AdminController@destroyMenu` | `auth` + `role:admin`; soft delete |
 | PATCH | `/admin/menu/{menu}/availability` | `admin.menu.availability` | `AdminController@updateMenuAvailability` | `auth` + `role:admin`; JSON; hanya `tersedia` |
-| GET | `/admin/laporan` | `admin.reports` | `AdminController@reports` | `auth` + `role:admin`; data contoh |
+| GET | `/admin/laporan` | `admin.reports` | `AdminController@reports` | `auth` + `role:admin`; filter `bulan`, data dari DB |
+| GET | `/admin/laporan/{order}` | `admin.reports.show` | `AdminController@showReportOrder` | `auth` + `role:admin`; JSON rincian transaksi |
 | GET | `/admin/promosi` | `admin.promos` | `AdminController@promos` | `auth` + `role:admin`; daftar + editor |
 | POST | `/admin/promosi` | `admin.promos.store` | `AdminController@storePromo` | `auth` + `role:admin`; multipart + gambar |
 | PUT/PATCH | `/admin/promosi/{promo}` | `admin.promos.update` | `AdminController@updatePromo` | `auth` + `role:admin`; multipart + gambar |
@@ -62,7 +63,7 @@ Belum ada:
 
 - Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, `POST/PUT/PATCH/DELETE /admin/menu`, `PATCH /admin/menu/{menu}/availability`, `POST/PUT/PATCH/DELETE /admin/promosi` + `PATCH /admin/promosi/{promo}/status`, serta `PUT /admin/toko`.
 - Rekonsiliasi berjalan sebagai command terjadwal `qris:reconcile` (bukan route HTTP), lihat §4.11.
-- Laporan dan transaksi admin.
+- Laporan: ekspor PDF/Excel (Fase 2) dan ringkasan lintas tahun selain daftar bulan pada filter.
 - Foto Tentang Kami: belum ada kontrak route/kolom; penyimpanan menunggu keputusan skema.
 - Route detail pesanan kasir (`GET /kasir/pesanan/{order}`); detail saat ini dirender dari data polling.
 - Rate limiting untuk endpoint lain di luar login, polling kasir, pembatalan/Cek Status, checkout, dan status pesanan.
@@ -775,6 +776,57 @@ Aturan:
 - Error penting: `401` tamu (redirect `/login`), `403` bukan admin, `302` + `errors` untuk validasi gagal.
 - Status 2 Nov 2026: **sudah diimplementasikan** di `AdminController@store`/`updateStore` + `App\Http\Requests\Admin\StoreSettingsRequest` + `App\Services\StoreSettingsService`; `localStorage` informasi toko dihapus dari `admin.js`.
 
+### 4.15 Laporan transaksi admin
+
+Halaman Laporan Transaksi dirender server dari `orders`, `order_items`, dan `payments` lewat `App\Services\ReportService`. Form filter memakai `GET` biasa supaya URL laporan bisa di-bookmark.
+
+`GET /admin/laporan?bulan=YYYY-MM`:
+
+| Query | Aturan |
+|---|---|
+| `bulan` | opsional, format `YYYY-MM`; nilai kosong/tidak valid jatuh ke bulan berjalan (`Asia/Jakarta`) |
+
+Aturan:
+
+- Ringkasan (`total pendapatan`, jumlah transaksi, total QRIS, total tunai, rata-rata, persentase QRIS:tunai, perbandingan bulan sebelumnya) hanya menghitung `status_pembayaran = lunas` (PRD §8.8.1).
+- Tabel menampilkan **semua** transaksi pada bulan itu beserta status pembayarannya sebagai informasi; status selain `lunas` tidak masuk perhitungan pendapatan.
+- Pilihan bulan dibuat dari bulan terlama pada `orders` sampai bulan berjalan (maks. 36 bulan, terbaru lebih dulu) dan selalu memuat bulan berjalan serta bulan yang sedang dipilih.
+- Rentang bulan memakai `created_at` pada zona `Asia/Jakarta`; tabel diurutkan terbaru lebih dulu.
+- Nomor antrean ditampilkan tiga digit dan kosong (`—`) bila pesanan belum lunas.
+
+`GET /admin/laporan/{order}` (JSON, dipakai dialog rincian):
+
+```json
+{
+  "data": {
+    "id": 12,
+    "code": "QR12CD34",
+    "queue": "007",
+    "customer": "Budi",
+    "datetime": "02 Nov 2026, 20:15 WIB",
+    "status": "lunas",
+    "status_label": "Lunas",
+    "method": "tunai",
+    "method_label": "Tunai",
+    "total": 45000,
+    "cash_received": 50000,
+    "change": 5000,
+    "items": [
+      { "name": "Vanilla Latte", "qty": 2, "price": 18000, "subtotal": 36000, "catatan": null }
+    ],
+    "midtrans_order_id": null,
+    "midtrans_transaction_id": null
+  }
+}
+```
+
+- `items` memakai snapshot `order_items` (`nama_menu`, `harga_satuan`), bukan data menu terkini, dan menyertakan `catatan` per item.
+- `midtrans_order_id`/`midtrans_transaction_id`/`payment_type` diambil dari baris `payments` terakhir; `null` untuk order tunai.
+- `{order}` adalah id numerik order; order yang tidak ada menghasilkan `404`.
+- Tidak ada route untuk mengubah status pembayaran dari halaman ini (PRD §8.8.5, F-10).
+- Error penting: `401` tamu (redirect `/login`), `403` bukan admin, `404` order tidak ada.
+- Status 3 Nov 2026: **sudah diimplementasikan** di `AdminController@reports`/`showReportOrder` + `App\Services\ReportService`; data contoh laporan di `resources/js/admin.js` (perhitungan ringkasan client-side) sudah dihapus.
+
 ---
 
 ## 5. Perbedaan route sekarang vs target
@@ -787,6 +839,7 @@ Aturan:
 | `/pesan/berhasil` | `/pesanan/{kode_pesanan}` | **Selesai** - route dihapus; `berhasil.blade.php` menjadi halaman status server-side |
 | Belum ada login | `/login`, `POST /login`, `POST /logout` | **Selesai** - auth manual + role redirect |
 | Hanya `GET` | `POST`/`PATCH`/`DELETE` | `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, `POST/PUT/PATCH/DELETE /admin/menu` + `PATCH /admin/menu/{menu}/availability`, `POST/PUT/PATCH/DELETE /admin/promosi` + `PATCH /admin/promosi/{promo}/status`, serta `PUT /admin/toko` **selesai**; action lain menyusul |
+| Data contoh laporan | `GET /admin/laporan` dari DB | **Selesai** - `ReportService` + filter `bulan`; rincian lewat `GET /admin/laporan/{order}` |
 | Belum ada webhook | `/api/midtrans/notification` | **Selesai** - route + CSRF exception + verifikasi signature |
 | Belum ada role | `auth` + `role:*` | **Selesai** - middleware `role` aktif di area kasir/admin |
 | Belum ada rate limit | `throttle:*` | Login, `GET /kasir/pesanan/poll`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `POST /pesan/checkout`, dan status pesanan **selesai**; webhook sengaja tanpa throttle ketat |

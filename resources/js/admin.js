@@ -884,6 +884,7 @@ function initReports() {
 
     const transactions = CONFIG.transactions ?? [];
     const monthSelect = root.querySelector('[data-report-month]');
+    const monthForm = root.querySelector('[data-report-month-form]');
     const searchInput = root.querySelector('[data-report-search]');
     const methodSelect = root.querySelector('[data-report-method]');
     const statusSelect = root.querySelector('[data-report-status]');
@@ -900,7 +901,6 @@ function initReports() {
     const detailSubtitle = dialog?.querySelector('[data-report-detail-subtitle]');
 
     const state = {
-        month: CONFIG.defaultMonth ?? monthSelect?.value ?? '',
         search: '',
         method: 'all',
         status: 'all',
@@ -947,82 +947,6 @@ function initReports() {
         tunai: 'border-[#8a3b1d]/30 bg-[#fbe1de] text-[#8a3b1d]',
     };
 
-    const previousMonth = (month) => {
-        const [year, monthNumber] = month.split('-').map(Number);
-        const date = new Date(year, monthNumber - 2, 1);
-
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    };
-
-    const summarize = (month) => {
-        const paid = transactions.filter((transaction) => transaction.month === month && transaction.status === 'lunas');
-        const revenue = paid.reduce((total, transaction) => total + transaction.total, 0);
-        const qris = paid
-            .filter((transaction) => transaction.method === 'qris')
-            .reduce((total, transaction) => total + transaction.total, 0);
-        const cash = revenue - qris;
-
-        return {
-            revenue,
-            count: paid.length,
-            qris,
-            cash,
-            average: paid.length > 0 ? Math.round(revenue / paid.length) : 0,
-            qrisPercent: revenue > 0 ? (qris / revenue) * 100 : 0,
-            cashPercent: revenue > 0 ? (cash / revenue) * 100 : 0,
-        };
-    };
-
-    const setText = (selector, value) => {
-        root.querySelectorAll(selector).forEach((element) => {
-            element.textContent = value;
-        });
-    };
-
-    const renderSummary = () => {
-        const summary = summarize(state.month);
-        const previous = summarize(previousMonth(state.month));
-        const monthLabel = transactions.find((transaction) => transaction.month === state.month)?.month_label ?? state.month;
-
-        setText('[data-report-revenue]', rupiah(summary.revenue));
-        setText('[data-report-count]', String(summary.count));
-        setText('[data-report-average]', rupiah(summary.average));
-        setText('[data-report-qris]', rupiah(summary.qris));
-        setText('[data-report-cash]', rupiah(summary.cash));
-        setText('[data-report-qris-percent]', `${numberFormatter.format(Number(summary.qrisPercent.toFixed(1)))}%`);
-        setText('[data-report-cash-percent]', `${numberFormatter.format(Number(summary.cashPercent.toFixed(1)))}%`);
-        setText('[data-report-qris-percent-small]', `${numberFormatter.format(Number(summary.qrisPercent.toFixed(1)))}%`);
-        setText('[data-report-cash-percent-small]', `${numberFormatter.format(Number(summary.cashPercent.toFixed(1)))}%`);
-
-        const periodBadge = root.querySelector('[data-report-period-badge]');
-        if (periodBadge) periodBadge.textContent = `Periode: ${monthLabel}`;
-
-        const qrisBar = root.querySelector('[data-report-qris-bar]');
-        const cashBar = root.querySelector('[data-report-cash-bar]');
-        if (qrisBar) qrisBar.style.width = `${summary.qrisPercent}%`;
-        if (cashBar) cashBar.style.width = `${summary.cashPercent}%`;
-
-        const change = root.querySelector('[data-report-change]');
-        if (change) {
-            if (previous.revenue > 0) {
-                const percent = ((summary.revenue - previous.revenue) / previous.revenue) * 100;
-                const positive = percent >= 0;
-                const formatted = numberFormatter.format(Number(Math.abs(percent).toFixed(1)));
-
-                change.className = `flex items-center gap-1.5 font-serif text-[11px] ${positive ? 'text-varya-dark' : 'text-rust'}`;
-                change.innerHTML = `
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        ${positive ? '<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>' : '<path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/>'}
-                    </svg>
-                    <span><strong>${positive ? '+' : '-'}${formatted}%</strong> dibanding bulan lalu</span>
-                `;
-            } else {
-                change.innerHTML = '<span class="font-serif text-[11px] text-muted">Belum ada data pembanding bulan lalu</span>';
-            }
-        }
-    };
-
     const reportRow = (transaction) => {
         const status = reportStatusMeta[transaction.status] ?? reportStatusMeta.lunas;
 
@@ -1033,7 +957,7 @@ function initReports() {
                     <p class="font-mono text-[9px] leading-tight font-bold text-ink">#${escapeHtml(transaction.code)}</p>
                 </td>
                 <td class="px-3 py-3">
-                    <p class="font-mono text-[9px] leading-tight text-ink-soft">#${escapeHtml(transaction.order_code)}</p>
+                    <p class="font-mono text-[9px] leading-tight text-ink-soft">${transaction.queue ? `#${escapeHtml(transaction.queue)}` : '—'}</p>
                 </td>
                 <td class="px-3 py-3">
                     <p class="font-display text-[12px] leading-tight font-extrabold">${escapeHtml(transaction.customer)}</p>
@@ -1072,7 +996,6 @@ function initReports() {
     };
 
     const filteredTransactions = () => transactions
-        .filter((transaction) => transaction.month === state.month)
         .filter((transaction) => {
             if (state.method !== 'all' && transaction.method !== state.method) return false;
             if (state.status !== 'all' && transaction.status !== state.status) return false;
@@ -1080,7 +1003,7 @@ function initReports() {
             if (state.search) {
                 const haystack = [
                     transaction.code,
-                    transaction.order_code,
+                    transaction.queue,
                     transaction.customer,
                     transaction.method_label,
                     transaction.status_label,
@@ -1091,7 +1014,7 @@ function initReports() {
 
             return true;
         })
-        .sort((a, b) => b.date_iso.localeCompare(a.date_iso) || b.datetime.localeCompare(a.datetime));
+        .sort((a, b) => (b.date_iso ?? '').localeCompare(a.date_iso ?? '') || (b.datetime ?? '').localeCompare(a.datetime ?? ''));
 
     const renderTable = () => {
         const filtered = filteredTransactions();
@@ -1122,64 +1045,69 @@ function initReports() {
         });
     };
 
-    const openDetail = (id) => {
-        const transaction = transactions.find((item) => item.id === id);
-        if (!transaction || !dialog || !detail) return;
-
-        if (detailTitle) detailTitle.textContent = `#${transaction.code}`;
+    const renderDetail = (data) => {
+        if (detailTitle) detailTitle.textContent = `#${data.code}`;
         if (detailSubtitle) {
-            detailSubtitle.textContent = `${transaction.order_code} • ${transaction.datetime} • ${transaction.source_label}`;
+            const queue = data.queue ? `Antrean #${data.queue} • ` : '';
+            detailSubtitle.textContent = `${queue}${data.datetime} • ${data.source_label}`;
         }
 
-        const items = transaction.items.map((item) => `
+        const items = (data.items ?? []).map((item) => `
             <tr class="border-b border-line last:border-0">
-                <td class="py-2 pr-3 font-serif text-[11px] font-semibold text-ink">${escapeHtml(item.name)}</td>
+                <td class="py-2 pr-3 font-serif text-[11px] font-semibold text-ink">
+                    ${escapeHtml(item.name)}
+                    ${item.catatan ? `<p class="mt-0.5 font-serif text-[9px] font-normal text-muted">Catatan: ${escapeHtml(item.catatan)}</p>` : ''}
+                </td>
                 <td class="px-2 py-2 text-center font-mono text-[10px] text-ink-soft">${escapeHtml(item.qty)}x</td>
                 <td class="px-2 py-2 text-right font-serif text-[10px] text-ink-soft">${rupiah(item.price)}</td>
                 <td class="py-2 pl-3 text-right font-display text-[12px] font-bold">${rupiah(item.subtotal)}</td>
             </tr>
         `).join('');
 
-        const paymentDetail = transaction.method === 'tunai'
+        const paymentDetail = data.method === 'tunai'
             ? `
                 <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3">
                     <p class="tag text-[8px] font-bold text-muted">Uang Diterima</p>
-                    <p class="mt-1 font-display text-[17px] font-bold">${rupiah(transaction.cash_received)}</p>
+                    <p class="mt-1 font-display text-[17px] font-bold">${rupiah(data.cash_received)}</p>
                 </div>
                 <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3">
                     <p class="tag text-[8px] font-bold text-muted">Kembalian</p>
-                    <p class="mt-1 font-display text-[17px] font-bold">${rupiah(transaction.change)}</p>
+                    <p class="mt-1 font-display text-[17px] font-bold">${rupiah(data.change)}</p>
                 </div>
             `
             : `
                 <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3 sm:col-span-2">
                     <p class="tag text-[8px] font-bold text-muted">ID Transaksi Midtrans</p>
-                    <p class="mt-1 break-all font-mono text-[9px] leading-relaxed text-ink">${escapeHtml(transaction.midtrans_id)}</p>
+                    <p class="mt-1 break-all font-mono text-[9px] leading-relaxed text-ink">${escapeHtml(data.midtrans_transaction_id ?? data.midtrans_order_id ?? '-')}</p>
+                    ${data.midtrans_order_id ? `<p class="mt-1 font-serif text-[9px] text-muted">Order ID: <span class="font-mono">${escapeHtml(data.midtrans_order_id)}</span></p>` : ''}
+                    ${data.payment_type ? `<p class="mt-1 font-serif text-[9px] text-muted">Tipe pembayaran: ${escapeHtml(data.payment_type)}</p>` : ''}
                     <p class="mt-1 font-serif text-[9px] text-muted">Status pembayaran tidak dapat diubah manual dari aplikasi.</p>
                 </div>
             `;
+
+        const status = reportStatusMeta[data.status] ?? reportStatusMeta.lunas;
 
         detail.innerHTML = `
             <div class="grid gap-3 sm:grid-cols-2">
                 <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3">
                     <p class="tag text-[8px] font-bold text-muted">Pelanggan</p>
-                    <p class="mt-1 font-display text-[16px] font-bold">${escapeHtml(transaction.customer)}</p>
-                    <p class="mt-1 tag text-[8px] text-muted">${escapeHtml(transaction.source_label)}</p>
+                    <p class="mt-1 font-display text-[16px] font-bold">${escapeHtml(data.customer)}</p>
+                    <p class="mt-1 tag text-[8px] text-muted">${escapeHtml(data.source_label)}${data.tipe_pesanan_label ? ` • ${escapeHtml(data.tipe_pesanan_label)}` : ''}</p>
                 </div>
                 <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3">
                     <p class="tag text-[8px] font-bold text-muted">Status Pembayaran</p>
-                    <span class="tag mt-2 inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[8px] font-bold ${(reportStatusMeta[transaction.status] ?? reportStatusMeta.lunas).pill}">
-                        <span class="h-1.5 w-1.5 rounded-full ${(reportStatusMeta[transaction.status] ?? reportStatusMeta.lunas).dot}"></span>
-                        ${escapeHtml(transaction.status_label)}
+                    <span class="tag mt-2 inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[8px] font-bold ${status.pill}">
+                        <span class="h-1.5 w-1.5 rounded-full ${status.dot}"></span>
+                        ${escapeHtml(data.status_label)}
                     </span>
-                    <p class="mt-1 tag text-[8px] text-muted">${escapeHtml(transaction.method_label)}</p>
+                    <p class="mt-1 tag text-[8px] text-muted">${escapeHtml(data.method_label)}</p>
                 </div>
             </div>
 
             <div class="mt-4 overflow-hidden rounded-md border-2 border-ink">
                 <div class="flex items-center justify-between gap-2 border-b-2 border-ink bg-admin-head px-3 py-2">
                     <p class="tag text-[8px] font-bold text-ink">Item Pesanan</p>
-                    <p class="tag text-[8px] text-muted">${transaction.items.length} jenis</p>
+                    <p class="tag text-[8px] text-muted">${data.items?.length ?? 0} jenis</p>
                 </div>
                 <table class="w-full">
                     <thead>
@@ -1191,7 +1119,7 @@ function initReports() {
                         </tr>
                     </thead>
                     <tbody class="px-3">
-                        ${items}
+                        ${items || '<tr><td colspan="4" class="py-4 text-center font-serif text-[11px] text-muted">Tidak ada item.</td></tr>'}
                     </tbody>
                 </table>
             </div>
@@ -1202,18 +1130,46 @@ function initReports() {
 
             <div class="mt-4 flex items-center justify-between gap-3 rounded-md border-2 border-ink bg-varya-light px-4 py-3">
                 <p class="tag text-[9px] font-bold text-varya-dark">Total Pembayaran</p>
-                <p class="font-display text-[24px] leading-none font-black text-varya-dark">${rupiah(transaction.total)}</p>
+                <p class="font-display text-[24px] leading-none font-black text-varya-dark">${rupiah(data.total)}</p>
             </div>
         `;
+    };
 
+    const openDetail = async (id) => {
+        if (!dialog || !detail) return;
+
+        if (detailTitle) detailTitle.textContent = 'Detail Transaksi';
+        if (detailSubtitle) detailSubtitle.textContent = '';
+        detail.innerHTML = '<p class="py-8 text-center font-serif text-sm text-muted">Memuat rincian transaksi...</p>';
         openDialog(dialog);
+
+        const base = CONFIG.routes?.reportOrderBase;
+
+        if (!base || !id) {
+            detail.innerHTML = '<p class="py-8 text-center font-serif text-sm text-muted">Rincian transaksi tidak tersedia.</p>';
+            return;
+        }
+
+        try {
+            const response = await fetch(`${base}/${id}`, {
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const payload = await response.json();
+            if (!payload?.data) throw new Error('Data rincian kosong');
+
+            renderDetail(payload.data);
+        } catch {
+            detail.innerHTML = '<p class="py-8 text-center font-serif text-sm text-muted">Rincian transaksi gagal dimuat. Coba lagi.</p>';
+            showToast('Rincian transaksi gagal dimuat.');
+        }
     };
 
     monthSelect?.addEventListener('change', () => {
-        state.month = monthSelect.value;
-        state.page = 1;
-        renderSummary();
-        renderTable();
+        monthForm?.requestSubmit();
     });
 
     searchInput?.addEventListener('input', () => {
@@ -1235,20 +1191,17 @@ function initReports() {
     });
 
     resetButton?.addEventListener('click', () => {
-        state.month = CONFIG.defaultMonth ?? monthSelect?.value ?? state.month;
         state.search = '';
         state.method = 'all';
         state.status = 'all';
         state.page = 1;
 
-        if (monthSelect) monthSelect.value = state.month;
         if (searchInput) searchInput.value = '';
         if (methodSelect) methodSelect.value = 'all';
         if (statusSelect) statusSelect.value = 'all';
 
-        renderSummary();
         renderTable();
-        showToast('Filter laporan direset.');
+        showToast('Filter tabel laporan direset.');
     });
 
     tbody?.addEventListener('click', (event) => {
@@ -1262,7 +1215,6 @@ function initReports() {
     });
     enableBackdropClose(dialog);
 
-    renderSummary();
     renderTable();
 }
 

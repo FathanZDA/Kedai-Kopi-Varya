@@ -173,6 +173,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
         Route::get('/laporan', [AdminController::class, 'reports'])->name('reports');
 
+        Route::get('/laporan/{order}', [AdminController::class, 'showReportOrder'])->name('reports.show');
+
         Route::get('/promosi', [AdminController::class, 'promos'])->name('promos');
 
         Route::post('/promosi', [AdminController::class, 'storePromo'])->name('promos.store');

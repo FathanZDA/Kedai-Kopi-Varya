@@ -23,7 +23,7 @@
                         <h2 id="report-revenue-title" class="tag text-[9px] font-bold text-ink">Total Pemasukan Berhasil</h2>
                     </div>
                     <span data-report-period-badge class="tag rounded border-2 border-line-strong bg-[#f1eee4] px-2.5 py-1 text-[8px] font-bold text-ink-soft">
-                        Periode: Oktober 2026
+                        Periode: {{ $summary['month_label'] }}
                     </span>
                 </div>
 
@@ -37,22 +37,32 @@
                 </div>
 
                 <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <p data-report-change class="flex items-center gap-1.5 font-serif text-[11px] text-varya-dark">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>
-                        </svg>
-                        <strong>+14,2%</strong> dibanding bulan lalu
-                    </p>
+                    @if ($summary['change_percent'] !== null)
+                        @php($naik = $summary['change_percent'] >= 0)
+                        <p class="flex items-center gap-1.5 font-serif text-[11px] {{ $naik ? 'text-varya-dark' : 'text-rust' }}">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                @if ($naik)
+                                    <path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>
+                                @else
+                                    <path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/>
+                                @endif
+                            </svg>
+                            <span><strong>{{ $naik ? '+' : '-' }}{{ number_format(abs($summary['change_percent']), 1, ',', '.') }}%</strong> dibanding bulan lalu</span>
+                        </p>
+                    @else
+                        <p class="font-serif text-[11px] text-muted">Belum ada data pembanding bulan lalu</p>
+                    @endif
                     <span class="h-1 w-1 rounded-full bg-muted" aria-hidden="true"></span>
                     <p class="font-serif text-[11px] text-ink-soft">
-                        <strong data-report-count class="text-ink">{{ $summary['count'] }}</strong> transaksi selesai
+                        <strong data-report-count class="text-ink">{{ $summary['count'] }}</strong> transaksi lunas
                     </p>
                 </div>
 
                 <div class="mt-5 border-t border-line-strong/70 pt-3">
                     <p class="font-serif text-[10px] leading-relaxed text-ink-soft">
-                        Semua pembayaran lunas (0 pengembalian) &bull; Rata-rata nilai transaksi:
+                        Hanya transaksi berstatus <strong class="text-ink">lunas</strong> yang dihitung sebagai pendapatan.
+                        Rata-rata nilai transaksi:
                         <strong data-report-average class="text-ink">{{ $formatRupiah($summary['average']) }}</strong>
                     </p>
                 </div>
@@ -141,16 +151,21 @@
                     </select>
                 </div>
 
-                <div>
-                    <label for="report-month" class="sr-only">Pilih bulan</label>
-                    <select id="report-month" data-report-month class="admin-select">
-                        @foreach ($months as $month)
-                            <option value="{{ $month['value'] }}" @selected($month['value'] === $defaultMonth)>
-                                {{ $month['label'] }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                <form method="GET" action="{{ route('admin.reports') }}" data-report-month-form class="contents">
+                    <div>
+                        <label for="report-month" class="sr-only">Pilih bulan</label>
+                        <select id="report-month" name="bulan" data-report-month class="admin-select">
+                            @foreach ($months as $month)
+                                <option value="{{ $month['value'] }}" @selected($month['value'] === $defaultMonth)>
+                                    {{ $month['label'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <noscript>
+                            <button type="submit" class="admin-btn-secondary mt-2 w-full !px-4">Terapkan</button>
+                        </noscript>
+                    </div>
+                </form>
 
                 <button type="button" data-report-reset class="admin-btn-secondary !px-4" title="Reset filter">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -180,8 +195,8 @@
                 <table class="w-full min-w-[920px] border-collapse text-left">
                     <thead class="bg-admin-head">
                         <tr class="border-b-2 border-ink">
-                            <th scope="col" class="tag px-4 py-3 text-[8px] font-bold text-ink-soft">Kode Transaksi</th>
-                            <th scope="col" class="tag px-3 py-3 text-[8px] font-bold text-ink-soft">Kode Pesanan</th>
+                            <th scope="col" class="tag px-4 py-3 text-[8px] font-bold text-ink-soft">Kode Pesanan</th>
+                            <th scope="col" class="tag px-3 py-3 text-[8px] font-bold text-ink-soft">Antrean</th>
                             <th scope="col" class="tag px-3 py-3 text-[8px] font-bold text-ink-soft">Pelanggan</th>
                             <th scope="col" class="tag px-3 py-3 text-[8px] font-bold text-ink-soft">Total</th>
                             <th scope="col" class="tag px-3 py-3 text-[8px] font-bold text-ink-soft">Metode</th>
