@@ -1,15 +1,10 @@
 // Interaksi front-end area admin Kedai Kopi Varya.
-// Katalog menu dan promosi sudah memakai endpoint server (tambah/ubah/hapus/
-// status). Foto tentang kami, laporan, dan informasi toko masih demo: data
-// contoh berasal dari Blade dan disimpan sementara di localStorage browser.
+// Menu, promosi, dan informasi toko memakai endpoint server. Data contoh
+// dashboard dan laporan masih berasal dari Blade sampai slice backend terkait.
 
 const CONFIG = window.ADMIN_CONFIG ?? {};
 const ROUTES = CONFIG.routes ?? {};
 const numberFormatter = new Intl.NumberFormat('id-ID');
-
-const STORAGE_KEYS = {
-    store: 'varya.admin.store.v2',
-};
 
 const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
@@ -41,23 +36,6 @@ function escapeHtml(value) {
 
 function clone(value) {
     return JSON.parse(JSON.stringify(value ?? null));
-}
-
-function readStorage(key, fallback) {
-    try {
-        const raw = window.localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
-    }
-}
-
-function writeStorage(key, value) {
-    try {
-        window.localStorage.setItem(key, JSON.stringify(value));
-    } catch {
-        // localStorage bisa tidak tersedia pada mode privat; abaikan.
-    }
 }
 
 function openDialog(dialog) {
@@ -1751,14 +1729,9 @@ function initStore() {
     if (!form) return;
 
     const descriptionCount = root.querySelector('[data-store-description-count]');
-    const lastUpdated = root.querySelector('[data-store-last-updated]');
     const previewDescription = root.querySelector('[data-store-preview-description]');
-    const previewPoints = root.querySelector('[data-store-preview-points]');
     const previewAddress = root.querySelector('[data-store-preview-address]');
     const previewWhatsapp = root.querySelector('[data-store-preview-whatsapp]');
-    const previewHours = root.querySelector('[data-store-preview-hours]');
-    const previewContact = root.querySelector('[data-store-preview-contact]');
-    const previewFacilities = root.querySelector('[data-store-preview-facilities]');
     const todayHoursSummary = root.querySelector('[data-store-today-hours]');
     const previewMapLink = root.querySelector('[data-store-preview-map-link]');
     const previewMapName = root.querySelector('[data-store-preview-map-name]');
@@ -1767,32 +1740,7 @@ function initStore() {
 
     const dayKeys = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
 
-    const loadStore = () => {
-        const base = clone(CONFIG.store ?? {});
-        const saved = readStorage(STORAGE_KEYS.store, null);
-
-        if (!saved || typeof saved !== 'object') return base;
-
-        return {
-            ...base,
-            ...saved,
-            points: Array.isArray(saved.points) ? saved.points : base.points,
-            hours: Array.isArray(saved.hours) ? saved.hours : base.hours,
-            facilities: Array.isArray(saved.facilities) ? saved.facilities : base.facilities,
-        };
-    };
-
     const field = (name) => form.querySelector(`[data-store-field="${name}"]`);
-
-    const setField = (name, value) => {
-        const input = field(name);
-        if (input) input.value = value ?? '';
-    };
-
-    const readPoints = () => [0, 1, 2].map((index) => ({
-        value: form.querySelector(`[data-store-point-value="${index}"]`)?.value.trim() ?? '',
-        label: form.querySelector(`[data-store-point-label="${index}"]`)?.value.trim() ?? '',
-    }));
 
     const readHours = () => Array.from(form.querySelectorAll('[data-store-hour-row]')).map((row) => ({
         key: row.dataset.dayKey,
@@ -1802,7 +1750,7 @@ function initStore() {
         closed: Boolean(row.querySelector('[data-hour-closed]')?.checked),
     }));
 
-    const readFacilities = () => (field('facilities')?.value ?? '')
+    const readFacilities = () => (field('fasilitas')?.value ?? '')
         .split(',')
         .map((item) => item.trim())
         .filter(Boolean);
@@ -1811,24 +1759,22 @@ function initStore() {
         const instagramRaw = field('instagram')?.value.trim() ?? '';
 
         return {
-            name: field('name')?.value.trim() ?? '',
+            nama_toko: field('nama_toko')?.value.trim() ?? '',
             tagline: field('tagline')?.value.trim() ?? '',
             whatsapp: field('whatsapp')?.value.trim() ?? '',
-            description: field('description')?.value.trim() ?? '',
-            address: field('address')?.value.trim() ?? '',
+            sejarah: field('sejarah')?.value.trim() ?? '',
+            alamat: field('alamat')?.value.trim() ?? '',
             maps_url: field('maps_url')?.value.trim() ?? '',
             maps_embed: field('maps_embed')?.value.trim() ?? '',
-            phone: field('phone')?.value.trim() ?? '',
+            telepon: field('telepon')?.value.trim() ?? '',
             instagram: instagramRaw ? `@${instagramRaw.replace(/^@+/, '')}` : '',
-            points: readPoints(),
             hours: readHours(),
-            facilities: readFacilities(),
-            last_updated: lastUpdated?.textContent ?? '',
+            fasilitas: readFacilities(),
         };
     };
 
     const updateDescriptionCount = () => {
-        if (descriptionCount) descriptionCount.textContent = String(field('description')?.value.length ?? 0);
+        if (descriptionCount) descriptionCount.textContent = String(field('sejarah')?.value.length ?? 0);
     };
 
     const renderFacilities = (container, facilities) => {
@@ -1844,17 +1790,10 @@ function initStore() {
         const todayKey = dayKeys[new Date().getDay()];
         const today = data.hours.find((hour) => hour.key === todayKey) ?? data.hours[0];
 
-        if (previewDescription) previewDescription.textContent = data.description || 'Deskripsi tentang kami akan tampil di sini.';
-        if (previewAddress) previewAddress.textContent = data.address || 'Alamat kedai akan tampil di sini.';
+        if (previewDescription) previewDescription.textContent = data.sejarah || 'Deskripsi tentang kami akan tampil di sini.';
+        if (previewAddress) previewAddress.textContent = data.alamat || 'Alamat kedai akan tampil di sini.';
         if (previewWhatsapp) previewWhatsapp.textContent = data.whatsapp ? `WA ${data.whatsapp}` : '';
-        if (previewContact) previewContact.textContent = `${data.phone || 'Nomor telepon'} • ${data.instagram || '@instagram'}`;
-        if (previewMapName) previewMapName.textContent = data.name || 'Kedai Varya';
-
-        if (previewHours) {
-            previewHours.textContent = today
-                ? `${today.day}: ${today.closed ? 'Tutup' : `${today.open} – ${today.close} WIB`}`
-                : 'Jam operasional belum diatur';
-        }
+        if (previewMapName) previewMapName.textContent = data.nama_toko || 'Kedai Varya';
 
         if (todayHoursSummary) {
             todayHoursSummary.textContent = today
@@ -1862,17 +1801,7 @@ function initStore() {
                 : 'Hari Ini: Jam operasional belum diatur';
         }
 
-        if (previewPoints) {
-            previewPoints.innerHTML = data.points.map((point) => `
-                <div class="rounded border-2 border-line-strong bg-admin-soft px-2 py-2 text-center">
-                    <p class="font-display text-[15px] leading-none font-black">${escapeHtml(point.value || '—')}</p>
-                    <p class="tag mt-1 text-[6px] leading-tight text-muted">${escapeHtml(point.label || 'Label')}</p>
-                </div>
-            `).join('');
-        }
-
-        renderFacilities(previewFacilities, data.facilities);
-        renderFacilities(facilitiesPreview, data.facilities);
+        renderFacilities(facilitiesPreview, data.fasilitas);
 
         const mapsUrl = data.maps_url || '#';
         if (previewMapLink) previewMapLink.href = mapsUrl;
@@ -1881,123 +1810,15 @@ function initStore() {
         updateDescriptionCount();
     };
 
-    const applyStore = (store) => {
-        setField('name', store.name);
-        setField('tagline', store.tagline);
-        setField('whatsapp', store.whatsapp);
-        setField('description', store.description);
-        setField('address', store.address);
-        setField('maps_url', store.maps_url);
-        setField('maps_embed', store.maps_embed);
-        setField('phone', store.phone);
-        setField('instagram', (store.instagram ?? '').replace(/^@+/, ''));
-        setField('facilities', (store.facilities ?? []).join(', '));
-
-        (store.points ?? []).forEach((point, index) => {
-            const valueInput = form.querySelector(`[data-store-point-value="${index}"]`);
-            const labelInput = form.querySelector(`[data-store-point-label="${index}"]`);
-            if (valueInput) valueInput.value = point.value ?? '';
-            if (labelInput) labelInput.value = point.label ?? '';
-        });
-
-        (store.hours ?? []).forEach((hour) => {
-            const row = form.querySelector(`[data-store-hour-row][data-day-key="${hour.key}"]`);
-            if (!row) return;
-
-            const open = row.querySelector('[data-hour-open]');
-            const close = row.querySelector('[data-hour-close]');
-            const closed = row.querySelector('[data-hour-closed]');
-
-            if (open) open.value = hour.open ?? '00:00';
-            if (close) close.value = hour.close ?? '00:00';
-            if (closed) closed.checked = Boolean(hour.closed);
-        });
-
-        if (lastUpdated) lastUpdated.textContent = store.last_updated ?? lastUpdated.textContent;
-        updatePreview();
-    };
-
-    const setError = (name, message) => {
-        const error = form.querySelector(`[data-store-error-for="${name}"]`);
-        if (!error) return;
-        error.textContent = message;
-        error.hidden = !message;
-    };
-
-    const clearErrors = () => {
-        form.querySelectorAll('[data-store-error-for]').forEach((error) => {
-            error.textContent = '';
-            error.hidden = true;
-        });
-    };
-
     form.querySelectorAll('input, textarea, select').forEach((input) => {
         input.addEventListener('input', updatePreview);
         input.addEventListener('change', updatePreview);
     });
 
-    form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        clearErrors();
+    updatePreview();
 
-        const data = readForm();
-        let valid = true;
-
-        if (!data.name) {
-            setError('name', 'Nama kedai wajib diisi.');
-            valid = false;
-        }
-
-        if (!data.whatsapp || !/^[0-9+\-\s()]{8,}$/.test(data.whatsapp)) {
-            setError('whatsapp', 'Masukkan nomor WhatsApp yang valid.');
-            valid = false;
-        }
-
-        if (!data.description) {
-            setError('description', 'Deskripsi tentang kami wajib diisi.');
-            valid = false;
-        }
-
-        if (!data.address) {
-            setError('address', 'Alamat lengkap kedai wajib diisi.');
-            valid = false;
-        }
-
-        if (!data.phone) {
-            setError('phone', 'Nomor telepon wajib diisi.');
-            valid = false;
-        }
-
-        if (!valid) {
-            form.querySelector('[data-store-error-for]:not([hidden])')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            return;
-        }
-
-        const now = new Date();
-        const time = new Intl.DateTimeFormat('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-            timeZone: 'Asia/Jakarta',
-        })
-            .format(now)
-            .replaceAll('.', ':');
-
-        data.last_updated = `Hari ini, ${time} WIB`;
-
-        writeStorage(STORAGE_KEYS.store, data);
-        if (lastUpdated) lastUpdated.textContent = data.last_updated;
-        updatePreview();
-        showToast('Informasi toko berhasil disimpan (demo).');
-    });
-
-    root.querySelector('[data-store-cancel]')?.addEventListener('click', () => {
-        applyStore(loadStore());
-        clearErrors();
-        showToast('Perubahan dibatalkan.');
-    });
-
-    applyStore(loadStore());
+    const flash = root.dataset.adminFlash ?? '';
+    if (flash) showToast(flash);
 }
 
 /* -------------------------------------------------------------------------- */

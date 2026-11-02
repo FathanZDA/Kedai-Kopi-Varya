@@ -1,6 +1,6 @@
 ### Admin / Owner
 
-**Status:** FINAL untuk alur bisnis. Implementasi backend CRUD, transaksi, dan laporan belum selesai.
+**Status:** FINAL untuk alur bisnis. Implementasi backend CRUD menu, promosi, dan informasi toko sudah selesai; dashboard dan laporan transaksi belum tersambung ke database.
 
 **Ringkasan:** Admin memiliki **lima fitur utama**: Dashboard, Kelola Menu, Laporan Transaksi, Iklan & Promosi, dan Informasi Toko. Fitur rekonsiliasi pembayaran dan refund manual **tidak ada di aplikasi** karena penanganannya dilakukan melalui dashboard Midtrans.
 

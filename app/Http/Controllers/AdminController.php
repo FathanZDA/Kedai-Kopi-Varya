@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Admin\MenuRequest;
 use App\Http\Requests\Admin\PromoRequest;
+use App\Http\Requests\Admin\StoreSettingsRequest;
 use App\Http\Requests\Admin\UpdateMenuAvailabilityRequest;
 use App\Http\Requests\Admin\UpdatePromoStatusRequest;
 use App\Models\Category;
@@ -13,6 +14,7 @@ use App\Models\StoreHour;
 use App\Models\StoreSetting;
 use App\Services\MenuCatalogService;
 use App\Services\PromoService;
+use App\Services\StoreSettingsService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -28,8 +30,9 @@ use Illuminate\Http\Request;
  *   `public/images/menus`.
  * - Promosi juga sudah tersimpan ke database (`PromoService`), termasuk
  *   status aktif dan unggah gambar ke `public/images/promos`.
- * - Pesanan, laporan, dan informasi toko masih data demo sampai slice backend
- *   tersedia.
+ * - Informasi toko (profil, jam operasional, alamat, kontak, fasilitas) sudah
+ *   tersimpan lewat `StoreSettingsService` (`PUT /admin/toko`).
+ * - Pesanan dan laporan masih data demo sampai slice backend tersedia.
  */
 class AdminController extends Controller
 {
@@ -285,6 +288,15 @@ class AdminController extends Controller
                 'store' => $store,
             ],
         ]);
+    }
+
+    public function updateStore(StoreSettingsRequest $request, StoreSettingsService $settings): RedirectResponse
+    {
+        $settings->simpan($request->dataToko());
+
+        return redirect()
+            ->route('admin.store')
+            ->with('status', 'Informasi toko berhasil disimpan.');
     }
 
     private function admin(): array
@@ -1000,11 +1012,12 @@ class AdminController extends Controller
             ->ordered()
             ->get()
             ->map(fn (StoreHour $hour): array => [
+                'hari' => $hour->hari,
                 'key' => $this->hariKey($hour->hari),
                 'day' => $hour->hari_label,
                 'open' => substr((string) $hour->jam_buka, 0, 5),
                 'close' => substr((string) $hour->jam_tutup, 0, 5),
-                'closed' => $hour->tutup,
+                'closed' => $hour->tutup || ! $hour->jam_buka || ! $hour->jam_tutup,
             ])
             ->all();
 

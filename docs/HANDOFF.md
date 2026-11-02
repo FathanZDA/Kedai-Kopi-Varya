@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 1 Nov 2026, setelah `auto-expire-reconcile` di-commit (`28e78ff`); slice `kasir-cancel-snap-session`, `admin-menu-crud`, dan `admin-promo-crud` masih **belum di-commit**.
+**Terakhir diperbarui:** 2 Nov 2026, setelah `admin-promo-crud` di-commit (`cd07b7a`); slice `admin-store-settings` (Informasi Toko) sudah diimplementasikan di working tree dan **belum di-commit**.
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `kasir-fix-admin-menu` @ `6a8cb0d` (berisi `kasir-cancel-snap-session` + `admin-menu-crud`); working tree memuat slice `admin-promo-crud` yang **belum di-commit** |
-| Baseline test | `php artisan test` → **169 passed** (838 assertions) |
+| Branch aktif | `admin-promo-crud` @ `cd07b7a`; working tree memuat slice `admin-store-settings` yang **belum di-commit** |
+| Baseline test | `php artisan test` → **178 passed** (905 assertions) |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user) |
@@ -33,9 +33,9 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `qris-webhook` | `a9d04ab` | Webhook Midtrans, popup Snap, halaman status, pembayaran ulang |
 | `kasir-qris-ops` | `2fb738f` | Pembatalan QRIS + Cek Status kasir |
 | `auto-expire-reconcile` | `28e78ff` | Rekonsiliasi terjadwal + penutupan otomatis 24 jam |
-| `kasir-cancel-snap-session` | *belum di-commit* | Pembatalan QRIS lewat sesi Snap saat transaksi belum ada di Midtrans |
-| `admin-menu-crud` | *belum di-commit* | CRUD menu admin + unggah foto + ketersediaan |
-| `admin-promo-crud` | *belum di-commit* | CRUD promosi admin + unggah gambar + status aktif |
+| `kasir-cancel-snap-session` + `admin-menu-crud` | `6a8cb0d` | Pembatalan QRIS lewat sesi Snap + CRUD menu admin |
+| `admin-promo-crud` | `cd07b7a` | CRUD promosi admin + unggah gambar + status aktif |
+| `admin-store-settings` | *belum di-commit* | Informasi Toko (profil + jam operasional 7 hari) |
 
 ---
 
@@ -46,7 +46,7 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | Publik Pelanggan A | **Selesai** | Semua data dari database |
 | Pelanggan B | **Sebagian** | Menu/toko dari DB; keranjang masih `localStorage`; checkout → order QRIS + Snap; webhook sudah menandai lunas; halaman status, tiket antrean, polling, dan bayar lagi sudah ada |
 | Kasir | **Selesai** | Buat Pesanan, Pesanan Masuk, pembatalan QRIS, Cek Status, dan Kelola Menu |
-| Admin | **Sebagian** | CRUD menu dan CRUD promosi (termasuk foto/gambar dan status) sudah tersimpan di DB; laporan, informasi toko, dan foto tentang kami masih data contoh + `localStorage` |
+| Admin | **Sebagian** | CRUD menu, CRUD promosi, dan Informasi Toko (profil `store_settings` + jam `store_hours`) tersimpan di DB; laporan, dashboard, dan foto tentang kami masih data contoh + `localStorage` |
 | Login/role | **Selesai** | `/login`, redirect per role, `role` middleware, rate limit |
 | Database transaksi | **Selesai** | `orders`, `order_items`, `payments`, `payment_notifications`, `queue_counters` |
 | Pembayaran Midtrans | **Selesai** | Snap create + webhook + nomor antrean + popup + halaman status/bayar lagi + pembatalan + cek status + rekonsiliasi terjadwal + penutupan otomatis 24 jam + pembatalan sesi Snap |
@@ -124,7 +124,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ---
 
-## 5. Yang baru selesai: `pesanan-status`, `kasir-qris-ops`, `auto-expire-reconcile`, `kasir-cancel-snap-session`, `admin-menu-crud`, dan `admin-promo-crud`
+## 5. Yang baru selesai: `pesanan-status`, `kasir-qris-ops`, `auto-expire-reconcile`, `kasir-cancel-snap-session`, `admin-menu-crud`, `admin-promo-crud`, dan `admin-store-settings`
 
 ### 5.1 `pesanan-status`
 
@@ -203,7 +203,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.4 `kasir-cancel-snap-session`
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit**. Disarankan dipotong sebagai branch baru di atas `auto-expire-reconcile` @ `28e78ff`.
+**Status:** selesai dan sudah di-commit di `6a8cb0d` (digabung dengan `admin-menu-crud`).
 
 **Masalah yang diperbaiki:** kasir tidak dapat membatalkan order QRIS yang masih `menunggu`. Snap baru mendaftarkan transaksi di Core API setelah pelanggan membuka halaman pembayaran, sehingga `POST /cancel` dan `GET /status` menjawab `404 Transaction doesn't exist`. Akibatnya pembatalan hanya berhasil setelah transaksi itu sendiri kedaluwarsa di Midtrans (mis. order `17`/`VMVDCTJI` yang baru batal dengan `expire#407`).
 
@@ -223,7 +223,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.5 `admin-menu-crud`
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit** (digabung dengan `kasir-cancel-snap-session`).
+**Status:** selesai dan sudah di-commit di `6a8cb0d` (digabung dengan `kasir-cancel-snap-session`).
 
 **Kontrak:** PRD AD-02, §8.6; `admin.md` §B; `docs/ROUTES.md` §4.12; `docs/DECISIONS.md` F-62.
 
@@ -246,7 +246,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.6 `admin-promo-crud`
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+**Status:** selesai dan sudah di-commit di `cd07b7a`.
 
 **Kontrak:** PRD AD-04, §8.9; `admin.md` §D; `docs/ROUTES.md` §4.13; `docs/DECISIONS.md` F-63.
 
@@ -266,24 +266,49 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Promosi dihapus permanen; tidak ada pemulihan seperti soft delete menu.
 - Edit promosi memakai satu halaman (tanpa route `edit` terpisah): `admin.js` mengubah `action` form ke URL promosi yang dipilih dan mengirim `_method=PUT`.
 
-## 5.7 Rencana slice berikutnya (belum dikerjakan)
+### 5.7 `admin-store-settings`
+
+**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+
+**Kontrak:** PRD AD-05, §8.9; `admin.md` §E; `docs/ROUTES.md` §4.14; `docs/DECISIONS.md` F-64.
+
+**Yang sudah ada:**
+
+1. `PUT /admin/toko` (`admin.store.update`) — form biasa dengan redirect + session flash; validasi di `App\Http\Requests\Admin\StoreSettingsRequest`.
+2. `App\Services\StoreSettingsService` — upsert satu baris `store_settings` (id = 1, dibuat bila belum ada) dan tujuh baris `store_hours` (`hari` 0–6) dalam satu `DB::transaction` + `lockForUpdate`; jam ditulis dengan `updateOrCreate` per hari.
+3. Validasi server: nama toko wajib; tujuh hari wajib punya jam buka/tutup kecuali ditandai libur; fasilitas maks. 20 item dan tiap item maks. 50 karakter; `instagram` menerima `handle` maupun `@handle` lalu disimpan `@handle`; telepon/WhatsApp hanya angka, spasi, `+`, `-`, `()`; `maps_url`/`maps_embed` harus URL.
+4. `resources/views/admin/toko.blade.php` — form native `@csrf` + `@method('PUT')`, `old()` di semua field, ringkasan error + pesan per field, preview nama/alamat/kontak, penghitung karakter deskripsi, dan toast dari `data-admin-flash`. Input **3 Poin Statistik** demo dihapus (tidak ada kolomnya) dan diganti tampilan statis; angka publik tidak berubah.
+5. `resources/js/admin.js` — `localStorage` informasi toko dan handler submit/cancel demo dihapus; modul hanya menangani preview, penghitung karakter, dan toast.
+6. Test baru: `tests/Feature/AdminStoreSettingsTest.php` (9 test) mencakup render halaman, simpan profil + kontak + fasilitas, jam tujuh hari termasuk hari libur, perubahan tampil di halaman publik, validasi server, field opsional kosong, proteksi tamu/kasir, dan isian tidak hilang saat validasi gagal. Baseline **178 passed** (905 assertions).
+
+**Perilaku penting:**
+
+- Perubahan langsung tampil di `/`, `/tentang`, dan `/lokasi` karena halaman publik membaca `store_settings`/`store_hours` yang sama.
+- Field opsional kosong disimpan `null`, `fasilitas` kosong menjadi `[]`, tetapi `tagline` disimpan `''` karena kolomnya NOT NULL.
+- Hari yang ditandai libur menyimpan `jam_buka`/`jam_tutup` `null` dan `tutup = true`; hari lain wajib punya kedua jam.
+- **Foto Tentang Kami belum tersimpan**: `store_settings` belum punya kolom foto, sehingga panel foto di halaman promosi masih demo dan menunggu keputusan skema (lihat §6).
+- Migration `2026_10_25_000001_align_schema_with_prd` sudah mengisi 7 baris `store_hours`; test membersihkan data bawaan itu di `setUp()` sebelum membuat data sendiri agar unique `hari` tidak bentrok.
+
+## 5.8 Rencana slice berikutnya (belum dikerjakan)
 
 Urutan ini disusun agar data contoh di admin hilang dari sumber paling dasar ke paling turunan. Satu slice = satu commit; jangan gabungkan.
 
 | # | Slice | Cakupan | Acuan | Kriteria diterima |
 |---|---|---|---|---|
-| 1 | `admin-store-settings` | `PUT /admin/toko`: `store_settings` + upsert `store_hours` 7 hari + foto tentang kami | PRD AD-05, §8.9; F-34/F-36 | Perubahan langsung tampil di halaman publik; jam per hari tersimpan dengan `tutup`; foto tentang kami tersimpan di server; tidak ada lagi penyimpanan demo di browser |
-| 2 | `admin-reports` | `GET /admin/laporan` dari `orders`/`order_items`/`payments`; filter bulan+tahun; ringkasan; tabel; `GET /admin/laporan/{order}` | PRD AD-03, §8.8; F-14; `docs/ROUTES.md` §2.5 | Hanya `lunas` dihitung pendapatan; QRIS belum lunas hanya informasi; detail menampilkan item snapshot, `uang_diterima`/`kembalian`, dan `midtrans_order_id` |
-| 3 | `admin-dashboard` | Ringkasan hari ini/bulan, jumlah transaksi lunas, pesanan menunggu/diproses, perbandingan QRIS:tunai, 5 menu terlaris dari `order_items`, 10 transaksi terbaru | PRD AD-01; `admin.md` §A | Angka konsisten dengan laporan bulan yang sama; `recentOrders()`, `popularMenus()`, `transactions()` demo dihapus dari `AdminController` |
-| 4 | `kasir-pesanan-detail` *(opsional)* | `GET /kasir/pesanan/{order}` server-side | `docs/ROUTES.md` §2.4 | Detail dibaca dari database, hanya order hari ini; UI boleh tetap memakai snapshot polling |
-| 5 | `pelanggan-b-cart` *(butuh keputusan)* | Endpoint keranjang server-side **atau** keputusan mempertahankan keranjang di browser | AGENTS §2, F-29 | **Berhenti dan tanya lebih dulu**: `docs/ROUTES.md` belum punya kontrak keranjang, dan checkout sudah memvalidasi harga/ketersediaan di server |
-| 6 | `docs-readme` *(terakhir)* | README project menggantikan README Laravel, bersihkan sisa data demo, putuskan `database/database.sqlite` | AGENTS §11; F-44 | README memuat setup, migrate/seed, test, dan catatan Midtrans; tidak ada data contoh yang tertinggal tanpa penanda |
+| 1 | `admin-reports` | `GET /admin/laporan` dari `orders`/`order_items`/`payments`; filter bulan+tahun; ringkasan; tabel; `GET /admin/laporan/{order}` | PRD AD-03, §8.8; F-14; `docs/ROUTES.md` §2.5 | Hanya `lunas` dihitung pendapatan; QRIS belum lunas hanya informasi; detail menampilkan item snapshot, `uang_diterima`/`kembalian`, dan `midtrans_order_id` |
+| 2 | `admin-dashboard` | Ringkasan hari ini/bulan, jumlah transaksi lunas, pesanan menunggu/diproses, perbandingan QRIS:tunai, 5 menu terlaris dari `order_items`, 10 transaksi terbaru | PRD AD-01; `admin.md` §A | Angka konsisten dengan laporan bulan yang sama; `recentOrders()`, `popularMenus()`, `transactions()` demo dihapus dari `AdminController` |
+| 3 | `kasir-pesanan-detail` *(opsional)* | `GET /kasir/pesanan/{order}` server-side | `docs/ROUTES.md` §2.4 | Detail dibaca dari database, hanya order hari ini; UI boleh tetap memakai snapshot polling |
+| 4 | `pelanggan-b-cart` *(butuh keputusan)* | Endpoint keranjang server-side **atau** keputusan mempertahankan keranjang di browser | AGENTS §2, F-29 | **Berhenti dan tanya lebih dulu**: `docs/ROUTES.md` belum punya kontrak keranjang, dan checkout sudah memvalidasi harga/ketersediaan di server |
+| 5 | `docs-readme` *(terakhir)* | README project menggantikan README Laravel, bersihkan sisa data demo, putuskan `database/database.sqlite` | AGENTS §11; F-44 | README memuat setup, migrate/seed, test, dan catatan Midtrans; tidak ada data contoh yang tertinggal tanpa penanda |
+
+Kandidat lain yang butuh keputusan user lebih dulu: **foto tentang kami** (perlu kolom baru di `store_settings`, lihat §6).
 
 ## 6. Keputusan yang masih menunggu user
 
 | Topik | Status | Dampak |
 |---|---|---|
 | `O-16` akun/kredensial Midtrans | OPEN operasional (sandbox sudah diuji end-to-end) | URL ngrok berubah setiap restart; perbarui Notification URL Midtrans. Kredensial produksi belum disiapkan. Lihat `docs/MIDTRANS-SETUP.md`. |
+| Foto Tentang Kami | Belum diputuskan | `store_settings` belum punya kolom foto. Pilihan: tambah kolom `foto_tentang` lewat migration baru + unggah gambar, atau hapus panel foto demo. Butuh persetujuan user sebelum dikerjakan. |
 | `409 "menu berubah"` pada checkout/order | Belum diputuskan | Saat ini semua konflik menu → `422` |
 | `callbacks.finish` Snap | **Selesai** | Dikirim ke halaman status sebagai fallback |
 
@@ -308,8 +333,8 @@ Urutan ini disusun agar data contoh di admin hilang dari sumber paling dasar ke 
 ## 8. Aturan singkat untuk sesi baru
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
-2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 169 passed).
-3. Potong branch baru dari ujung terbaru (`kasir-fix-admin-menu` @ `6a8cb0d` + commit `admin-promo-crud`), bukan dari `main`.
+2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 178 passed).
+3. Potong branch baru dari ujung terbaru (`admin-promo-crud` @ `cd07b7a` + commit `admin-store-settings`), bukan dari `main`.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
 5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata. Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
@@ -323,10 +348,10 @@ Lanjutkan proyek Kedai Kopi Varya. Mulai dengan membaca docs/HANDOFF.md,
 lalu AGENTS.md, PRD.md, docs/DECISIONS.md, docs/ROUTES.md, docs/DATABASE.md.
 
 Verifikasi baseline dulu: git log -1 dan php artisan test (harus hijau;
-saat file ini ditulis 169 passed).
+saat file ini ditulis 178 passed).
 Kalau MySQL mati, nyalakan XAMPP dulu sebelum menyimpulkan ada bug kode.
 
-Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.7, dipotong
+Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.8, dipotong
 dari branch terbaru. Ikuti pola yang sudah ada: FormRequest, Service,
 API Resource, DB::transaction + lockForUpdate, enum, named route.
 
@@ -355,9 +380,9 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 30-31 Okt 2026 | `qris-webhook` | `a9d04ab` | Webhook Midtrans, popup Snap, halaman status/tiket, polling, bayar lagi |
 | 1 Nov 2026 | `kasir-qris-ops` | `2fb738f` | Pembatalan QRIS + Cek Status kasir |
 | 1 Nov 2026 | `auto-expire-reconcile` | `28e78ff` | Rekonsiliasi terjadwal + penutupan otomatis 24 jam |
-| 1 Nov 2026 | `kasir-cancel-snap-session` | *belum di-commit* | Pembatalan QRIS lewat sesi Snap saat transaksi belum ada |
-| 1 Nov 2026 | `admin-menu-crud` | *belum di-commit* | CRUD menu admin + unggah foto + ketersediaan |
-| 1 Nov 2026 | `admin-promo-crud` | *belum di-commit* | CRUD promosi admin + unggah gambar + status aktif |
+| 1 Nov 2026 | `kasir-cancel-snap-session` + `admin-menu-crud` | `6a8cb0d` | Pembatalan QRIS lewat sesi Snap + CRUD menu admin + unggah foto + ketersediaan |
+| 1 Nov 2026 | `admin-promo-crud` | `cd07b7a` | CRUD promosi admin + unggah gambar + status aktif |
+| 2 Nov 2026 | `admin-store-settings` | *belum di-commit* | Informasi Toko: profil `store_settings` + jam `store_hours` 7 hari |
 
 ---
 

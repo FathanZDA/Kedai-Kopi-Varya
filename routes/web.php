@@ -187,5 +187,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
             ->name('promos.status');
 
         Route::get('/toko', [AdminController::class, 'store'])->name('store');
+        Route::put('/toko', [AdminController::class, 'updateStore'])->name('store.update');
     });
 });
