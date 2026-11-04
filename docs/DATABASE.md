@@ -283,6 +283,7 @@ Satu baris (`id = 1`).
 | `nama_toko` | varchar(255) | no | `Kedai Kopi Varya` | |
 | `tagline` | varchar(255) | yes | null | |
 | `sejarah` | text | yes | null | Sejarah/profil |
+| `foto_tentang` | varchar(255) | yes | null | Path relatif `public/` foto halaman Tentang Kami (F-70); `null` = placeholder |
 | `alamat` | text | yes | null | Alamat lengkap |
 | `maps_url` | text | yes | null | |
 | `maps_embed` | text | yes | null | |
@@ -293,7 +294,7 @@ Satu baris (`id = 1`).
 | `created_at` | timestamp | yes | null | |
 | `updated_at` | timestamp | yes | null | |
 
-Tidak ada `landmark`/`hours` JSON.
+Tidak ada `landmark`/`hours` JSON. `foto_tentang` ditambahkan lewat migration `2026_11_04_000001_tambah_foto_tentang_pada_store_settings`; berkas unggahan disimpan di `public/images/toko` dengan prefiks `unggahan-`.
 
 ### 4.11 `store_hours`
 

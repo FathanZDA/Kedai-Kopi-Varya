@@ -1,10 +1,10 @@
 # Kontrak Route & API — Kedai Kopi Varya
 
 **Status:** FINAL untuk route inti; O-16 (akun/kredensial Midtrans) masih OPEN
-**Terakhir diperbarui:** 3 November 2026
+**Terakhir diperbarui:** 4 November 2026
 **Acuan:** `PRD.md` §4.3, §7, §11; `docs/DECISIONS.md`; `routes/web.php`
 
-> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, proses terjadwal rekonsiliasi, CRUD menu admin, CRUD promosi, Informasi Toko, Laporan Transaksi, dan Dashboard admin sudah aktif.
+> Route autentikasi, transaksi kasir, checkout QRIS, webhook Midtrans, halaman status pesanan, pembayaran ulang, pembatalan QRIS, Cek Status, proses terjadwal rekonsiliasi, CRUD menu admin, CRUD promosi, Informasi Toko (termasuk foto Tentang Kami), Laporan Transaksi, dan Dashboard admin sudah aktif.
 
 ---
 
@@ -24,7 +24,7 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | GET | `/lokasi` | `pelanggan-a.lokasi` | `PelangganAController@lokasi` | Publik |
 | GET | `/pesan` | `pelanggan-b.beranda` | `PelangganBController@beranda` | Mode pesan QR |
 | GET | `/pesan/menu/{menu:slug}` | `pelanggan-b.produk` | `PelangganBController@produk` | Detail produk; tambahan UI |
-| GET | `/pesan/keranjang` | `pelanggan-b.keranjang` | `PelangganBController@keranjang` | Masih client-side |
+| GET | `/pesan/keranjang` | `pelanggan-b.keranjang` | `PelangganBController@keranjang` | Keranjang browser (`localStorage`, F-69); tanpa endpoint tulis |
 | GET | `/pesan/checkout` | `pelanggan-b.checkout` | `PelangganBController@checkout` | Form checkout; `POST` sudah ada |
 | POST | `/pesan/checkout` | `pelanggan-b.checkout.store` | `PelangganBController@storeCheckout` | Publik; `throttle:checkout`; order QRIS + Snap |
 | GET | `/pesanan/{order:kode_pesanan}` | `pesanan.status` | `PesananController@show` | Publik; kode acak 8 karakter; hanya order QRIS |
@@ -59,14 +59,15 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | PATCH | `/admin/promosi/{promo}/status` | `admin.promos.status` | `AdminController@updatePromoStatus` | `auth` + `role:admin`; JSON; hanya `aktif` |
 | GET | `/admin/toko` | `admin.store` | `AdminController@store` | `auth` + `role:admin`; data dari DB |
 | PUT | `/admin/toko` | `admin.store.update` | `AdminController@updateStore` | `auth` + `role:admin`; profil + jam 7 hari |
+| POST | `/admin/toko/foto-tentang` | `admin.store.foto-tentang.store` | `AdminController@storeAboutPhoto` | `auth` + `role:admin`; multipart, foto ≤ 3 MB |
+| DELETE | `/admin/toko/foto-tentang` | `admin.store.foto-tentang.destroy` | `AdminController@destroyAboutPhoto` | `auth` + `role:admin`; JSON bila `Accept: application/json` |
 
 Belum ada:
 
-- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, `POST/PUT/PATCH/DELETE /admin/menu`, `PATCH /admin/menu/{menu}/availability`, `POST/PUT/PATCH/DELETE /admin/promosi` + `PATCH /admin/promosi/{promo}/status`, serta `PUT /admin/toko`.
+- Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, `POST/PUT/PATCH/DELETE /admin/menu`, `PATCH /admin/menu/{menu}/availability`, `POST/PUT/PATCH/DELETE /admin/promosi` + `PATCH /admin/promosi/{promo}/status`, `PUT /admin/toko`, serta `POST`/`DELETE /admin/toko/foto-tentang`.
 - Rekonsiliasi berjalan sebagai command terjadwal `qris:reconcile` (bukan route HTTP), lihat §4.11.
 - Laporan: ekspor PDF/Excel (Fase 2) dan ringkasan lintas tahun selain daftar bulan pada filter.
 - Dashboard: tidak ada filter periode; angkanya selalu hari ini dan bulan berjalan.
-- Foto Tentang Kami: belum ada kontrak route/kolom; penyimpanan menunggu keputusan skema.
 - Rate limiting untuk endpoint lain di luar login, polling kasir, pembatalan/Cek Status, checkout, dan status pesanan.
 
 
@@ -109,7 +110,7 @@ Saat mengganti `/tentang-kami` menjadi `/tentang`, sediakan redirect 301 dari UR
 |---|---|---|---|---|
 | GET | `/pesan` | `pelanggan-b.beranda` | `PelangganBController@beranda` | — |
 | GET | `/pesan/menu/{menu:slug}` | `pelanggan-b.produk` | `PelangganBController@produk` | — |
-| GET | `/pesan/keranjang` | `pelanggan-b.keranjang` | `PelangganBController@keranjang` | — |
+| GET | `/pesan/keranjang` | `pelanggan-b.keranjang` | `PelangganBController@keranjang` | Keranjang browser (F-69); tidak ada endpoint tulis |
 | GET | `/pesan/checkout` | `pelanggan-b.checkout` | `PelangganBController@checkout` | — |
 | POST | `/pesan/checkout` | `pelanggan-b.checkout.store` | `PelangganBController@storeCheckout` | `throttle:checkout` |
 | GET | `/pesanan/{order:kode_pesanan}` | `pesanan.status` | `PesananController@show` | - |
@@ -268,7 +269,8 @@ Request:
   "item": [
     {
       "menu_id": 12,
-      "jumlah": 2
+      "jumlah": 2,
+      "harga_satuan": 18000
     }
   ]
 }
@@ -292,9 +294,26 @@ Response `201`:
 
 Error penting:
 
-- `422` — menu habis, harga berubah, jumlah tidak valid.
+- `409` — harga menu berbeda dari `harga_satuan` yang dikirim (harga berubah sejak masuk keranjang); tidak ada order dibuat.
+- `422` — menu habis/terhapus, `harga_satuan` tidak ada, jumlah tidak valid.
 - `429` — terlalu banyak checkout.
 - `500` — Snap gagal; order tetap tersimpan `menunggu` dan bisa dicoba lagi.
+
+Response `409`:
+
+```json
+{
+  "message": "Harga menu berikut berubah: Americano Street (Rp 18.000 → Rp 20.000). Hapus item tersebut dari keranjang, lalu tambahkan lagi dari menu terbaru.",
+  "errors": {
+    "item": ["Harga menu berikut berubah: ..."]
+  },
+  "data": {
+    "item": [
+      {"menu_id": 12, "nama": "Americano Street", "harga_lama": 18000, "harga_baru": 20000}
+    ]
+  }
+}
+```
 
 Catatan: catatan per item hanya dipakai pada alur kasir; checkout Pelanggan B memakai `orders.catatan` untuk catatan pesanan.
 
@@ -304,14 +323,15 @@ Perilaku implementasi yang perlu diketahui konsumen endpoint:
 
 - `POST /pesan/checkout` terbuka untuk tamu dan dibatasi `throttle:checkout` (10 permintaan/menit per IP).
 - Order + item disimpan lebih dulu dalam `DB::transaction`: `sumber = qr`, `metode_pembayaran = qris`, `status_pesanan = menunggu_pembayaran`, `status_pembayaran = menunggu`, `cashier_id = null`, `batas_waktu_pembayaran = sekarang + 15 menit`, **tanpa** `nomor_antrean`/`tanggal_antrean`.
-- Harga, subtotal, dan total selalu dihitung dari `menus.harga`; nilai harga/total dari browser diabaikan.
-- Menu habis, menu sudah di-soft-delete, atau `item` kosong menghasilkan `422` pada field `item` dan tidak ada order/payments yang tersimpan. Panggilan ke Midtrans juga tidak dilakukan.
+- Harga, subtotal, dan total selalu dihitung dari `menus.harga`; `total`/`subtotal` kiriman browser diabaikan.
+- `item.*.harga_satuan` **wajib** dan hanya berfungsi sebagai harga acuan yang dilihat pelanggan. Bila tidak sama dengan `menus.harga`, endpoint menjawab `409` (`data.item` berisi `menu_id`, `nama`, `harga_lama`, `harga_baru`) dan tidak ada order/payments dibuat (PRD B-10).
+- Menu habis, menu sudah di-soft-delete, `harga_satuan` tidak dikirim, atau `item` kosong menghasilkan `422` pada field `item` dan tidak ada order/payments yang tersimpan. Panggilan ke Midtrans juga tidak dilakukan.
 - Bila `MIDTRANS_SERVER_KEY` atau `MIDTRANS_CLIENT_KEY` belum diatur, endpoint menjawab `503` **sebelum** order dibuat, supaya tidak ada order yatim yang tidak bisa dibayar.
 - Bila Snap gagal (respons non-2xx, tanpa `token`/`redirect_url`, atau gangguan jaringan), endpoint menjawab `500` dengan `data.kode_pesanan`. Order tetap tersimpan sebagai `menunggu_pembayaran`.
 - Setiap panggilan Snap memakai baris `payments` baru: `midtrans_order_id = {kode_pesanan}-P{n}`. Baris dicatat **sebelum** HTTP call agar nomor percobaan tidak dipakai ulang saat pembayaran ulang (PRD §8.4.4). Percobaan yang gagal diubah menjadi `status_transaksi = failure` dengan `status_code` dari Midtrans (atau `500`) dan `raw_response` berisi galat; `snap_token`/`snap_redirect_url` tetap `null`.
 - Respons `201` mengikuti kontrak: `kode_pesanan`, `total`, `status_pesanan`, `status_pembayaran`, `batas_waktu_pembayaran`, `snap_token`, `snap_redirect_url`.
 - `callbacks.finish` dikirim ke `route('pesanan.status', $order)`. Popup Snap memakai `snap_token` dan **tidak** mengarahkan browser ke `snap_redirect_url`; pelanggan tetap berada di website ini.
-- `resources/js/pelanggan-b.js` mengirim JSON + header `X-CSRF-TOKEN`, menonaktifkan tombol saat menyimpan, menampilkan pesan `422`/`429`/`503`, membuka popup Snap setelah `201`, mengosongkan `localStorage` keranjang, lalu mengarahkan browser ke `/pesanan/{kode}` saat popup selesai/ditutup. Bila Snap gagal (`500`), browser juga diarahkan ke halaman status agar bisa mencoba bayar lagi.
+- `resources/js/pelanggan-b.js` mengirim JSON + header `X-CSRF-TOKEN` beserta `harga_satuan` dari keranjang, menonaktifkan tombol saat menyimpan, menampilkan pesan `409` (keranjang tidak dikosongkan agar bisa disesuaikan), `422`/`429`/`503`, membuka popup Snap setelah `201`, mengosongkan `localStorage` keranjang, lalu mengarahkan browser ke `/pesanan/{kode}` saat popup selesai/ditutup. Bila Snap gagal (`500`), browser juga diarahkan ke halaman status agar bisa mencoba bayar lagi.
 - Belum ada simulasi yang menandai pesanan lunas. Status lunas hanya boleh berasal dari webhook; halaman status melakukan polling ke §4.2 sampai status berubah.
 
 ### 4.2 `GET /pesanan/{kode_pesanan}/status`
@@ -773,9 +793,26 @@ Aturan:
 - Profil dan jam ditulis dalam satu `DB::transaction` + `lockForUpdate` agar halaman publik tidak membaca data campuran.
 - Field opsional yang kosong disimpan `null`; `fasilitas` kosong disimpan sebagai array `[]`; `instagram` dinormalisasi menjadi `@handle`.
 - Perubahan langsung tampil di halaman publik (`/`, `/tentang`, `/lokasi`) karena semuanya membaca `store_settings`/`store_hours`.
-- Foto Tentang Kami **belum** termasuk kontrak ini: `store_settings` belum punya kolom foto, sehingga panel foto di halaman promosi masih demo dan menunggu keputusan skema.
 - Error penting: `401` tamu (redirect `/login`), `403` bukan admin, `302` + `errors` untuk validasi gagal.
 - Status 2 Nov 2026: **sudah diimplementasikan** di `AdminController@store`/`updateStore` + `App\Http\Requests\Admin\StoreSettingsRequest` + `App\Services\StoreSettingsService`; `localStorage` informasi toko dihapus dari `admin.js`.
+
+#### Foto Tentang Kami
+
+Unggahan foto sengaja terpisah dari `PUT /admin/toko` supaya form JSON Informasi Toko tidak perlu menjadi multipart (F-70). Panelnya ada di halaman **Iklan & Promosi**.
+
+| Method | URI | Nama | Aturan |
+|---|---|---|---|
+| POST | `/admin/toko/foto-tentang` | `admin.store.foto-tentang.store` | form multipart (`foto`), `@csrf`; sukses `302` ke `admin.promos` + `session('status')` |
+| DELETE | `/admin/toko/foto-tentang` | `admin.store.foto-tentang.destroy` | JSON untuk `fetch` (`Accept: application/json`); sukses `200`; tanpa JSON `302` ke `admin.promos` |
+
+Aturan:
+
+- `foto` wajib, `image`, `mimes:jpg,jpeg,png,webp`, maks. 3072 KB (`AboutPhotoRequest`).
+- Berkas disimpan di `public/images/toko/unggahan-{acak}.{ext}`; unggahan baru menghapus berkas berprefiks `unggahan-` yang lama. Aset kanonik di `public/images` tidak pernah dihapus.
+- Foto disimpan pada `store_settings.foto_tentang` (baris id = 1, dibuat bila belum ada). `null` berarti `GET /tentang` memakai placeholder dan panel berstatus “Tidak Tampil”.
+- Satu foto dipakai untuk bingkai desktop (3:2) dan mobile (16:9); pemotongan dilakukan CSS (`object-cover`).
+- Error penting: `401` tamu (redirect `/login`), `403` bukan admin, `302` + `errors` untuk validasi gagal, `422` untuk DELETE bukan admin/tamu.
+- Status 4 Nov 2026: **sudah diimplementasikan** di `AdminController@storeAboutPhoto`/`destroyAboutPhoto` + `App\Http\Requests\Admin\AboutPhotoRequest` + `App\Services\StoreSettingsService::simpanFotoTentang`/`hapusFotoTentang`.
 
 ### 4.15 Laporan transaksi admin
 

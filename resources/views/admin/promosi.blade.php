@@ -1,5 +1,6 @@
 @php
-    $aboutImage = $store['about_image'];
+    $aboutImage = $store['about_image'] ?? asset('images/toko/belum-ada-foto.svg');
+    $hasAboutImage = $store['about_image'] !== null;
     $editPromoId = old('promo_id');
     $formAction = $editPromoId ? route('admin.promos.update', $editPromoId) : route('admin.promos.store');
     $previewPromoImage = $promos[0]['image'] ?? asset('images/menus/varya-signature.jpg');
@@ -140,7 +141,9 @@
                             </button>
 
                             <button type="button" data-about-delete
-                                    class="inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-3 py-2 font-mono text-[8px] font-bold tracking-wide uppercase shadow-[2px_2px_0_0_#1b1c1d] transition-colors hover:bg-[#fbe1de] hover:text-rust">
+                                    data-about-delete-url="{{ route('admin.store.foto-tentang.destroy') }}"
+                                    @if (! $hasAboutImage) disabled @endif
+                                    class="inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-3 py-2 font-mono text-[8px] font-bold tracking-wide uppercase shadow-[2px_2px_0_0_#1b1c1d] transition-colors hover:bg-[#fbe1de] hover:text-rust disabled:cursor-not-allowed disabled:opacity-40">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v5M14 11v5"/>
@@ -148,7 +151,7 @@
                                 Hapus
                             </button>
 
-                            <span class="tag ml-auto text-[8px] text-muted">Status: <span data-about-status class="text-varya-dark">Tampil</span></span>
+                            <span class="tag ml-auto text-[8px] text-muted">Status: <span data-about-status class="text-varya-dark">{{ $hasAboutImage ? 'Tampil' : 'Tidak Tampil' }}</span></span>
                         </div>
                     </div>
                 </section>
@@ -330,7 +333,11 @@
 
     {{-- Dialog foto tentang kami --}}
     <dialog data-about-dialog class="admin-dialog !max-w-xl">
-        <div class="admin-dialog-card">
+        <form method="POST"
+              action="{{ route('admin.store.foto-tentang.store') }}"
+              enctype="multipart/form-data"
+              class="admin-dialog-card">
+            @csrf
             <div class="flex items-start justify-between gap-4 border-b-2 border-ink bg-[#f3f1e7] px-5 py-4">
                 <div>
                     <p class="tag text-[8px] font-bold text-varya-dark">// Foto Tentang Kami</p>
@@ -357,7 +364,7 @@
                            class="mt-3 inline-flex cursor-pointer items-center justify-center rounded border-2 border-ink bg-white px-3 py-1.5 font-mono text-[8px] font-bold uppercase shadow-[2px_2px_0_0_#1b1c1d]">
                         Pilih dari Komputer
                     </label>
-                    <input id="about-image-input" type="file" data-about-image-input accept="image/jpeg,image/png,image/webp" class="sr-only">
+                    <input id="about-image-input" type="file" name="foto" data-about-image-input accept="image/jpeg,image/png,image/webp" class="sr-only">
                     <p data-about-image-name class="mt-1.5 truncate font-mono text-[8px] text-muted">Belum ada file dipilih</p>
                 </div>
 
@@ -384,9 +391,9 @@
 
                 <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                     <button type="button" data-about-close class="admin-btn-secondary">Batal</button>
-                    <button type="button" data-about-save class="admin-btn-primary">Simpan Foto</button>
+                    <button type="submit" class="admin-btn-primary">Simpan Foto</button>
                 </div>
             </div>
-        </div>
+        </form>
     </dialog>
 </x-layouts.admin>

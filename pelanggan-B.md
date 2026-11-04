@@ -107,7 +107,7 @@ Pelanggan B **tidak memiliki fitur Cek Pesanan atau pelacakan pesanan**. Setelah
 * Pada versi ini, metode pembayaran Pelanggan B hanya **QRIS**. Pembayaran tunai hanya tersedia untuk pesanan yang dibuat langsung oleh kasir.
 * Harga dan nama menu dikunci saat pesanan dibuat. Perubahan harga setelahnya tidak mengubah total pesanan pelanggan.
 * Setelah pesanan dibuat, item tidak dapat diubah. Jika pelanggan ingin mengubah pesanan, pelanggan harus kembali ke menu dan membuat pesanan baru; pesanan lama akan kedaluwarsa dengan sendirinya.
-* Jika ada menu yang menjadi habis saat pelanggan mengisi keranjang, sistem menolak checkout dan meminta pelanggan menyesuaikan keranjang.
+* Jika ada menu yang menjadi habis atau harganya berubah sejak masuk keranjang, sistem menolak checkout (`422` untuk menu habis, `409` untuk harga berubah) dan meminta pelanggan menyesuaikan keranjang.
 
 ---
 

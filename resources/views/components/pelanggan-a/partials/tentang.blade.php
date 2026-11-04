@@ -44,11 +44,17 @@
                 <span class="opacity-50">//</span> Kedai Varya
             </span>
 
-            {{-- Placeholder sampai foto kedai tersedia di public/images --}}
-            <div class="flex h-full min-h-[264px] w-full items-center justify-center rounded-lg bg-gradient-to-br from-[#7f8f6a] via-[#5d7a63] to-[#33463a] lg:min-h-full">
-                <div class="h-full w-full opacity-15"
-                     style="background-image:repeating-linear-gradient(135deg,#fff 0 3px,transparent 3px 22px)"></div>
-            </div>
+            @if ($store?->foto_tentang)
+                <img src="{{ asset($store->foto_tentang) }}"
+                     alt="Suasana Kedai Kopi Varya"
+                     class="h-full min-h-[264px] w-full rounded-lg object-cover lg:min-h-full">
+            @else
+                {{-- Placeholder selama admin belum mengunggah foto di halaman promosi --}}
+                <div class="flex h-full min-h-[264px] w-full items-center justify-center rounded-lg bg-gradient-to-br from-[#7f8f6a] via-[#5d7a63] to-[#33463a] lg:min-h-full">
+                    <div class="h-full w-full opacity-15"
+                         style="background-image:repeating-linear-gradient(135deg,#fff 0 3px,transparent 3px 22px)"></div>
+                </div>
+            @endif
         </div>
     </div>
 </section>

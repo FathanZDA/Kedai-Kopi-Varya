@@ -12,6 +12,10 @@ use Illuminate\Validation\Rule;
  * Harga, subtotal, dan total tidak diterima dari browser. Nilainya selalu
  * dihitung ulang dari database di App\Services\OrderService.
  *
+ * `harga_satuan` hanyalah harga acuan yang dilihat pelanggan di keranjang;
+ * server membandingkannya dengan `menus.harga` dan menolak checkout `409`
+ * bila berubah (PRD B-10). Harga yang dipakai menagih tetap dari database.
+ *
  * Kontrak: docs/ROUTES.md §4.1. Catatan per item hanya dipakai alur kasir,
  * sehingga checkout memakai `orders.catatan` untuk catatan pesanan.
  */
@@ -34,6 +38,7 @@ class StoreCheckoutRequest extends FormRequest
             'item' => ['required', 'array', 'min:1', 'max:50'],
             'item.*.menu_id' => ['required', 'integer', 'distinct'],
             'item.*.jumlah' => ['required', 'integer', 'min:1', 'max:99'],
+            'item.*.harga_satuan' => ['required', 'integer', 'min:0', 'max:100000000'],
         ];
     }
 
@@ -59,6 +64,10 @@ class StoreCheckoutRequest extends FormRequest
             'item.*.jumlah.integer' => 'Jumlah item harus berupa angka.',
             'item.*.jumlah.min' => 'Jumlah item minimal 1.',
             'item.*.jumlah.max' => 'Jumlah item maksimal 99.',
+            'item.*.harga_satuan.required' => 'Harga menu di keranjang tidak terbaca. Muat ulang halaman.',
+            'item.*.harga_satuan.integer' => 'Harga menu di keranjang tidak valid. Muat ulang halaman.',
+            'item.*.harga_satuan.min' => 'Harga menu di keranjang tidak valid. Muat ulang halaman.',
+            'item.*.harga_satuan.max' => 'Harga menu di keranjang tidak valid. Muat ulang halaman.',
         ];
     }
 }

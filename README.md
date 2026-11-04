@@ -9,7 +9,7 @@ Website UMKM Kedai Kopi Varya: etalase publik, pemesanan mandiri lewat QR dengan
 | Publik (Pelanggan A) | Tanpa login | Beranda, menu, tentang, dan lokasi — semua dari database |
 | Pesan QR (Pelanggan B) | Tanpa login | Menu mode pesan, keranjang, checkout QRIS (popup Snap), halaman status pesanan dengan tiket antrean dan **Coba Bayar Lagi** |
 | Kasir | Login `kasir` | Buat Pesanan tunai (halaman awal), Pesanan Masuk dengan polling, detail pesanan, pembatalan QRIS, Cek Status, Kelola Menu (ketersediaan) |
-| Admin | Login `admin` | Dashboard, Kelola Menu (CRUD + foto), Laporan Transaksi (filter bulan + rincian), Iklan & Promosi, Informasi Toko (profil + jam 7 hari) |
+| Admin | Login `admin` | Dashboard, Kelola Menu (CRUD + foto), Laporan Transaksi (filter bulan + rincian), Iklan & Promosi (+ foto Tentang Kami), Informasi Toko (profil + jam 7 hari) |
 
 Aturan bisnis lengkap ada di `PRD.md`. Ringkasan status pengerjaan dan slice berikutnya ada di `docs/HANDOFF.md`.
 
@@ -17,8 +17,9 @@ Catatan penting:
 
 - Status pembayaran QRIS hanya berubah lewat webhook Midtrans (`POST /api/midtrans/notification`) atau Cek Status server-side kasir — tidak ada simulasi di browser.
 - Nomor antrean dibuat setelah pembayaran lunas (QRIS) atau saat pesanan tunai disimpan.
-- Keranjang Pelanggan B masih disimpan di `localStorage`; backend belum punya endpoint keranjang.
-- Foto Tentang Kami masih demo karena `store_settings` belum punya kolom foto.
+- Keranjang Pelanggan B disimpan di `localStorage` sebagai daftar belanja sementara (F-69); harga, ketersediaan, dan total selalu dihitung ulang di server saat checkout.
+- Bila harga menu berubah sejak item masuk keranjang, checkout ditolak `409` dan pelanggan diminta menyesuaikan keranjang (PRD B-10).
+- Foto Tentang Kami disimpan di `store_settings.foto_tentang` lewat unggahan terpisah di halaman Iklan & Promosi.
 
 ## Stack
 
@@ -71,7 +72,7 @@ Data katalog kanonik (5 kategori, 12 menu, 3 promosi, 7 baris jam toko) berasal 
 
 ### Folder unggahan
 
-Foto menu dan gambar promosi disimpan di `public/images/menus` dan `public/images/promos`. Pastikan kedua folder dapat ditulis oleh proses PHP.
+Foto menu, gambar promosi, dan foto Tentang Kami disimpan di `public/images/menus`, `public/images/promos`, dan `public/images/toko`. Pastikan ketiga folder dapat ditulis oleh proses PHP.
 
 ## Konfigurasi Midtrans (Sandbox)
 
@@ -107,7 +108,7 @@ Di server produksi gunakan cron `* * * * * php artisan schedule:run`.
 ## Perintah Pemeriksaan
 
 ```bash
-php artisan test                                         # 200 test
+php artisan test                                         # 211 test
 php vendor/bin/pint --test                               # gaya kode PHP
 npm.cmd run build                                        # aset frontend
 php artisan route:list --except-vendor                   # daftar route
@@ -122,7 +123,7 @@ Test memakai MySQL dengan database terpisah, `kedai_varya_test` (lihat `phpunit.
 CREATE DATABASE kedai_varya_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-SQLite tidak dipakai untuk aplikasi maupun test. File `database/database.sqlite` sudah tidak digunakan; isinya hanya data seed lama tanpa tabel transaksi, sehingga aman dihapus setelah dipastikan tidak ada data yang dibutuhkan.
+SQLite tidak dipakai untuk aplikasi maupun test. File `database/database.sqlite` sudah dihapus pada 4 November 2026 setelah isinya dipastikan hanya data seed lama tanpa tabel transaksi.
 
 ## Struktur Penting
 
@@ -134,7 +135,7 @@ SQLite tidak dipakai untuk aplikasi maupun test. File `database/database.sqlite`
 | `database/seeders` | Akun awal + katalog kanonik |
 | `resources/js` | Satu modul per area: `pelanggan-a.js`, `pelanggan-b.js`, `kasir.js`, `admin.js` |
 | `resources/views` | Blade per area + komponen layout |
-| `public/images` | Foto menu, gambar promosi, aset statis |
+| `public/images` | Foto menu, gambar promosi, foto Tentang Kami, aset statis |
 
 ## Dokumen Acuan
 

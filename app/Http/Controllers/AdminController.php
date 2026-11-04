@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\AboutPhotoRequest;
 use App\Http\Requests\Admin\MenuRequest;
 use App\Http\Requests\Admin\PromoRequest;
 use App\Http\Requests\Admin\StoreSettingsRequest;
@@ -210,7 +211,7 @@ class AdminController extends Controller
             'store' => $store,
             'config' => [
                 'promos' => $promos,
-                'aboutImage' => $store['about_image'],
+                'aboutImage' => $store['about_image'] ?? asset('images/toko/belum-ada-foto.svg'),
             ],
         ]);
     }
@@ -292,6 +293,45 @@ class AdminController extends Controller
         return redirect()
             ->route('admin.store')
             ->with('status', 'Informasi toko berhasil disimpan.');
+    }
+
+    /**
+     * Unggah foto halaman Tentang Kami.
+     *
+     * Form memakai `POST` multipart dari panel di halaman promosi, terpisah
+     * dari `PUT /admin/toko` yang JSON, agar kontrak Informasi Toko tidak
+     * berubah.
+     */
+    public function storeAboutPhoto(
+        AboutPhotoRequest $request,
+        StoreSettingsService $settings,
+    ): RedirectResponse {
+        $settings->simpanFotoTentang($request->file('foto'));
+
+        return redirect()
+            ->route('admin.promos')
+            ->with('status', 'Foto tentang kami berhasil disimpan.');
+    }
+
+    /**
+     * Hapus foto halaman Tentang Kami.
+     */
+    public function destroyAboutPhoto(
+        Request $request,
+        StoreSettingsService $settings,
+    ): RedirectResponse|JsonResponse {
+        $settings->hapusFotoTentang();
+
+        $pesan = 'Foto tentang kami berhasil dihapus.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $pesan,
+                'data' => ['about_image' => null],
+            ]);
+        }
+
+        return redirect()->route('admin.promos')->with('status', $pesan);
     }
 
     private function admin(): array
@@ -408,7 +448,7 @@ class AdminController extends Controller
                 ['value' => 'Setiap Hari', 'label' => 'Siap Melayani'],
             ],
             'hours' => $hours,
-            'about_image' => asset('images/menus/varya-signature.jpg'),
+            'about_image' => $store->foto_tentang ? asset($store->foto_tentang) : null,
             'last_updated' => $store->updated_at?->locale('id')->translatedFormat('j F Y, H:i').' WIB' ?? 'Belum diperbarui',
         ];
     }

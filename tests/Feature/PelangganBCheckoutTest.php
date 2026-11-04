@@ -75,7 +75,7 @@ class PelangganBCheckoutTest extends TestCase
             'tipe_pesanan' => 'dine_in',
             'catatan' => 'Tanpa es',
             'item' => [
-                ['menu_id' => $this->kopi->id, 'jumlah' => 2],
+                ['menu_id' => $this->kopi->id, 'jumlah' => 2, 'harga_satuan' => $this->kopi->harga],
             ],
         ], $ganti);
     }
@@ -164,17 +164,19 @@ class PelangganBCheckoutTest extends TestCase
         });
     }
 
-    public function test_harga_dari_browser_diabaikan(): void
+    public function test_harga_ditagih_dari_database_bukan_dari_browser(): void
     {
         $this->fakeSnapSukses();
 
+        // `harga_satuan` hanya pembanding; `total`/`subtotal` kiriman browser
+        // tetap diabaikan dan tagihan dihitung dari `menus.harga`.
         $this->postJson(route('pelanggan-b.checkout.store'), $this->payload([
             'total' => 2,
             'item' => [
                 [
                     'menu_id' => $this->kopi->id,
                     'jumlah' => 2,
-                    'harga_satuan' => 1,
+                    'harga_satuan' => 18000,
                     'subtotal' => 2,
                 ],
             ],
@@ -191,13 +193,49 @@ class PelangganBCheckoutTest extends TestCase
         ]);
     }
 
+    public function test_harga_berubah_sejak_masuk_keranjang_ditolak_409(): void
+    {
+        $this->fakeSnapSukses();
+
+        $this->kopi->update(['harga' => 20000]);
+
+        $this->postJson(route('pelanggan-b.checkout.store'), $this->payload([
+            'item' => [
+                ['menu_id' => $this->kopi->id, 'jumlah' => 2, 'harga_satuan' => 18000],
+            ],
+        ]))
+            ->assertStatus(409)
+            ->assertJsonPath('data.item.0.menu_id', $this->kopi->id)
+            ->assertJsonPath('data.item.0.harga_lama', 18000)
+            ->assertJsonPath('data.item.0.harga_baru', 20000)
+            ->assertJsonPath('errors.item.0', 'Harga menu berikut berubah: Americano Street (Rp 18.000 → Rp 20.000). Hapus item tersebut dari keranjang, lalu tambahkan lagi dari menu terbaru.');
+
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('payments', 0);
+        Http::assertNothingSent();
+    }
+
+    public function test_harga_satuan_wajib_dikirim_checkout_publik(): void
+    {
+        $this->fakeSnapSukses();
+
+        $this->postJson(route('pelanggan-b.checkout.store'), $this->payload([
+            'item' => [['menu_id' => $this->kopi->id, 'jumlah' => 1]],
+        ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('item.0.harga_satuan');
+
+        $this->assertDatabaseCount('orders', 0);
+        Http::assertNothingSent();
+    }
+
     public function test_menu_habis_ditolak_tanpa_membuat_order_atau_memanggil_midtrans(): void
     {
         $this->teh->update(['tersedia' => false]);
         $this->fakeSnapSukses();
 
         $this->postJson(route('pelanggan-b.checkout.store'), $this->payload([
-            'item' => [['menu_id' => $this->teh->id, 'jumlah' => 1]],
+            'item' => [['menu_id' => $this->teh->id, 'jumlah' => 1, 'harga_satuan' => 24000]],
         ]))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('item');

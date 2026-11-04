@@ -1659,21 +1659,28 @@ function initPromotions() {
         handleAboutImage(event.dataTransfer?.files?.[0]);
     });
 
-    aboutDialog?.querySelector('[data-about-save]')?.addEventListener('click', () => {
-        const image = state.aboutDialogImage ?? state.aboutDialogBaseImage ?? EMPTY_IMAGE;
-        setAboutImage(image, 'Tampil');
-        closeDialog(aboutDialog);
-        showToast('Foto tentang kami berhasil diperbarui (demo).');
-    });
+    // Simpan foto memakai submit form multipart biasa; halaman dimuat ulang
+    // sehingga pratinjau dan status selalu berasal dari database.
 
     aboutDelete?.addEventListener('click', () => {
+        const url = aboutDelete.dataset.aboutDeleteUrl;
+        if (!url) return;
+
         askConfirm({
             title: 'Hapus foto tentang kami?',
-            message: 'Foto akan dihapus dari pratinjau halaman tentang. Kamu dapat mengunggah foto baru kapan saja.',
+            message: 'Foto akan dihapus dari halaman tentang. Kamu dapat mengunggah foto baru kapan saja.',
             label: 'Hapus Foto',
-            onConfirm: () => {
+            onConfirm: async () => {
+                const hasil = await kirimJson(url, 'DELETE');
+
+                if (!hasil.ok) {
+                    showToast(pesanKesalahan(hasil));
+                    return;
+                }
+
                 setAboutImage(EMPTY_IMAGE, 'Tidak Tampil');
-                showToast('Foto tentang kami dihapus dari pratinjau (demo).');
+                aboutDelete.disabled = true;
+                showToast(hasil.data?.message ?? 'Foto tentang kami berhasil dihapus.');
             },
         });
     });

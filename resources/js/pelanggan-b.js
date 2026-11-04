@@ -536,7 +536,10 @@ function initCheckout() {
             nama_pelanggan: name,
             tipe_pesanan: form.querySelector('[data-order-type]:checked')?.value ?? 'dine_in',
             catatan: (form.querySelector('[data-catatan]')?.value ?? '').trim(),
-            item: cart.map((item) => ({ menu_id: item.id, jumlah: item.qty })),
+            // `harga_satuan` adalah harga yang dilihat pelanggan di keranjang.
+            // Server membandingkannya dengan harga menu dan menolak 409 bila
+            // sudah berubah, supaya tagihan tidak berbeda diam-diam.
+            item: cart.map((item) => ({ menu_id: item.id, jumlah: item.qty, harga_satuan: item.price })),
         };
 
         setPending(true);
@@ -589,6 +592,12 @@ function initCheckout() {
                 return;
             } else if (response.status === 429) {
                 showCheckoutError('Terlalu banyak percobaan checkout. Tunggu sebentar lalu coba lagi.');
+            } else if (response.status === 409) {
+                // Harga menu berubah sejak item masuk keranjang (PRD B-10).
+                // Keranjang tidak dikosongkan agar pelanggan bisa menyesuaikan.
+                showCheckoutError(
+                    firstErrorMessage(body) ?? body.message ?? 'Harga menu berubah. Sesuaikan keranjang lalu coba lagi.',
+                );
             } else if (response.status === 422) {
                 showCheckoutError(
                     firstErrorMessage(body) ?? 'Pesanan tidak bisa diproses. Periksa kembali data pesanan.',

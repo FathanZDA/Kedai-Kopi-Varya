@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\HargaMenuBerubahException;
 use App\Exceptions\MidtransException;
 use App\Http\Requests\PelangganB\StoreCheckoutRequest;
 use App\Http\Resources\CheckoutResource;
@@ -68,6 +69,14 @@ class PelangganBController extends Controller
 
         try {
             $order = $orderService->buatOrderQris($request->validated());
+        } catch (HargaMenuBerubahException $exception) {
+            // Harga acuan di keranjang sudah usang: tidak ada order tersimpan,
+            // pelanggan diminta menyesuaikan keranjang (PRD B-10).
+            return response()->json([
+                'message' => $exception->getMessage(),
+                'errors' => ['item' => [$exception->getMessage()]],
+                'data' => ['item' => $exception->perubahan],
+            ], 409);
         } catch (MidtransException $exception) {
             return response()->json([
                 'message' => 'Pesanan sudah tersimpan, tetapi halaman pembayaran QRIS gagal dibuat. Silakan hubungi kasir dengan kode pesanan ini.',

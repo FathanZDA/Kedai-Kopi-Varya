@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 3 Nov 2026, setelah `kasir-pesanan-detail` di-commit (`9e7dfc0`); slice `docs-readme` (README proyek + pembersihan demo) sudah diimplementasikan di working tree dan **belum di-commit**.
+**Terakhir diperbarui:** 4 Nov 2026, setelah tiga keputusan tertunda disetujui user dan dikerjakan (`pelanggan-b-cart-policy`, `admin-about-photo`, `checkout-price-guard`) serta `database/database.sqlite` dihapus. Semuanya ada di working tree dan **belum di-commit**.
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `docs-readme` @ `9e7dfc0`; working tree memuat slice `docs-readme` yang **belum di-commit** |
-| Baseline test | `php artisan test` → **200 passed** (1027 assertions) |
+| Branch aktif | `docs-readme` @ `0af5014`; working tree memuat tiga slice 4 Nov 2026 yang **belum di-commit** |
+| Baseline test | `php artisan test` → **211 passed** (1070 assertions) setelah tiga slice 4 Nov 2026 |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user) |
@@ -39,7 +39,8 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `admin-reports` | `f212512` | Laporan Transaksi dari DB + filter bulan + rincian transaksi |
 | `admin-dashboard` | `5a406c4` | Dashboard dari DB: ringkasan, menu terlaris, transaksi terbaru |
 | `kasir-pesanan-detail` | `9e7dfc0` | Detail pesanan kasir dari DB (`GET /kasir/pesanan/{order}`) |
-| `docs-readme` | *belum di-commit* | README proyek, `.env.example` Midtrans, catatan SQLite |
+| `docs-readme` | `0af5014` | README proyek, `.env.example` Midtrans, catatan SQLite |
+| `keputusan-tertunda` (usulan) | *belum di-commit* | Kebijakan keranjang, foto Tentang Kami, `409` harga checkout, hapus SQLite |
 
 ---
 
@@ -48,9 +49,9 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | Area | Status | Keterangan |
 |---|---|---|
 | Publik Pelanggan A | **Selesai** | Semua data dari database |
-| Pelanggan B | **Sebagian** | Menu/toko dari DB; keranjang masih `localStorage`; checkout → order QRIS + Snap; webhook sudah menandai lunas; halaman status, tiket antrean, polling, dan bayar lagi sudah ada |
+| Pelanggan B | **Selesai** | Menu/toko dari DB; keranjang browser sesuai F-69; checkout → order QRIS + Snap dengan konflik harga `409`; webhook menandai lunas; halaman status, tiket antrean, polling, dan bayar lagi sudah ada |
 | Kasir | **Selesai** | Buat Pesanan, Pesanan Masuk, detail pesanan dari DB, pembatalan QRIS, Cek Status, dan Kelola Menu |
-| Admin | **Selesai (kecuali foto)** | CRUD menu, CRUD promosi, Informasi Toko, Laporan Transaksi, dan Dashboard sudah dari DB; foto tentang kami masih demo |
+| Admin | **Selesai** | CRUD menu, CRUD promosi, Informasi Toko, foto Tentang Kami, Laporan Transaksi, dan Dashboard sudah dari DB |
 | Login/role | **Selesai** | `/login`, redirect per role, `role` middleware, rate limit |
 | Database transaksi | **Selesai** | `orders`, `order_items`, `payments`, `payment_notifications`, `queue_counters` |
 | Pembayaran Midtrans | **Selesai** | Snap create + webhook + nomor antrean + popup + halaman status/bayar lagi + pembatalan + cek status + rekonsiliasi terjadwal + penutupan otomatis 24 jam + pembatalan sesi Snap |
@@ -290,7 +291,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Perubahan langsung tampil di `/`, `/tentang`, dan `/lokasi` karena halaman publik membaca `store_settings`/`store_hours` yang sama.
 - Field opsional kosong disimpan `null`, `fasilitas` kosong menjadi `[]`, tetapi `tagline` disimpan `''` karena kolomnya NOT NULL.
 - Hari yang ditandai libur menyimpan `jam_buka`/`jam_tutup` `null` dan `tutup = true`; hari lain wajib punya kedua jam.
-- **Foto Tentang Kami belum tersimpan**: `store_settings` belum punya kolom foto, sehingga panel foto di halaman promosi masih demo dan menunggu keputusan skema (lihat §6).
+- **Foto Tentang Kami** saat slice ini belum tersimpan (tidak ada kolom foto). Sudah diselesaikan 4 Nov 2026 di §5.13 (F-70).
 - Migration `2026_10_25_000001_align_schema_with_prd` sudah mengisi 7 baris `store_hours`; test membersihkan data bawaan itu di `setUp()` sebelum membuat data sendiri agar unique `hari` tidak bentrok.
 
 ### 5.8 `admin-reports`
@@ -381,28 +382,88 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 **Perilaku penting:**
 
-- README menyebut keranjang Pelanggan B masih `localStorage` dan foto Tentang Kami masih demo supaya tidak menyesatkan pembaca.
+- README menyebut keranjang Pelanggan B masih `localStorage` dan foto Tentang Kami masih demo supaya tidak menyesatkan pembaca. Keduanya diperbarui 4 Nov 2026 (§5.12/§5.13).
 - Tidak ada kode aplikasi yang berubah pada slice ini; hanya dokumentasi dan template `.env`.
 - Penghapusan `database/database.sqlite` dan keputusan keranjang/foto/`409` masuk daftar tunggu user (§6 dan §5.12).
 
-## 5.12 Kandidat berikutnya (menunggu keputusan user)
+### 5.12 `pelanggan-b-cart-policy` (A1)
 
-Semua slice yang tertulis di rencana sebelumnya sudah selesai. Yang tersisa membutuhkan keputusan user lebih dulu:
+**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
 
-| # | Topik | Pilihan | Acuan |
+**Kontrak:** PRD B-04; `docs/DECISIONS.md` F-29, F-69; `docs/ROUTES.md` §1/§2.3.
+
+**Yang sudah ada:**
+
+1. Keranjang Pelanggan B tetap di `localStorage` (`varya_cart_v1`) — **tidak** ada endpoint keranjang baru, sesuai keputusan user.
+2. F-29 diperjelas: larangan browser storage tetap berlaku untuk pesanan, menu, dan pembayaran, sedangkan keranjang tamu adalah pengecualian resmi karena server menghitung ulang harga, ketersediaan, dan total saat checkout.
+3. `AGENTS.md` §2/§6/§7, `docs/ROUTES.md`, dan README memakai rumusan yang sama supaya tidak ada aturan internal yang dilanggar diam-diam.
+
+**Perilaku penting:**
+
+- Tidak ada kode yang berubah pada slice ini; hanya dokumen.
+- Keranjang tidak boleh dipakai untuk menyimpan pesanan, status pembayaran, atau ketersediaan menu.
+- Bila Pelanggan B kelak punya akun, keputusan ini ditinjau ulang (F-69).
+
+### 5.13 `admin-about-photo` (B1)
+
+**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+
+**Kontrak:** PRD AD-05; `docs/DECISIONS.md` F-70; `docs/ROUTES.md` §4.14.
+
+**Yang sudah ada:**
+
+1. Migration `2026_11_04_000001_tambah_foto_tentang_pada_store_settings` — kolom `store_settings.foto_tentang` (varchar 255, nullable).
+2. `POST /admin/toko/foto-tentang` (`admin.store.foto-tentang.store`, multipart) dan `DELETE /admin/toko/foto-tentang` (`admin.store.foto-tentang.destroy`, JSON bila `Accept: application/json`). `PUT /admin/toko` tetap JSON (F-64).
+3. `App\Http\Requests\Admin\AboutPhotoRequest` — wajib gambar JPG/PNG/WEBP, maks. 3 MB.
+4. `StoreSettingsService::simpanFotoTentang`/`hapusFotoTentang` — berkas di `public/images/toko/unggahan-{acak}.{ext}`, unggahan lama dihapus hanya bila berprefiks `unggahan-`.
+5. Panel **Foto Tentang Kami** di halaman promosi kini form multipart asli (Simpan = submit, Hapus = `fetch` DELETE), status “Tampil”/“Tidak Tampil” dari database, dan pratinjau memakai `public/images/toko/belum-ada-foto.svg` bila kosong.
+6. `resources/views/components/pelanggan-a/partials/tentang.blade.php` menampilkan foto dari database; placeholder bermotif dipertahankan saat `foto_tentang` `null`.
+7. Test baru: `tests/Feature/AdminAboutPhotoTest.php` (9 test, 30 assertions) — unggah tersimpan, tampil di `/tentang`, placeholder saat kosong, unggahan baru menghapus berkas lama, berkas non-gambar ditolak, hapus menghapus berkas + kolom, status panel, kasir `403`, tamu ke login.
+
+**Perilaku penting:**
+
+- Satu foto untuk bingkai desktop (3:2) dan mobile (16:9); pemotongan lewat CSS `object-cover`.
+- Berkas kanonik di `public/images` tidak pernah dihapus.
+- Panel berada di halaman promosi (desain yang sudah ada), bukan halaman Informasi Toko.
+
+### 5.14 `checkout-price-guard` (C1)
+
+**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+
+**Kontrak:** PRD B-10, §8.2 butir 8; `docs/DECISIONS.md` F-71; `docs/ROUTES.md` §4.1.
+
+**Yang sudah ada:**
+
+1. `StoreCheckoutRequest` mewajibkan `item.*.harga_satuan` (integer ≥ 0); nilainya hanya harga acuan, bukan harga yang ditagih.
+2. `OrderService::siapkanItem` menerima `$periksaHarga`; `buatOrderQris` mengaktifkannya, `buatOrderTunai` tidak, sehingga alur kasir tidak berubah.
+3. `App\Exceptions\HargaMenuBerubahException` mengumpulkan semua item yang harganya berubah (nama, harga lama, harga baru) dan menyusun pesan; `PelangganBController@storeCheckout` menjawab `409` dengan `data.item`, tanpa membuat order/payment dan tanpa memanggil Midtrans.
+4. `resources/js/pelanggan-b.js` mengirim `harga_satuan` dari keranjang dan menampilkan pesan `409` tanpa mengosongkan keranjang.
+5. Test `PelangganBCheckoutTest` diperbarui: payload menyertakan `harga_satuan`; test baru untuk harga berubah → `409` dan `harga_satuan` hilang → `422`.
+
+**Perilaku penting:**
+
+- Menu habis/terhapus tetap `422`; hanya konflik harga yang `409`.
+- Tidak ada order tersimpan saat `409`, jadi pelanggan bisa checkout ulang setelah menyesuaikan keranjang.
+- Harga yang ditagih dan disimpan di `order_items` selalu `menus.harga`.
+
+## 5.15 Kandidat berikutnya
+
+Tidak ada slice tertunda yang menunggu keputusan; tiga keputusan 4 Nov 2026 sudah dikerjakan. Sisa pekerjaan bersifat opsional/operasional:
+
+| # | Topik | Catatan | Acuan |
 |---|---|---|---|
-| 1 | `pelanggan-b-cart` | Endpoint keranjang server-side **atau** mempertahankan keranjang di browser | AGENTS §2, F-29; `docs/ROUTES.md` belum punya kontrak keranjang |
-| 2 | Foto Tentang Kami | Tambah kolom `foto_tentang` lewat migration baru + unggah gambar, **atau** hapus panel foto demo | `docs/DECISIONS.md` F-64; §6 |
-| 3 | `409 "menu berubah"` | Tambah harga acuan per item pada request checkout/order agar konflik menu menghasilkan `409`, atau tetap `422` | §6; `docs/ROUTES.md` §4.1/§4.4 |
-| 4 | `database/database.sqlite` | Hapus file (sudah dipastikan hanya data seed lama) atau biarkan | F-44; §7 |
+| 1 | Ekspor laporan PDF/Excel | Fase 2, belum masuk scope | F-19; PRD AD-03 |
+| 2 | Akun/kredensial Midtrans produksi | Operasional, butuh akun dan URL publik | O-16; `docs/MIDTRANS-SETUP.md` |
+| 3 | Keranjang server-side | Hanya relevan bila Pelanggan B kelak punya akun | F-69 |
 
 ## 6. Keputusan yang masih menunggu user
 
 | Topik | Status | Dampak |
 |---|---|---|
 | `O-16` akun/kredensial Midtrans | OPEN operasional (sandbox sudah diuji end-to-end) | URL ngrok berubah setiap restart; perbarui Notification URL Midtrans. Kredensial produksi belum disiapkan. Lihat `docs/MIDTRANS-SETUP.md`. |
-| Foto Tentang Kami | Belum diputuskan | `store_settings` belum punya kolom foto. Pilihan: tambah kolom `foto_tentang` lewat migration baru + unggah gambar, atau hapus panel foto demo. Butuh persetujuan user sebelum dikerjakan. |
-| `409 "menu berubah"` pada checkout/order | Belum diputuskan | Saat ini semua konflik menu → `422` |
+| Foto Tentang Kami | **Selesai** (F-70) | Kolom `foto_tentang` + endpoint unggah terpisah |
+| `409 "menu berubah"` pada checkout/order | **Selesai** (F-71) | Harga acuan wajib di checkout publik; kasir tunai tidak berubah |
+| Keranjang Pelanggan B | **Selesai** (F-69) | Tetap di browser sebagai pengecualian resmi F-29 |
 | `callbacks.finish` Snap | **Selesai** | Dikirim ke halaman status sebagai fallback |
 
 ---
@@ -427,9 +488,9 @@ Semua slice yang tertulis di rencana sebelumnya sudah selesai. Yang tersisa memb
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
 2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 200 passed).
-3. Potong branch baru dari ujung terbaru (`kasir-pesanan-detail` @ `9e7dfc0` + commit `docs-readme`), bukan dari `main`.
+3. Potong branch baru dari ujung terbaru (`docs-readme` @ `0af5014` + commit keputusan tertunda), bukan dari `main`.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
-5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata. Tanpa simulasi pembayaran.
+5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata selain keranjang tamu Pelanggan B (F-69). Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
 
 ---
@@ -479,7 +540,8 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 3 Nov 2026 | `admin-reports` | `f212512` | Laporan Transaksi dari DB: filter bulan, ringkasan hanya lunas, rincian snapshot item |
 | 3 Nov 2026 | `admin-dashboard` | `5a406c4` | Dashboard dari DB: ringkasan, menu terlaris, 10 transaksi terbaru |
 | 3 Nov 2026 | `kasir-pesanan-detail` | `9e7dfc0` | Detail pesanan kasir dari DB untuk dialog Pesanan Masuk |
-| 3 Nov 2026 | `docs-readme` | *belum di-commit* | README proyek, template `MIDTRANS_*`, catatan SQLite |
+| 3 Nov 2026 | `docs-readme` | `0af5014` | README proyek, template `MIDTRANS_*`, catatan SQLite |
+| 4 Nov 2026 | `keputusan-tertunda` (usulan) | *belum di-commit* | Kebijakan keranjang (dokumen), foto Tentang Kami + `foto_tentang`, `409` harga checkout, hapus `database/database.sqlite` |
 
 ---
 

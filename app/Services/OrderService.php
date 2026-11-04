@@ -6,6 +6,7 @@ use App\Enums\MetodePembayaran;
 use App\Enums\StatusPembayaran;
 use App\Enums\StatusPesanan;
 use App\Enums\SumberPesanan;
+use App\Exceptions\HargaMenuBerubahException;
 use App\Exceptions\MidtransException;
 use App\Models\Menu;
 use App\Models\Order;
@@ -97,7 +98,7 @@ class OrderService
     public function buatOrderQris(array $data): Order
     {
         $order = DB::transaction(function () use ($data): Order {
-            $items = $this->siapkanItem($data['item']);
+            $items = $this->siapkanItem($data['item'], periksaHarga: true);
             $total = (int) array_sum(array_column($items, 'subtotal'));
 
             $order = Order::create([
@@ -708,10 +709,18 @@ class OrderService
      * Harga diambil dari database, bukan dari browser. Menu yang sudah
      * di-soft-delete otomatis tidak ikut karena scope SoftDeletes.
      *
-     * @param  array<int, array{menu_id: int, jumlah: int, catatan?: string|null}>  $baris
+     * Bila `$periksaHarga` aktif, `harga_satuan` dari browser hanya dipakai
+     * sebagai pembanding. Harga yang diterima berbeda dari `menus.harga`
+     * berarti harga berubah sejak item masuk keranjang dan checkout ditolak
+     * `409` (PRD B-10), bukan diam-diam memakai harga baru.
+     *
+     * @param  array<int, array{menu_id: int, jumlah: int, catatan?: string|null, harga_satuan?: int}>  $baris
      * @return array<int, array<string, mixed>>
+     *
+     * @throws ValidationException
+     * @throws HargaMenuBerubahException
      */
-    private function siapkanItem(array $baris): array
+    private function siapkanItem(array $baris, bool $periksaHarga = false): array
     {
         /** @var Collection<int, Menu> $menu */
         $menu = Menu::query()
@@ -720,6 +729,7 @@ class OrderService
             ->keyBy('id');
 
         $hasil = [];
+        $hargaBerubah = [];
 
         foreach ($baris as $item) {
             $data = $menu->get($item['menu_id']);
@@ -736,6 +746,16 @@ class OrderService
                 ]);
             }
 
+            if ($periksaHarga && array_key_exists('harga_satuan', $item)
+                && (int) $item['harga_satuan'] !== $data->harga) {
+                $hargaBerubah[] = [
+                    'menu_id' => $data->id,
+                    'nama' => $data->nama,
+                    'harga_lama' => (int) $item['harga_satuan'],
+                    'harga_baru' => $data->harga,
+                ];
+            }
+
             $jumlah = (int) $item['jumlah'];
 
             $hasil[] = [
@@ -746,6 +766,10 @@ class OrderService
                 'subtotal' => $data->harga * $jumlah,
                 'catatan' => $item['catatan'] ?? null,
             ];
+        }
+
+        if ($hargaBerubah !== []) {
+            throw new HargaMenuBerubahException($hargaBerubah);
         }
 
         return $hasil;

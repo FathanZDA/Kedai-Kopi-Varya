@@ -192,5 +192,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
         Route::get('/toko', [AdminController::class, 'store'])->name('store');
         Route::put('/toko', [AdminController::class, 'updateStore'])->name('store.update');
+
+        Route::post('/toko/foto-tentang', [AdminController::class, 'storeAboutPhoto'])
+            ->name('store.foto-tentang.store');
+
+        Route::delete('/toko/foto-tentang', [AdminController::class, 'destroyAboutPhoto'])
+            ->name('store.foto-tentang.destroy');
     });
 });

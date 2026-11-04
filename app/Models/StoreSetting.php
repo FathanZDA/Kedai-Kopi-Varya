@@ -14,6 +14,7 @@ class StoreSetting extends Model
         'nama_toko',
         'tagline',
         'sejarah',
+        'foto_tentang',
         'alamat',
         'maps_url',
         'maps_embed',
