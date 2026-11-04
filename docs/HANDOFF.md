@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 4 Nov 2026, setelah tiga keputusan tertunda disetujui user dan dikerjakan (`pelanggan-b-cart-policy`, `admin-about-photo`, `checkout-price-guard`) serta `database/database.sqlite` dihapus. Semuanya ada di working tree dan **belum di-commit**.
+**Terakhir diperbarui:** 4 Nov 2026, setelah S1 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` (unggah foto Tentang Kami) dikerjakan. Tiga keputusan tertunda (`pelanggan-b-cart-policy`, `admin-about-photo`, `checkout-price-guard`) dan penghapusan `database/database.sqlite` sudah masuk commit `aae928d`.
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `docs-readme` @ `0af5014`; working tree memuat tiga slice 4 Nov 2026 yang **belum di-commit** |
-| Baseline test | `php artisan test` → **211 passed** (1070 assertions) setelah tiga slice 4 Nov 2026 |
+| Branch aktif | `keputusan-tertunda` @ `aae928d`; perbaikan S1 4 Nov 2026 ada di working tree dan **belum di-commit** |
+| Baseline test | `php artisan test` → **213 passed** (1075 assertions) setelah perbaikan S1 4 Nov 2026 |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user) |
@@ -40,7 +40,7 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `admin-dashboard` | `5a406c4` | Dashboard dari DB: ringkasan, menu terlaris, transaksi terbaru |
 | `kasir-pesanan-detail` | `9e7dfc0` | Detail pesanan kasir dari DB (`GET /kasir/pesanan/{order}`) |
 | `docs-readme` | `0af5014` | README proyek, `.env.example` Midtrans, catatan SQLite |
-| `keputusan-tertunda` (usulan) | *belum di-commit* | Kebijakan keranjang, foto Tentang Kami, `409` harga checkout, hapus SQLite |
+| `keputusan-tertunda` | `aae928d` | Kebijakan keranjang, foto Tentang Kami, `409` harga checkout, hapus SQLite |
 
 ---
 
@@ -425,6 +425,14 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Satu foto untuk bingkai desktop (3:2) dan mobile (16:9); pemotongan lewat CSS `object-cover`.
 - Berkas kanonik di `public/images` tidak pernah dihapus.
 - Panel berada di halaman promosi (desain yang sudah ada), bukan halaman Informasi Toko.
+
+**Perbaikan 4 Nov 2026 (S1 rencana TEST-FITUR):**
+
+- Penyebab foto tidak tersimpan: `admin.js` mengosongkan `aboutImageInput.value` setelah berkas dipilih, sehingga submit multipart tidak membawa `foto` dan server menjawab “Pilih foto terlebih dahulu.” Nilai input kini hanya dikosongkan saat dialog dibuka.
+- Drag & drop pada panel Tentang Kami dan Promo kini menaruh `File` ke `<input type=file>` lewat `DataTransfer`; sebelumnya hanya pratinjau.
+- `@error('foto')` ditampilkan di dialog Simpan Foto.
+- Test baru: foto tampil di beranda Pelanggan B dan pesan validasi tampil di panel. **213 passed**; Pint bersih; build berhasil.
+- Verifikasi manual yang belum tercakup test otomatis: pilih berkas + drag & drop lewat browser.
 
 ### 5.14 `checkout-price-guard` (C1)
 

@@ -68,6 +68,29 @@ class AdminAboutPhotoTest extends TestCase
             ->assertSee(asset($store->foto_tentang), false);
     }
 
+    public function test_foto_tampil_di_beranda_pelanggan_b(): void
+    {
+        $this->unggah();
+
+        $store = StoreSetting::query()->firstOrFail();
+
+        $this->get(route('pelanggan-b.beranda'))
+            ->assertOk()
+            ->assertSee(asset($store->foto_tentang), false);
+    }
+
+    public function test_panel_promosi_menampilkan_pesan_saat_foto_belum_dipilih(): void
+    {
+        $this->actingAs($this->admin)
+            ->from(route('admin.promos'))
+            ->followingRedirects()
+            ->post(route('admin.store.foto-tentang.store'), [])
+            ->assertOk()
+            ->assertSee('Pilih foto terlebih dahulu.');
+
+        $this->assertNull(StoreSetting::query()->first()?->foto_tentang);
+    }
+
     public function test_tanpa_foto_halaman_tentang_memakai_placeholder(): void
     {
         $this->get(route('pelanggan-a.tentang'))

@@ -387,6 +387,10 @@
                     </figure>
                 </div>
 
+                @error('foto')
+                    <p class="mt-2 font-mono text-[8px] font-bold text-rust">{{ $message }}</p>
+                @enderror
+
                 <p data-about-error hidden class="mt-2 font-mono text-[8px] font-bold text-rust"></p>
 
                 <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

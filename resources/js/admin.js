@@ -158,6 +158,24 @@ function readImageFile(file, maxBytes, onSuccess, onError) {
     reader.readAsDataURL(file);
 }
 
+/**
+ * Menaruh file hasil drag & drop ke input file agar form multipart ikut
+ * mengirimkannya. Pratinjau saja tidak cukup: tanpa ini server menerima
+ * submit tanpa berkas.
+ */
+function assignFileToInput(input, file) {
+    if (!input || !file || typeof DataTransfer === 'undefined') return;
+
+    try {
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+        input.files = transfer.files;
+    } catch {
+        // Browser lama menolak pengisian input file lewat JavaScript; pengguna
+        // masih bisa memilih berkas lewat tombol.
+    }
+}
+
 function renderPagination(container, totalPages, currentPage, onSelect, { compact = false } = {}) {
     if (!container) return;
 
@@ -793,6 +811,7 @@ function initMenuForm() {
             (dataUrl, name) => {
                 selectedImage = dataUrl;
                 gambarValid = true;
+                assignFileToInput(imageInput, file);
                 if (imageName) imageName.textContent = name;
                 updatePreview();
             },
@@ -1594,6 +1613,7 @@ function initPromotions() {
 
         state.aboutDialogImage = null;
         state.aboutDialogBaseImage = state.aboutImage;
+        if (aboutImageInput) aboutImageInput.value = '';
         if (aboutDialogDesktop) aboutDialogDesktop.src = state.aboutImage;
         if (aboutDialogMobile) aboutDialogMobile.src = state.aboutImage;
         if (aboutImageName) aboutImageName.textContent = 'Belum ada file dipilih';
@@ -1616,11 +1636,15 @@ function initPromotions() {
             3 * 1024 * 1024,
             (dataUrl, name) => {
                 state.aboutDialogImage = dataUrl;
+                assignFileToInput(aboutImageInput, file);
                 if (aboutDialogDesktop) aboutDialogDesktop.src = dataUrl;
                 if (aboutDialogMobile) aboutDialogMobile.src = dataUrl;
                 if (aboutImageName) aboutImageName.textContent = name;
             },
             (message) => {
+                // Berkas tidak valid: kosongkan input supaya form tidak
+                // mengirim berkas yang ditolak pratinjau.
+                if (aboutImageInput) aboutImageInput.value = '';
                 if (!aboutError) return;
                 aboutError.textContent = message;
                 aboutError.hidden = false;
@@ -1636,7 +1660,6 @@ function initPromotions() {
 
     aboutImageInput?.addEventListener('change', () => {
         handleAboutImage(aboutImageInput.files?.[0]);
-        aboutImageInput.value = '';
     });
 
     aboutDropzone?.addEventListener('click', (event) => {
