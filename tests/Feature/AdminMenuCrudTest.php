@@ -29,11 +29,20 @@ class AdminMenuCrudTest extends TestCase
 
     private Menu $menu;
 
+    /**
+     * Foto unggahan yang sudah ada sebelum test (mis. foto menu asli hasil
+     * unggahan admin). Jangan pernah dihapus oleh pembersihan test.
+     *
+     * @var list<string>
+     */
+    private array $berkasAwal = [];
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->admin = User::factory()->create(['role' => UserRole::Admin]);
+        $this->berkasAwal = glob(public_path('images/menus/unggahan-*')) ?: [];
 
         $this->kopi = Category::create(['nama' => 'Kopi', 'slug' => 'kopi', 'urutan' => 1]);
         Category::create(['nama' => 'Teh', 'slug' => 'teh', 'urutan' => 2]);
@@ -51,8 +60,9 @@ class AdminMenuCrudTest extends TestCase
 
     protected function tearDown(): void
     {
-        // Hanya hapus berkas unggahan milik test, jangan menyentuh foto kanonik.
-        foreach (glob(public_path('images/menus/unggahan-*')) ?: [] as $berkas) {
+        // Hanya hapus berkas yang dibuat oleh test ini; foto menu asli admin
+        // di direktori yang sama tidak boleh tersentuh.
+        foreach (array_diff(glob(public_path('images/menus/unggahan-*')) ?: [], $this->berkasAwal) as $berkas) {
             @unlink($berkas);
         }
 

@@ -20,17 +20,27 @@ class AdminAboutPhotoTest extends TestCase
 
     private User $admin;
 
+    /**
+     * Berkas unggahan yang sudah ada sebelum test (mis. foto asli hasil
+     * unggahan admin). Jangan pernah dihapus oleh pembersihan test.
+     *
+     * @var list<string>
+     */
+    private array $berkasAwal = [];
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->admin = User::factory()->create(['role' => UserRole::Admin]);
+        $this->berkasAwal = glob(public_path('images/toko/unggahan-*')) ?: [];
     }
 
     protected function tearDown(): void
     {
-        // Hanya hapus berkas unggahan milik test, jangan menyentuh aset kanonik.
-        foreach (glob(public_path('images/toko/unggahan-*')) ?: [] as $berkas) {
+        // Hanya hapus berkas yang dibuat oleh test ini; unggahan asli admin
+        // di direktori yang sama tidak boleh tersentuh.
+        foreach (array_diff(glob(public_path('images/toko/unggahan-*')) ?: [], $this->berkasAwal) as $berkas) {
             @unlink($berkas);
         }
 

@@ -22,11 +22,20 @@ class AdminPromoCrudTest extends TestCase
 
     private Promo $promo;
 
+    /**
+     * Berkas unggahan yang sudah ada sebelum test (mis. gambar promo asli
+     * hasil unggahan admin). Jangan pernah dihapus oleh pembersihan test.
+     *
+     * @var list<string>
+     */
+    private array $berkasAwal = [];
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->admin = User::factory()->create(['role' => UserRole::Admin]);
+        $this->berkasAwal = glob(public_path('images/promos/unggahan-promo-*')) ?: [];
 
         $this->promo = Promo::create([
             'judul' => 'Ngopi Sore Varya',
@@ -41,10 +50,10 @@ class AdminPromoCrudTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (is_dir(public_path('images/promos'))) {
-            foreach (glob(public_path('images/promos/unggahan-promo-*')) ?: [] as $berkas) {
-                @unlink($berkas);
-            }
+        // Hanya hapus berkas yang dibuat oleh test ini; gambar promo asli
+        // admin di direktori yang sama tidak boleh tersentuh.
+        foreach (array_diff(glob(public_path('images/promos/unggahan-promo-*')) ?: [], $this->berkasAwal) as $berkas) {
+            @unlink($berkas);
         }
 
         parent::tearDown();
