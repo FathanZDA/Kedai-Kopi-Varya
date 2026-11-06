@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 4 Nov 2026, setelah S1 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` (unggah foto Tentang Kami) dikerjakan. Tiga keputusan tertunda (`pelanggan-b-cart-policy`, `admin-about-photo`, `checkout-price-guard`) dan penghapusan `database/database.sqlite` sudah masuk commit `aae928d`.
+**Terakhir diperbarui:** 6 Nov 2026, setelah S1 dan S2 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan pada branch `perbaikan-test-fitur`. Tiga keputusan tertunda (`pelanggan-b-cart-policy`, `admin-about-photo`, `checkout-price-guard`) dan penghapusan `database/database.sqlite` sudah masuk commit `aae928d`; S1 sudah di-commit dan diverifikasi user, S2 (jadwal tujuh hari langsung terlihat + dropdown jam/menit) sudah selesai di working tree dan **belum di-commit**.
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `keputusan-tertunda` @ `aae928d`; perbaikan S1 4 Nov 2026 ada di working tree dan **belum di-commit** |
-| Baseline test | `php artisan test` → **213 passed** (1075 assertions) setelah perbaikan S1 4 Nov 2026 |
+| Branch aktif | `perbaikan-test-fitur` @ `9d907c2`; S2 6 Nov 2026 selesai di working tree dan **belum di-commit** |
+| Baseline test | `php artisan test` → **214 passed** (1116 assertions) setelah perbaikan S1–S2 6 Nov 2026 |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user) |
@@ -41,6 +41,7 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `kasir-pesanan-detail` | `9e7dfc0` | Detail pesanan kasir dari DB (`GET /kasir/pesanan/{order}`) |
 | `docs-readme` | `0af5014` | README proyek, `.env.example` Midtrans, catatan SQLite |
 | `keputusan-tertunda` | `aae928d` | Kebijakan keranjang, foto Tentang Kami, `409` harga checkout, hapus SQLite |
+| `perbaikan-test-fitur` | `9d907c2` | S1 foto Tentang Kami (sudah di-commit) + S2 jam operasional lewat dropdown jam/menit (working tree) |
 
 ---
 
@@ -406,7 +407,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.13 `admin-about-photo` (B1)
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+**Status:** sudah di-commit di branch `perbaikan-test-fitur`; bug unggah diperbaiki lewat S1.
 
 **Kontrak:** PRD AD-05; `docs/DECISIONS.md` F-70; `docs/ROUTES.md` §4.14.
 
@@ -418,7 +419,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 4. `StoreSettingsService::simpanFotoTentang`/`hapusFotoTentang` — berkas di `public/images/toko/unggahan-{acak}.{ext}`, unggahan lama dihapus hanya bila berprefiks `unggahan-`.
 5. Panel **Foto Tentang Kami** di halaman promosi kini form multipart asli (Simpan = submit, Hapus = `fetch` DELETE), status “Tampil”/“Tidak Tampil” dari database, dan pratinjau memakai `public/images/toko/belum-ada-foto.svg` bila kosong.
 6. `resources/views/components/pelanggan-a/partials/tentang.blade.php` menampilkan foto dari database; placeholder bermotif dipertahankan saat `foto_tentang` `null`.
-7. Test baru: `tests/Feature/AdminAboutPhotoTest.php` (9 test, 30 assertions) — unggah tersimpan, tampil di `/tentang`, placeholder saat kosong, unggahan baru menghapus berkas lama, berkas non-gambar ditolak, hapus menghapus berkas + kolom, status panel, kasir `403`, tamu ke login.
+7. Test `tests/Feature/AdminAboutPhotoTest.php` (11 test, 35 assertions) — unggah tersimpan, tampil di `/tentang` dan `/pesan`, placeholder saat kosong, unggahan baru menghapus berkas lama, berkas non-gambar ditolak, hapus menghapus berkas + kolom, status panel, pesan validasi tampil di panel, kasir `403`, tamu ke login.
 
 **Perilaku penting:**
 
@@ -436,7 +437,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.14 `checkout-price-guard` (C1)
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+**Status:** sudah di-commit di `aae928d`.
 
 **Kontrak:** PRD B-10, §8.2 butir 8; `docs/DECISIONS.md` F-71; `docs/ROUTES.md` §4.1.
 
@@ -454,7 +455,22 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Tidak ada order tersimpan saat `409`, jadi pelanggan bisa checkout ulang setelah menyesuaikan keranjang.
 - Harga yang ditagih dan disimpan di `order_items` selalu `menus.harga`.
 
-## 5.15 Kandidat berikutnya
+### 5.15 `perbaikan-test-fitur` (S1–S2)
+
+**Status:** S1 sudah di-commit dan diverifikasi manual user; S2 sudah selesai di working tree, **belum di-commit**.
+
+- **S1** — `resources/js/admin.js` tidak lagi mengosongkan input file setelah memilih foto; drag & drop menaruh `File` ke input lewat `DataTransfer` (Tentang Kami dan Promo); `@error('foto')` tampil di dialog. Test: foto tampil di `/pesan`, pesan validasi tampil di panel.
+- **S2** — `resources/views/admin/toko.blade.php`: jadwal tujuh hari tidak lagi di dalam `<details>` “Atur jadwal per hari”, sehingga jam buka/tutup/libur selalu terlihat dan bisa diubah tanpa database.
+  - Setiap hari memakai **dropdown jam + menit** (`jam[H][buka_jam]`, `buka_menit`, `tutup_jam`, `tutup_menit`) agar format 24 jam konsisten; sebelumnya `input type=time` dengan nilai yang terasa “sudah pasti”.
+  - `StoreSettingsRequest` memvalidasi empat field tadi (regex `00`–`23` dan `00`–`59`) lalu menggabungkannya menjadi `HH:MM` lewat `waktu()` sebelum disimpan ke `store_hours`.
+  - `resources/js/admin.js`: pratinjau “Hari Ini” membaca dropdown (`readTime`/`readHours`), dan dropdown dinonaktifkan saat hari ditandai **Libur** (`syncClosedHours`).
+  - `admin.md` §E diperjelas: jam tujuh hari langsung terlihat di form, hari libur ditandai.
+  - Test `AdminStoreSettingsTest` disesuaikan ke field baru, menambah ketelitian menit (`10:15`/`20:30`), dan menambah `test_jadwal_tujuh_hari_langsung_terlihat_tanpa_details`.
+  - `tearDown()` pada `AdminAboutPhotoTest`, `AdminMenuCrudTest`, dan `AdminPromoCrudTest` kini hanya menghapus berkas `unggahan-*` yang dibuat test itu, sehingga foto/gambar asli admin di folder yang sama tidak ikut terhapus saat test dijalankan.
+- Baseline **214 passed** (1116 assertions); Pint bersih; build berhasil.
+- Sisa rencana S3–S8 ada di `docs/PLAN-PERBAIKAN-TEST-FITUR.md`.
+
+## 5.16 Kandidat berikutnya
 
 Tidak ada slice tertunda yang menunggu keputusan; tiga keputusan 4 Nov 2026 sudah dikerjakan. Sisa pekerjaan bersifat opsional/operasional:
 
@@ -550,6 +566,7 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 3 Nov 2026 | `kasir-pesanan-detail` | `9e7dfc0` | Detail pesanan kasir dari DB untuk dialog Pesanan Masuk |
 | 3 Nov 2026 | `docs-readme` | `0af5014` | README proyek, template `MIDTRANS_*`, catatan SQLite |
 | 4 Nov 2026 | `keputusan-tertunda` (usulan) | *belum di-commit* | Kebijakan keranjang (dokumen), foto Tentang Kami + `foto_tentang`, `409` harga checkout, hapus `database/database.sqlite` |
+| 6 Nov 2026 | `perbaikan-test-fitur` (usulan) | *belum di-commit* | S2 jam operasional lewat dropdown jam + menit; isolasi berkas unggahan pada test admin |
 
 ---
 

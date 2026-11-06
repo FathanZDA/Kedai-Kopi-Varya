@@ -142,7 +142,7 @@ Admin tidak memiliki fitur rekonsiliasi pembayaran, refund, atau manajemen akun 
 2. Sistem menampilkan form berisi:
    * Nama toko dan tagline.
    * Sejarah/deskripsi toko.
-   * Jam operasional per hari.
+   * Jam operasional tujuh hari (langsung terlihat di form, tanpa menu tersembunyi; hari libur ditandai).
    * Alamat dan tautan/embed peta.
    * Nomor telepon/WhatsApp dan Instagram.
    * Fasilitas.

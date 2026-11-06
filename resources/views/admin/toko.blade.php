@@ -200,7 +200,7 @@
 
                         <div class="border-t border-line-strong pt-4">
                             <div class="flex flex-wrap items-center justify-between gap-2">
-                                <p class="admin-label">Jam Operasional (Hari Ini)</p>
+                                <p class="admin-label">Jam Operasional</p>
                                 <p class="tag text-[7px] text-muted">Format waktu 24 jam</p>
                             </div>
 
@@ -210,48 +210,93 @@
                                 </p>
                             </div>
 
-                            <details class="mt-2.5" @if ($errors->has('jam')) open @endif>
-                                <summary class="cursor-pointer font-mono text-[8px] font-bold text-varya-dark underline underline-offset-2">
-                                    Atur jadwal per hari
-                                </summary>
+                            <p class="mt-3 font-mono text-[8px] font-bold text-ink-soft">Jadwal per hari</p>
+                            <p class="mt-1 font-serif text-[10px] text-muted">
+                                Pilih jam dan menit lewat daftar di tiap hari. Tandai <strong>Libur</strong> untuk hari yang tutup.
+                            </p>
 
-                                <div class="mt-2 space-y-2">
-                                    @foreach ($store['hours'] as $hour)
-                                        @php
-                                            $hari = $hour['hari'];
-                                        @endphp
-                                        <div data-store-hour-row
-                                             data-day-key="{{ $hour['key'] }}"
-                                             data-day-label="{{ $hour['day'] }}"
-                                             class="grid items-center gap-2 rounded-md border-2 border-line-strong bg-admin-soft px-3 py-2 sm:grid-cols-[90px_1fr_1fr_auto]">
-                                            <p class="tag text-[9px] font-bold text-ink">{{ $hour['day'] }}</p>
-                                            <input type="time"
-                                                   name="jam[{{ $hari }}][buka]"
-                                                   data-hour-open
-                                                   value="{{ old('jam.'.$hari.'.buka', $hour['open']) }}"
-                                                   class="admin-input !border-line-strong !px-2 !py-1.5 !text-[11px]"
-                                                   aria-label="Jam buka {{ $hour['day'] }}">
-                                            <input type="time"
-                                                   name="jam[{{ $hari }}][tutup]"
-                                                   data-hour-close
-                                                   value="{{ old('jam.'.$hari.'.tutup', $hour['close']) }}"
-                                                   class="admin-input !border-line-strong !px-2 !py-1.5 !text-[11px]"
-                                                   aria-label="Jam tutup {{ $hour['day'] }}">
-                                            <label class="admin-checkbox whitespace-nowrap">
-                                                <input type="checkbox"
-                                                       name="jam[{{ $hari }}][libur]"
-                                                       value="1"
-                                                       data-hour-closed
-                                                       @checked($errors->any() ? old('jam.'.$hari.'.libur') : $hour['closed'])>
-                                                Libur
-                                            </label>
-                                            @error('jam.'.$hari.'.buka')
-                                                <p class="font-mono text-[8px] font-bold text-rust sm:col-span-4">{{ $message }}</p>
-                                            @enderror
+                            <div class="mt-2 hidden gap-2 px-3 sm:grid sm:grid-cols-[90px_1fr_1fr_auto]">
+                                <p class="tag text-[7px] font-bold text-muted">Hari</p>
+                                <p class="tag text-[7px] font-bold text-muted">Jam Buka</p>
+                                <p class="tag text-[7px] font-bold text-muted">Jam Tutup</p>
+                                <span class="w-[54px]" aria-hidden="true"></span>
+                            </div>
+
+                            <div class="mt-1.5 space-y-2">
+                                @foreach ($store['hours'] as $hour)
+                                    @php
+                                        $hari = $hour['hari'];
+                                        $bukaJam = old('jam.'.$hari.'.buka_jam', $hour['open'] !== '' ? substr($hour['open'], 0, 2) : '08');
+                                        $bukaMenit = old('jam.'.$hari.'.buka_menit', $hour['open'] !== '' ? substr($hour['open'], 3, 2) : '00');
+                                        $tutupJam = old('jam.'.$hari.'.tutup_jam', $hour['close'] !== '' ? substr($hour['close'], 0, 2) : '22');
+                                        $tutupMenit = old('jam.'.$hari.'.tutup_menit', $hour['close'] !== '' ? substr($hour['close'], 3, 2) : '00');
+                                    @endphp
+                                    <div data-store-hour-row
+                                         data-day-key="{{ $hour['key'] }}"
+                                         data-day-label="{{ $hour['day'] }}"
+                                         class="grid items-center gap-2 rounded-md border-2 border-line-strong bg-admin-soft px-3 py-2 sm:grid-cols-[90px_1fr_1fr_auto]">
+                                        <p class="tag text-[9px] font-bold text-ink">{{ $hour['day'] }}</p>
+
+                                        <div class="flex flex-col gap-1">
+                                            <p class="tag text-[7px] font-bold text-muted sm:hidden">Jam Buka</p>
+                                            <div class="flex items-center gap-1.5">
+                                                <select name="jam[{{ $hari }}][buka_jam]"
+                                                        data-hour-open-jam
+                                                        aria-label="Jam buka {{ $hour['day'] }}"
+                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[11px] disabled:cursor-not-allowed disabled:opacity-50">
+                                                    @for ($jam = 0; $jam < 24; $jam++)
+                                                        <option value="{{ sprintf('%02d', $jam) }}" @selected((string) $bukaJam === sprintf('%02d', $jam))>{{ sprintf('%02d', $jam) }}</option>
+                                                    @endfor
+                                                </select>
+                                                <span class="font-mono text-[11px] font-bold text-ink-soft">:</span>
+                                                <select name="jam[{{ $hari }}][buka_menit]"
+                                                        data-hour-open-menit
+                                                        aria-label="Menit buka {{ $hour['day'] }}"
+                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[11px] disabled:cursor-not-allowed disabled:opacity-50">
+                                                    @for ($menit = 0; $menit < 60; $menit++)
+                                                        <option value="{{ sprintf('%02d', $menit) }}" @selected((string) $bukaMenit === sprintf('%02d', $menit))>{{ sprintf('%02d', $menit) }}</option>
+                                                    @endfor
+                                                </select>
+                                            </div>
                                         </div>
-                                    @endforeach
-                                </div>
-                            </details>
+
+                                        <div class="flex flex-col gap-1">
+                                            <p class="tag text-[7px] font-bold text-muted sm:hidden">Jam Tutup</p>
+                                            <div class="flex items-center gap-1.5">
+                                                <select name="jam[{{ $hari }}][tutup_jam]"
+                                                        data-hour-close-jam
+                                                        aria-label="Jam tutup {{ $hour['day'] }}"
+                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[11px] disabled:cursor-not-allowed disabled:opacity-50">
+                                                    @for ($jam = 0; $jam < 24; $jam++)
+                                                        <option value="{{ sprintf('%02d', $jam) }}" @selected((string) $tutupJam === sprintf('%02d', $jam))>{{ sprintf('%02d', $jam) }}</option>
+                                                    @endfor
+                                                </select>
+                                                <span class="font-mono text-[11px] font-bold text-ink-soft">:</span>
+                                                <select name="jam[{{ $hari }}][tutup_menit]"
+                                                        data-hour-close-menit
+                                                        aria-label="Menit tutup {{ $hour['day'] }}"
+                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[11px] disabled:cursor-not-allowed disabled:opacity-50">
+                                                    @for ($menit = 0; $menit < 60; $menit++)
+                                                        <option value="{{ sprintf('%02d', $menit) }}" @selected((string) $tutupMenit === sprintf('%02d', $menit))>{{ sprintf('%02d', $menit) }}</option>
+                                                    @endfor
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <label class="admin-checkbox whitespace-nowrap">
+                                            <input type="checkbox"
+                                                   name="jam[{{ $hari }}][libur]"
+                                                   value="1"
+                                                   data-hour-closed
+                                                   @checked($errors->any() ? old('jam.'.$hari.'.libur') : $hour['closed'])>
+                                            Libur
+                                        </label>
+                                        @error('jam.'.$hari.'.buka_jam')
+                                            <p class="font-mono text-[8px] font-bold text-rust sm:col-span-4">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                @endforeach
+                            </div>
 
                             <p class="mt-2 font-serif text-[10px] leading-relaxed text-muted">
                                 Hari yang ditandai libur tidak menampilkan jam buka pada halaman publik.

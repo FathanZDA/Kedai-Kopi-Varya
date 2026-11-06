@@ -60,8 +60,10 @@ class AdminStoreSettingsTest extends TestCase
 
         foreach (range(0, 6) as $hari) {
             $jam[$hari] = [
-                'buka' => '08:00',
-                'tutup' => '23:00',
+                'buka_jam' => '08',
+                'buka_menit' => '00',
+                'tutup_jam' => '23',
+                'tutup_menit' => '00',
             ];
         }
 
@@ -87,10 +89,32 @@ class AdminStoreSettingsTest extends TestCase
             ->assertOk()
             ->assertSee('Kedai Kopi Varya')
             ->assertSee('name="nama_toko"', false)
-            ->assertSee('name="jam[0][buka]"', false)
+            ->assertSee('name="jam[0][buka_jam]"', false)
             ->assertSee('name="fasilitas"', false)
             ->assertSee('action="'.route('admin.store.update').'"', false)
             ->assertSee('name="_method" value="PUT"', false);
+    }
+
+    public function test_jadwal_tujuh_hari_langsung_terlihat_tanpa_details(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.store'))
+            ->assertOk()
+            ->assertSee('Jam Operasional')
+            ->assertSee('Jadwal per hari')
+            ->assertSee('Hari Ini: 08:00 – 23:00 WIB (Buka)')
+            ->assertDontSee('Atur jadwal per hari');
+
+        $this->assertSame(7, substr_count($response->getContent(), 'data-store-hour-row'));
+
+        foreach (range(0, 6) as $hari) {
+            $response
+                ->assertSee('name="jam['.$hari.'][buka_jam]"', false)
+                ->assertSee('name="jam['.$hari.'][buka_menit]"', false)
+                ->assertSee('name="jam['.$hari.'][tutup_jam]"', false)
+                ->assertSee('name="jam['.$hari.'][tutup_menit]"', false)
+                ->assertSee('name="jam['.$hari.'][libur]"', false);
+        }
     }
 
     public function test_admin_dapat_menyimpan_profil_toko_dan_kontak(): void
@@ -129,18 +153,24 @@ class AdminStoreSettingsTest extends TestCase
 
         foreach (range(0, 6) as $hari) {
             $jam[$hari] = [
-                'buka' => '09:00',
-                'tutup' => '22:00',
+                'buka_jam' => '09',
+                'buka_menit' => '00',
+                'tutup_jam' => '22',
+                'tutup_menit' => '00',
             ];
         }
 
         $jam[0] = [
-            'buka' => '10:00',
-            'tutup' => '20:00',
+            'buka_jam' => '10',
+            'buka_menit' => '15',
+            'tutup_jam' => '20',
+            'tutup_menit' => '30',
         ];
         $jam[1] = [
-            'buka' => '09:00',
-            'tutup' => '22:00',
+            'buka_jam' => '09',
+            'buka_menit' => '00',
+            'tutup_jam' => '22',
+            'tutup_menit' => '00',
             'libur' => '1',
         ];
 
@@ -155,19 +185,31 @@ class AdminStoreSettingsTest extends TestCase
         $this->assertNull($senin->jam_buka);
         $this->assertNull($senin->jam_tutup);
         $this->assertFalse($minggu->tutup);
-        $this->assertSame('10:00:00', $minggu->jam_buka);
-        $this->assertSame('20:00:00', $minggu->jam_tutup);
+        $this->assertSame('10:15:00', $minggu->jam_buka);
+        $this->assertSame('20:30:00', $minggu->jam_tutup);
         $this->assertSame(7, StoreHour::query()->count());
     }
 
     public function test_perubahan_langsung_tampil_di_halaman_publik(): void
     {
+        $jam = [];
+
+        foreach (range(0, 6) as $hari) {
+            $jam[$hari] = [
+                'buka_jam' => '06',
+                'buka_menit' => '45',
+                'tutup_jam' => '21',
+                'tutup_menit' => '15',
+            ];
+        }
+
         $this->actingAs($this->admin)
             ->put(route('admin.store.update'), $this->payload([
                 'nama_toko' => 'Varya Baru',
                 'sejarah' => 'Cerita baru tentang Varya.',
                 'alamat' => 'Jl. Publik Baru No. 9',
                 'fasilitas' => 'PS Box Gratis, Ruang Outdoor',
+                'jam' => $jam,
             ]))
             ->assertRedirect(route('admin.store'));
 
@@ -180,7 +222,7 @@ class AdminStoreSettingsTest extends TestCase
             ->assertSee('Varya Baru')
             ->assertSee('Jl. Publik Baru No. 9')
             ->assertSee('Ruang Outdoor')
-            ->assertSee('08.00 - 23.00');
+            ->assertSee('06.45 - 21.15');
     }
 
     public function test_validasi_ditolak_di_server(): void
@@ -204,23 +246,29 @@ class AdminStoreSettingsTest extends TestCase
 
         foreach (range(0, 6) as $hari) {
             $jam[$hari] = [
-                'buka' => '08:00',
-                'tutup' => '23:00',
+                'buka_jam' => '08',
+                'buka_menit' => '00',
+                'tutup_jam' => '23',
+                'tutup_menit' => '00',
             ];
         }
 
         $jam[3] = [
-            'buka' => '',
-            'tutup' => '',
+            'buka_jam' => '',
+            'buka_menit' => '',
+            'tutup_jam' => '',
+            'tutup_menit' => '',
         ];
 
         $this->actingAs($this->admin)
             ->put(route('admin.store.update'), $this->payload(['jam' => $jam]))
-            ->assertSessionHasErrors(['jam.3.buka']);
+            ->assertSessionHasErrors(['jam.3.buka_jam']);
 
         $jam[3] = [
-            'buka' => '',
-            'tutup' => '',
+            'buka_jam' => '',
+            'buka_menit' => '',
+            'tutup_jam' => '',
+            'tutup_menit' => '',
             'libur' => '1',
         ];
 

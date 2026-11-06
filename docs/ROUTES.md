@@ -781,13 +781,17 @@ Halaman Informasi Toko memakai form biasa `PUT /admin/toko` untuk menyimpan prof
 | `whatsapp` | opsional, maks. 30 karakter, hanya angka/spasi/`+`/`-`/`()` |
 | `instagram` | opsional, maks. 100 karakter; `handle` dan `@handle` sama-sama diterima |
 | `fasilitas` | opsional, teks dipisah koma, maks. 1000 karakter, maks. 20 item, tiap item maks. 50 karakter |
-| `jam[0..6][buka]` | wajib bila hari tidak libur, format `HH:MM` |
-| `jam[0..6][tutup]` | wajib bila hari tidak libur, format `HH:MM` |
+| `jam[0..6][buka_jam]` | opsional, dua digit `00`–`23`; wajib bersama `buka_menit` bila hari tidak libur |
+| `jam[0..6][buka_menit]` | opsional, dua digit `00`–`59`; digabung menjadi `HH:MM` sebelum disimpan |
+| `jam[0..6][tutup_jam]` | opsional, dua digit `00`–`23`; wajib bersama `tutup_menit` bila hari tidak libur |
+| `jam[0..6][tutup_menit]` | opsional, dua digit `00`–`59`; digabung menjadi `HH:MM` sebelum disimpan |
 | `jam[0..6][libur]` | opsional, boolean; bila `1`, `jam_buka`/`jam_tutup` dikosongkan dan `tutup = true` |
 
 Aturan:
 
 - Sukses → `302` ke `admin.store` dengan `session('status')`; halaman menampilkan toast dari `data-admin-flash`.
+- Form Informasi Toko memakai dropdown jam dan menit (bukan `input type=time`) agar format 24 jam konsisten. Server menggabungkan `*_jam` dan `*_menit` menjadi `HH:MM` di `StoreSettingsRequest::waktu()`; klien tidak mengirim `HH:MM` gabungan.
+- Hari yang ditandai libur membuat dropdown jam dinonaktifkan di klien sehingga tidak ikut terkirim; server tetap menyimpan `jam_buka`/`jam_tutup` `null` dan `tutup = true`.
 - Validasi gagal → `302` kembali dengan `errors` dan `old()`; form menampilkan ringkasan error + pesan per field.
 - Profil disimpan pada satu baris `store_settings` (id = 1, dibuat bila belum ada) dan jam pada tujuh baris `store_hours` (`hari` 0 = Minggu … 6 = Sabtu) lewat `updateOrCreate`.
 - Profil dan jam ditulis dalam satu `DB::transaction` + `lockForUpdate` agar halaman publik tidak membaca data campuran.
@@ -795,6 +799,7 @@ Aturan:
 - Perubahan langsung tampil di halaman publik (`/`, `/tentang`, `/lokasi`) karena semuanya membaca `store_settings`/`store_hours`.
 - Error penting: `401` tamu (redirect `/login`), `403` bukan admin, `302` + `errors` untuk validasi gagal.
 - Status 2 Nov 2026: **sudah diimplementasikan** di `AdminController@store`/`updateStore` + `App\Http\Requests\Admin\StoreSettingsRequest` + `App\Services\StoreSettingsService`; `localStorage` informasi toko dihapus dari `admin.js`.
+- Status 6 Nov 2026: jam tujuh hari dapat diubah langsung dari UI lewat dropdown jam + menit; kontrak request memakai empat field `*_jam`/`*_menit` di atas (sebelumnya `buka`/`tutup` `HH:MM`).
 
 #### Foto Tentang Kami
 

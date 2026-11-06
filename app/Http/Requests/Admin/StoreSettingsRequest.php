@@ -41,8 +41,10 @@ class StoreSettingsRequest extends FormRequest
             'fasilitas' => ['nullable', 'string', 'max:1000'],
             'jam' => ['required', 'array'],
             'jam.*' => ['array'],
-            'jam.*.buka' => ['nullable', 'date_format:H:i'],
-            'jam.*.tutup' => ['nullable', 'date_format:H:i'],
+            'jam.*.buka_jam' => ['nullable', 'regex:/^([01][0-9]|2[0-3])$/'],
+            'jam.*.buka_menit' => ['nullable', 'regex:/^[0-5][0-9]$/'],
+            'jam.*.tutup_jam' => ['nullable', 'regex:/^([01][0-9]|2[0-3])$/'],
+            'jam.*.tutup_menit' => ['nullable', 'regex:/^[0-5][0-9]$/'],
             'jam.*.libur' => ['nullable', 'boolean'],
         ];
     }
@@ -67,8 +69,10 @@ class StoreSettingsRequest extends FormRequest
             'instagram.max' => 'Akun Instagram maksimal 100 karakter.',
             'fasilitas.max' => 'Daftar fasilitas maksimal 1000 karakter.',
             'jam.required' => 'Jadwal operasional tujuh hari wajib dikirim.',
-            'jam.*.buka.date_format' => 'Format jam buka harus HH:MM.',
-            'jam.*.tutup.date_format' => 'Format jam tutup harus HH:MM.',
+            'jam.*.buka_jam.regex' => 'Jam buka harus di antara 00 dan 23.',
+            'jam.*.buka_menit.regex' => 'Menit buka harus di antara 00 dan 59.',
+            'jam.*.tutup_jam.regex' => 'Jam tutup harus di antara 00 dan 23.',
+            'jam.*.tutup_menit.regex' => 'Menit tutup harus di antara 00 dan 59.',
         ];
     }
 
@@ -81,12 +85,10 @@ class StoreSettingsRequest extends FormRequest
         $validator->after(function (Validator $validator): void {
             foreach (range(0, 6) as $hari) {
                 $libur = $this->boolean("jam.{$hari}.libur");
-                $buka = $this->input("jam.{$hari}.buka");
-                $tutup = $this->input("jam.{$hari}.tutup");
 
-                if (! $libur && (! $buka || ! $tutup)) {
+                if (! $libur && ($this->waktu($hari, 'buka') === null || $this->waktu($hari, 'tutup') === null)) {
                     $validator->errors()->add(
-                        "jam.{$hari}.buka",
+                        "jam.{$hari}.buka_jam",
                         'Jam buka dan jam tutup wajib diisi, atau tandai hari tersebut libur.',
                     );
                 }
@@ -150,13 +152,29 @@ class StoreSettingsRequest extends FormRequest
             $libur = $this->boolean("jam.{$hari}.libur");
 
             $jam[$hari] = [
-                'buka' => $libur ? null : $this->input("jam.{$hari}.buka"),
-                'tutup' => $libur ? null : $this->input("jam.{$hari}.tutup"),
+                'buka' => $libur ? null : $this->waktu($hari, 'buka'),
+                'tutup' => $libur ? null : $this->waktu($hari, 'tutup'),
                 'libur' => $libur,
             ];
         }
 
         return $jam;
+    }
+
+    /**
+     * Gabungkan pilihan jam dan menit menjadi format `HH:MM` yang dipakai
+     * kolom `store_hours`. `null` berarti hari tersebut libur atau belum diisi.
+     */
+    private function waktu(int $hari, string $jenis): ?string
+    {
+        $jam = $this->input("jam.{$hari}.{$jenis}_jam");
+        $menit = $this->input("jam.{$hari}.{$jenis}_menit");
+
+        if ($jam === null || $jam === '' || $menit === null || $menit === '') {
+            return null;
+        }
+
+        return sprintf('%02d:%02d', (int) $jam, (int) $menit);
     }
 
     private function instagram(): ?string

@@ -13,7 +13,7 @@ Dokumen ini adalah **rencana pengerjaan**, bukan catatan hasil. Sumber aturan te
 | Commit terakhir | `aae928d` — `fitur: foto tentang kami dan pengaman harga checkout` |
 | Branch | `keputusan-tertunda` |
 | Working tree | bersih kecuali `docs/TEST-FITUR.md`, dokumen rencana ini, dan `public/images/promos/unggahan-promo-*` (artefak uji unggah, belum di-commit) |
-| Test | **terverifikasi 4 Nov 2026** — `php artisan test` → **213 passed** (1075 assertions) setelah S1; Pint bersih, build berhasil. MySQL XAMPP harus hidup sebelum menjalankan test. |
+| Test | **terverifikasi 6 Nov 2026** — `php artisan test` → **214 passed** (1116 assertions) setelah S1–S2; Pint bersih, build berhasil. MySQL XAMPP harus hidup sebelum menjalankan test. |
 
 **Wajib sebelum menulis kode:** nyalakan MySQL XAMPP, lalu jalankan `php artisan test` sampai hijau. Jangan menyimpulkan ada bug kode sebelum MySQL hidup (lihat `docs/HANDOFF.md` §7). Kalau test menggantung lagi, cek `SHOW PROCESSLIST` sebelum menuduh kode.
 
@@ -100,12 +100,16 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 **Tujuan:** admin mengubah jam buka/tutup tujuh hari dari UI, bukan dari database.
 
+**Status 6 Nov 2026: selesai dikerjakan** — jadwal tujuh hari tampil langsung di form dengan dropdown jam + menit per hari; test memastikan tidak ada lagi `<details>`, ketujuh baris jam dirender, dan nilai menit ikut tersimpan.
+
 **Akar masalah:** form sudah ada dan berfungsi (`PUT /admin/toko` native, field `jam[hari][buka|tutup|libur]`, `StoreSettingsRequest` + `StoreSettingsService`), tetapi tersembunyi di `<details>` “Atur jadwal per hari” pada `resources/views/admin/toko.blade.php`.
 
 **Perubahan:**
 
-- `resources/views/admin/toko.blade.php`: jadwal tujuh hari ditampilkan langsung (tanpa `<details>`), atau `<details open>` dengan judul section yang jelas “Jam Operasional”. Pertahankan penanda hari libur dan format 24 jam.
-- Tidak ada perubahan controller/route/service.
+- `resources/views/admin/toko.blade.php`: jadwal tujuh hari ditampilkan langsung (tanpa `<details>`) dengan dropdown jam + menit per sisi (buka/tutup) dan checkbox **Libur**; format 24 jam konsisten dan nilai lama terisi dari database.
+- `app/Http/Requests/Admin/StoreSettingsRequest.php`: field request menjadi `jam[hari][buka_jam|buka_menit|tutup_jam|tutup_menit|libur]`; validasi regex rentang jam/menit dan penggabungan menjadi `HH:MM` lewat `waktu()`.
+- `resources/js/admin.js`: pratinjau “Hari Ini” membaca dropdown dan dropdown dinonaktifkan untuk hari libur.
+- Tidak ada perubahan controller/route/service; `store_hours` tetap menyimpan `HH:MM`.
 
 **Kriteria penerimaan:**
 
@@ -114,7 +118,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 - Menandai “Libur” menyimpan `jam_buka`/`jam_tutup` `null`, `tutup = true`; hari lain wajib punya jam (validasi server tetap).
 - Tidak perlu menyentuh database manual.
 
-**Test:** `AdminStoreSettingsTest` diperluas: halaman render tujuh `data-store-hour-row` dan input jam; simpan perubahan jam tetap lulus (test lama).
+**Test:** `AdminStoreSettingsTest` diperluas: halaman render tujuh `data-store-hour-row` dengan dropdown `buka_jam`/`buka_menit`/`tutup_jam`/`tutup_menit` dan checkbox `libur`; simpan perubahan jam + menit tetap lulus (test lama), dan hari tanpa jam tetap ditolak kecuali ditandai libur.
 
 **Dokumen:** perjelas `admin.md` §E/README bahwa jam diubah di Informasi Toko; catat di HANDOFF.
 

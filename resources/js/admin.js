@@ -1739,13 +1739,33 @@ function initStore() {
 
     const field = (name) => form.querySelector(`[data-store-field="${name}"]`);
 
+    // Jam dan menit dipilih lewat dropdown, lalu digabung menjadi `HH:MM`
+    // hanya untuk pratinjau; server tetap menyusun nilainya sendiri.
+    const readTime = (row, jenis) => {
+        const jam = row.querySelector(`[data-hour-${jenis}-jam]`)?.value ?? '00';
+        const menit = row.querySelector(`[data-hour-${jenis}-menit]`)?.value ?? '00';
+
+        return `${jam}:${menit}`;
+    };
+
     const readHours = () => Array.from(form.querySelectorAll('[data-store-hour-row]')).map((row) => ({
         key: row.dataset.dayKey,
         day: row.dataset.dayLabel,
-        open: row.querySelector('[data-hour-open]')?.value ?? '00:00',
-        close: row.querySelector('[data-hour-close]')?.value ?? '00:00',
+        open: readTime(row, 'open'),
+        close: readTime(row, 'close'),
         closed: Boolean(row.querySelector('[data-hour-closed]')?.checked),
     }));
+
+    // Hari libur tidak memakai jam buka/tutup, jadi dropdown-nya dinonaktifkan
+    // agar tidak terlihat bisa diubah.
+    const syncClosedHours = () => {
+        form.querySelectorAll('[data-store-hour-row]').forEach((row) => {
+            const closed = Boolean(row.querySelector('[data-hour-closed]')?.checked);
+
+            row.querySelectorAll('[data-hour-open-jam], [data-hour-open-menit], [data-hour-close-jam], [data-hour-close-menit]')
+                .forEach((select) => { select.disabled = closed; });
+        });
+    };
 
     const readFacilities = () => (field('fasilitas')?.value ?? '')
         .split(',')
@@ -1812,6 +1832,10 @@ function initStore() {
         input.addEventListener('change', updatePreview);
     });
 
+    form.querySelectorAll('[data-hour-closed], [data-hour-open-jam], [data-hour-open-menit], [data-hour-close-jam], [data-hour-close-menit]')
+        .forEach((input) => input.addEventListener('change', syncClosedHours));
+
+    syncClosedHours();
     updatePreview();
 
     const flash = root.dataset.adminFlash ?? '';
