@@ -104,6 +104,8 @@ Tidak ada registrasi publik. Akun dibuat lewat `DatabaseSeeder` (admin dan kasir
 
 Saat mengganti `/tentang-kami` menjadi `/tentang`, sediakan redirect 301 dari URI lama.
 
+Beranda `/` menampilkan pratinjau **4 kartu menu** pertama dengan tombol “Lihat Semua Menu” yang memperluas seluruh kartu di tempat (tanpa pindah halaman). Halaman `/menu` tetap menampilkan seluruh menu tanpa batas. Atribut kontrak: `data-menu-preview-limit="4"` pada wadah menu beranda, `data-menu-preview-limit="0"` pada `/menu`, `data-menu-index` pada tiap item, dan tombol `data-menu-more` (bukan tautan). Pencarian/filter kategori mengabaikan batas pratinjau. Filter publik memakai kelompok **Semua**, **Kopi**, **Bukan Kopi** (`teh` + `autentik`), dan **Makanan & Camilan** (`makanan` + `cemilan`) lewat `App\Support\MenuGroup`; tata letak memakai 4 kolom desktop terpusat dan 2 kolom mobile. Detail keputusan ada di `docs/DECISIONS.md` F-72/F-73.
+
 ### 2.3 Pelanggan B
 
 | Method | URI | Nama Route | Controller | Middleware |
@@ -124,6 +126,7 @@ Catatan:
 - Route model binding memakai `kode_pesanan`, bukan `id`; route hanya menerima pola 8 karakter `[A-Z0-9]` dan menolak order non-QRIS dengan `404`.
 - `/pesan/menu/{menu:slug}` adalah tambahan UI untuk detail produk; tidak menambah aturan bisnis baru.
 - `POST /pesan/checkout` menggantikan simulasi di `resources/js/pelanggan-b.js`.
+- Beranda `/pesan` memakai pratinjau **4 kartu menu** yang sama (`data-menu-preview-limit="4"`, tombol `data-menu-more`); seluruh kartu tetap dirender server dan item ke-5+ dapat ditambahkan ke keranjang setelah diperluas atau lewat pencarian/filter. Filter publik memakai kelompok yang sama (Kopi/Bukan Kopi/Makanan & Camilan) dan tata letak 4 kolom desktop terpusat. Detail ada di F-72/F-73.
 
 ### 2.4 Kasir
 

@@ -1,7 +1,7 @@
 @props([
-    'categories' => [],
     'menus' => [],
-    'showAllLink' => false,
+    // 0 berarti semua kartu langsung tampil (halaman /menu).
+    'previewLimit' => 0,
 ])
 
 <section id="menu" class="mx-auto max-w-[1280px] px-5 pt-16 sm:px-8 sm:pt-20">
@@ -37,25 +37,30 @@
             Semua
         </button>
 
-        @foreach ($categories as $category)
+        @foreach (\App\Support\MenuGroup::all() as $group)
             <button type="button"
-                    data-filter="{{ $category->slug }}"
+                    data-filter="{{ $group['slug'] }}"
                     class="brut-sm tag bg-surface px-6 py-2.5 text-[11px] font-bold text-ink transition-transform hover:-translate-y-0.5">
-                {{ $category->nama }}
+                {{ $group['label'] }}
             </button>
         @endforeach
     </div>
 
     {{-- Kartu produk --}}
-    <div data-menu-grid class="mt-9 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 xl:grid-cols-6">
+    <div id="menu-grid"
+         data-menu-grid
+         data-menu-preview-limit="{{ $previewLimit }}"
+         class="mx-auto mt-9 flex max-w-6xl flex-wrap justify-center gap-4 sm:gap-5 lg:gap-6">
         @forelse ($menus as $menu)
             <div data-menu-item
-                 data-category="{{ $menu->category->slug }}"
-                 data-name="{{ \Illuminate\Support\Str::lower($menu->nama.' '.$menu->deskripsi) }}">
+                 data-menu-index="{{ $loop->index }}"
+                 data-category="{{ \App\Support\MenuGroup::forSlug($menu->category?->slug) }}"
+                 data-name="{{ \Illuminate\Support\Str::lower($menu->nama.' '.$menu->deskripsi) }}"
+                 class="w-[calc(50%_-_0.5rem)] sm:w-[calc(50%_-_0.625rem)] lg:w-[calc(25%_-_1.125rem)]">
                 <x-menu-card :menu="$menu" />
             </div>
         @empty
-            <p class="col-span-full py-12 text-center font-serif text-muted">Belum ada menu yang tersedia.</p>
+            <p class="w-full py-12 text-center font-serif text-muted">Belum ada menu yang tersedia.</p>
         @endforelse
     </div>
 
@@ -64,14 +69,20 @@
         Produk yang kamu cari belum ada. Coba kata kunci lain.
     </p>
 
-    @if ($showAllLink)
+    @if ($previewLimit > 0)
+        {{-- Tanpa JS tombol tetap tersembunyi dan semua menu tampil (progressive enhancement). --}}
         <div class="mt-10 flex justify-center">
-            <a href="{{ route('pelanggan-a.menu') }}"
-               class="brut-sm tag inline-flex items-center gap-2 bg-surface px-8 py-3.5 text-[11px] font-bold text-ink transition-transform hover:-translate-y-0.5">
-                Lihat Semua Menu
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-            </a>
+            <button type="button"
+                    data-menu-more
+                    aria-expanded="false"
+                    aria-controls="menu-grid"
+                    hidden
+                    class="brut-sm tag inline-flex items-center gap-2 bg-surface px-8 py-3.5 text-[11px] font-bold text-ink transition-transform hover:-translate-y-0.5">
+                <span data-menu-more-label>Lihat Semua Menu</span>
+                <svg data-menu-more-icon width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                     class="transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
         </div>
     @endif
 </section>

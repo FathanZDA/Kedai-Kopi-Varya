@@ -8,7 +8,7 @@
 
     <x-pelanggan-a.partials.tentang :store="$store" />
 
-    <x-pelanggan-b.menu-section :categories="$categories" :menus="$menus" />
+    <x-pelanggan-b.menu-section :menus="$menus" :preview-limit="4" />
 
     <div class="pb-4">
         <x-pelanggan-a.partials.lokasi :store="$store" :hours="$hours" />

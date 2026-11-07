@@ -4,7 +4,6 @@
 
     <div class="pb-4">
         <x-pelanggan-a.partials.menu-section
-            :categories="$categories"
             :menus="$menus" />
     </div>
 </x-layouts.public>

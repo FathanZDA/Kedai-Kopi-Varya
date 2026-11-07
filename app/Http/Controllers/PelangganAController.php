@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Menu;
 use App\Models\Promo;
 use App\Models\StoreHour;
@@ -41,7 +40,6 @@ class PelangganAController extends Controller
         return [
             'store' => StoreSetting::instance(),
             'hours' => StoreHour::query()->ordered()->get(),
-            'categories' => Category::query()->ordered()->get(),
             'menus' => Menu::query()->with('category')->ordered()->get(),
         ];
     }

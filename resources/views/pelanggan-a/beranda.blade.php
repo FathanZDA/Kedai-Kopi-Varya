@@ -6,9 +6,8 @@
     <x-pelanggan-a.partials.tentang :store="$store" />
 
     <x-pelanggan-a.partials.menu-section
-        :categories="$categories"
         :menus="$menus"
-        show-all-link />
+        :preview-limit="4" />
 
     <div class="pb-4">
         <x-pelanggan-a.partials.lokasi :store="$store" :hours="$hours" />

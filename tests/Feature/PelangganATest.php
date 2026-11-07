@@ -57,6 +57,35 @@ class PelangganATest extends TestCase
             ->assertSee('data-menu-item', escape: false);
     }
 
+    public function test_beranda_menampilkan_pratinjau_empat_menu_dan_tombol_lihat_semua(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk()
+            ->assertSee('data-menu-preview-limit="4"', false)
+            ->assertSee('data-menu-more', false)
+            ->assertSee('data-menu-index="0"', false)
+            ->assertSee('data-menu-index="11"', false)
+            ->assertSee('Lihat Semua Menu');
+
+        // Tombol pratinjau harus berupa <button>, bukan tautan ke halaman /menu.
+        $this->assertMatchesRegularExpression('/<button[^>]*data-menu-more/', $response->getContent());
+        $this->assertDoesNotMatchRegularExpression(
+            '/<a\b[^>]*href="'.preg_quote(route('pelanggan-a.menu'), '/').'"[^>]*>\s*Lihat Semua Menu/s',
+            $response->getContent()
+        );
+    }
+
+    public function test_halaman_menu_penuh_tanpa_batas_pratinjau(): void
+    {
+        $response = $this->get('/menu');
+
+        $response->assertOk()
+            ->assertSee('data-menu-preview-limit="0"', false)
+            ->assertSee('data-menu-index="11"', false)
+            ->assertDontSee('data-menu-more', false);
+    }
+
     public function test_semua_produk_kanonik_tampil(): void
     {
         $response = $this->get('/menu');
@@ -94,13 +123,23 @@ class PelangganATest extends TestCase
         $this->assertFalse(Menu::where('slug', 'cold-brew-grit')->firstOrFail()->tersedia);
     }
 
-    public function test_beranda_menampilkan_semua_kategori(): void
+    public function test_filter_menu_memakai_kelompok_publik(): void
     {
         $response = $this->get('/menu');
 
-        foreach (['Kopi', 'Teh', 'Autentik', 'Makanan', 'Cemilan'] as $category) {
-            $response->assertSee($category);
-        }
+        $response->assertOk()
+            ->assertSee('data-filter="all"', false)
+            ->assertSee('data-filter="kopi"', false)
+            ->assertSee('data-filter="bukan-kopi"', false)
+            ->assertSee('data-filter="makanan-camilan"', false)
+            ->assertSee('Bukan Kopi')
+            ->assertSee('Makanan & Camilan');
+
+        $html = $response->getContent();
+
+        $this->assertSame(4, substr_count($html, 'data-category="kopi"'));
+        $this->assertSame(3, substr_count($html, 'data-category="bukan-kopi"'));
+        $this->assertSame(5, substr_count($html, 'data-category="makanan-camilan"'));
     }
 
     public function test_navigasi_beranda_ditandai_aktif(): void

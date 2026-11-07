@@ -6,7 +6,6 @@ use App\Exceptions\HargaMenuBerubahException;
 use App\Exceptions\MidtransException;
 use App\Http\Requests\PelangganB\StoreCheckoutRequest;
 use App\Http\Resources\CheckoutResource;
-use App\Models\Category;
 use App\Models\Menu;
 use App\Models\Promo;
 use App\Models\StoreHour;
@@ -99,7 +98,6 @@ class PelangganBController extends Controller
         return [
             'store' => StoreSetting::instance(),
             'hours' => StoreHour::query()->ordered()->get(),
-            'categories' => Category::query()->ordered()->get(),
             'menus' => Menu::query()->with('category')->ordered()->get(),
         ];
     }

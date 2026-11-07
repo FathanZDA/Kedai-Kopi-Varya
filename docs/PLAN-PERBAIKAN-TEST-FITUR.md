@@ -126,6 +126,8 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 ### S3 — Katalog 4 menu + “Lihat Semua Menu” (A dan B)
 
+**Status 7 Nov 2026: selesai dikerjakan** — beranda A dan B mengirim `previewLimit=4`; semua kartu tetap dirender server, JS menyembunyikan kartu ke-5+ sampai tombol `data-menu-more` ditekan, pencarian/filter menembus batas, dan `/menu` tetap penuh. Grid diperbesar menjadi **4 kolom desktop terpusat** (2 kolom mobile), dan filter publik memakai kelompok **Semua/Kopi/Bukan Kopi/Makanan & Camilan** lewat `App\Support\MenuGroup` tanpa mengubah kategori database. Perilaku buka/tutup dan pemesanan item ke-5+ masih perlu verifikasi manual di browser.
+
 **Tujuan:** beranda menampilkan 4 kartu pertama; tombol memperluas seluruh menu **di tempat**; pencarian/filter tetap menemukan semua menu.
 
 **Pendekatan:** render semua kartu dari server (supaya pencarian/filter dan pemesanan B tetap utuh), lalu batasi secara visual di klien.
@@ -135,10 +137,13 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 - `resources/views/components/pelanggan-a/partials/menu-section.blade.php`
   - Ganti prop `showAllLink` menjadi `previewLimit` (mis. `4`) dan render tombol `data-menu-more` (bukan tautan ke `/menu`).
   - Tambah atribut `data-menu-index` pada tiap item dan `data-menu-preview-limit="{{ $previewLimit }}"` pada grid.
+  - Tata letak: 4 kolom desktop, 2 kolom mobile, `max-w-6xl` + `mx-auto` agar empat kartu berada di tengah dan lebih besar; flex-wrap membuat baris terakhir juga di tengah; kartu hasil ekspansi memakai ukuran yang sama.
+  - Filter memakai `App\Support\MenuGroup::all()` (Kopi, Bukan Kopi, Makanan & Camilan); item memakai `MenuGroup::forSlug()` untuk `data-category`.
 - `resources/views/components/pelanggan-b/menu-section.blade.php`
   - Atribut yang sama; tombol “Lihat Semua Menu” yang sekarang `href="#menu"` diganti tombol toggle.
 - `resources/views/pelanggan-a/beranda.blade.php`, `resources/views/pelanggan-b/beranda.blade.php`: kirim `previewLimit: 4`.
 - `resources/views/pelanggan-a/menu.blade.php`: tetap tanpa batas (halaman menu penuh).
+- `app/Support/MenuGroup.php`: pemetaan kategori database → kelompok filter publik; kategori tak dikenal hanya tampil di “Semua”.
 - `resources/js/pelanggan-a.js` (dipakai A dan B — layout B memuat `pelanggan-a.js`):
   - State `expanded`; hitung `match` filter/pencarian seperti sekarang.
   - `hidden = !match || (!expanded && !filterAktif && index >= limit)`.
@@ -147,14 +152,15 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 **Kriteria penerimaan:**
 
-- `/` dan `/pesan` menampilkan tepat 4 kartu menu saat pertama dibuka (bila menu > 4).
-- Klik “Lihat Semua Menu” menampilkan seluruh menu tanpa pindah halaman; klik lagi mengembalikan ke 4.
+- `/` dan `/pesan` menampilkan tepat 4 kartu menu saat pertama dibuka (bila menu > 4), tersusun 4 kolom terpusat di desktop dan 2 kolom di mobile.
+- Filter menampilkan **Semua**, **Kopi**, **Bukan Kopi**, dan **Makanan & Camilan**; posisinya tetap di tengah.
+- Klik “Lihat Semua Menu” menampilkan seluruh menu tanpa pindah halaman dengan ukuran/tata letak kartu yang sama; klik lagi mengembalikan ke 4.
 - Mengetik di pencarian atau memilih kategori menampilkan seluruh hasil yang cocok, termasuk item ke-5 dan seterusnya.
 - Di `/pesan`, item ke-5+ tetap bisa ditambahkan ke keranjang setelah diperluas; label “Habis” tetap bekerja.
 - `/menu` tetap menampilkan seluruh menu.
 - Tanpa JS, semua menu tetap tampil (progressive enhancement) — tidak ada data yang hilang.
 
-**Test:** `tests/Feature/PelangganATest` / test Pelanggan B: halaman beranda memuat `data-menu-preview-limit="4"`, memuat seluruh item, dan **tidak** lagi memuat tautan “Lihat Semua Menu” ke `route('pelanggan-a.menu')` di beranda. Perilaku buka/tutup diverifikasi manual.
+**Test:** `tests/Feature/PelangganATest` / test Pelanggan B: halaman beranda memuat `data-menu-preview-limit="4"`, memuat seluruh item, dan **tidak** lagi memuat tautan “Lihat Semua Menu” ke `route('pelanggan-a.menu')` di beranda. `tests/Unit/MenuGroupTest` memastikan pemetaan kategori → kelompok. Perilaku buka/tutup diverifikasi manual.
 
 **Dokumen:** `docs/DECISIONS.md` — keputusan UI baru (batas pratinjau 4, ekspansi di klien, halaman `/menu` tetap penuh); `docs/ROUTES.md` §2.2 catatan bahwa beranda memakai anchor + pratinjau.
 
@@ -316,7 +322,7 @@ Sesuai AGENTS §10, beberapa hal menyentuh PRD/keputusan FINAL:
 
 | # | Topik | Usulan | Dampak |
 |---|---|---|---|
-| D1 | Navigasi Pelanggan A satu halaman | Navbar anchor ke `/#section`; route `/tentang`, `/menu`, `/lokasi` tetap ada sebagai deep link | Perlu catatan PRD §4.3 + keputusan baru (F-73) |
+| D1 | Navigasi Pelanggan A satu halaman | Navbar anchor ke `/#section`; route `/tentang`, `/menu`, `/lokasi` tetap ada sebagai deep link | Perlu catatan PRD §4.3 + keputusan baru (F-74) |
 | D2 | Katalog beranda 4 item | Ekspansi di klien; `/menu` tetap penuh; pemesanan B tidak dipotong | Keputusan UI baru (F-72) |
 | D3 | Periode dashboard | Tambah “Minggu Ini” + query `?periode`; default **hari ini**; minggu **Senin–Minggu** | F-66 berubah (sebelumnya “tanpa query string”); PRD AD-01 catatan tambahan |
 | D4 | Urutan promo | Diagnosis dulu; bila perlu, `urutan` unik + normalisasi 1..N | F-63 berubah bila aturan urutan diperketat |
