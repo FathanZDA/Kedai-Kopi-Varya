@@ -7,12 +7,103 @@ function initNavToggle() {
 
     if (!button || !panel) return;
 
+    const closePanel = () => {
+        panel.hidden = true;
+        button.setAttribute('aria-expanded', 'false');
+    };
+
     button.addEventListener('click', () => {
         const isOpen = !panel.hidden;
 
         panel.hidden = isOpen;
         button.setAttribute('aria-expanded', String(!isOpen));
     });
+
+    // Tutup panel setelah tautan dipilih, termasuk tautan anchor.
+    panel.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', closePanel);
+    });
 }
 
-document.addEventListener('DOMContentLoaded', initNavToggle);
+/** Tandai satu tautan navigasi sebagai aktif. */
+function setActiveNavLink(links, section) {
+    links.forEach((link) => {
+        const isActive = link.dataset.navSection === section;
+
+        link.classList.toggle('bg-varya-dark', isActive);
+        link.classList.toggle('text-white', isActive);
+        link.classList.toggle('text-ink', !isActive);
+        link.classList.toggle('hover:text-varya', !isActive && link.hasAttribute('data-nav-desktop'));
+
+        if (isActive) {
+            link.setAttribute('aria-current', 'page');
+        } else {
+            link.removeAttribute('aria-current');
+        }
+    });
+}
+
+/** Scroll-spy navigasi beranda; hanya aktif bila semua section tersedia. */
+function initSectionNav() {
+    const links = Array.from(document.querySelectorAll('[data-nav-link]'));
+    const sections = ['beranda', 'tentang', 'menu', 'lokasi']
+        .map((id) => document.getElementById(id))
+        .filter(Boolean);
+
+    if (links.length === 0 || sections.length !== 4) return;
+
+    let activeSection = null;
+    let ticking = false;
+
+    const update = () => {
+        ticking = false;
+
+        const header = document.querySelector('header');
+        const offset = (header?.offsetHeight ?? 0) + 16;
+        let nextSection = sections[0].id;
+
+        sections.forEach((section) => {
+            if (section.getBoundingClientRect().top <= offset) {
+                nextSection = section.id;
+            }
+        });
+
+        // Saat halaman mencapai dasar, section terakhir tetap aktif.
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+            nextSection = sections[sections.length - 1].id;
+        }
+
+        if (nextSection !== activeSection) {
+            activeSection = nextSection;
+            setActiveNavLink(links, nextSection);
+        }
+    };
+
+    const scheduleUpdate = () => {
+        if (ticking) return;
+
+        ticking = true;
+        window.requestAnimationFrame(update);
+    };
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(scheduleUpdate, {
+            rootMargin: '-25% 0px -65% 0px',
+            threshold: [0, 0.25, 0.5, 0.75, 1],
+        });
+
+        sections.forEach((section) => observer.observe(section));
+    }
+
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('hashchange', scheduleUpdate);
+    window.addEventListener('resize', scheduleUpdate, { passive: true });
+    window.addEventListener('load', scheduleUpdate);
+
+    scheduleUpdate();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initNavToggle();
+    initSectionNav();
+});

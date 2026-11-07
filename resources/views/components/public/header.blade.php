@@ -1,58 +1,88 @@
 @php
+    $berandaUrl = route('pelanggan-a.beranda');
+
     $links = [
-        ['route' => 'pelanggan-a.beranda', 'label' => 'Beranda'],
-        ['route' => 'pelanggan-a.tentang', 'label' => 'Tentang Kami'],
-        ['route' => 'pelanggan-a.menu', 'label' => 'Menu'],
-        ['route' => 'pelanggan-a.lokasi', 'label' => 'Lokasi'],
+        [
+            'section' => 'beranda',
+            'href' => $berandaUrl.'#beranda',
+            'label' => 'Beranda',
+            'active' => request()->routeIs('pelanggan-a.beranda'),
+        ],
+        [
+            'section' => 'tentang',
+            'href' => $berandaUrl.'#tentang',
+            'label' => 'Tentang Kami',
+            'active' => request()->routeIs('pelanggan-a.tentang'),
+        ],
+        [
+            'section' => 'menu',
+            'href' => $berandaUrl.'#menu',
+            'label' => 'Menu',
+            'active' => request()->routeIs('pelanggan-a.menu'),
+        ],
+        [
+            'section' => 'lokasi',
+            'href' => $berandaUrl.'#lokasi',
+            'label' => 'Lokasi',
+            'active' => request()->routeIs('pelanggan-a.lokasi'),
+        ],
     ];
 @endphp
 
 <header class="sticky top-0 z-50">
     <div class="border-b border-line bg-header/95 backdrop-blur">
-        <div class="mx-auto flex h-[76px] max-w-[1280px] items-center justify-between gap-6 px-5 sm:px-8">
-            <x-public.brand />
+        <div class="mx-auto grid h-[76px] max-w-[1280px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-5 sm:px-8 lg:gap-6">
+            <div class="flex min-w-0 items-center justify-self-start">
+                <x-public.brand />
+            </div>
 
             {{-- Navigasi desktop --}}
-            <nav class="hidden items-center gap-1 md:flex" aria-label="Navigasi utama">
+            <nav class="hidden items-center gap-0.5 justify-self-center md:flex lg:gap-1" aria-label="Navigasi utama">
                 @foreach ($links as $link)
-                    @php $active = request()->routeIs($link['route']); @endphp
-                    <a href="{{ route($link['route']) }}"
+                    <a href="{{ $link['href'] }}"
+                       data-nav-link
+                       data-nav-section="{{ $link['section'] }}"
+                       data-nav-desktop
                        @class([
-                           'rounded-full px-5 py-2 text-sm font-semibold tracking-wide uppercase transition-colors',
-                           'bg-varya-dark text-white' => $active,
-                           'text-ink hover:text-varya' => ! $active,
+                           'rounded-full px-2 py-2 text-sm font-semibold tracking-wide uppercase transition-colors lg:px-5',
+                           'bg-varya-dark text-white' => $link['active'],
+                           'text-ink hover:text-varya' => ! $link['active'],
                        ])
-                       @if ($active) aria-current="page" @endif>
+                       @if ($link['active']) aria-current="page" @endif>
                         {{ $link['label'] }}
                     </a>
                 @endforeach
             </nav>
 
-            {{-- Tombol menu untuk layar kecil --}}
-            <button type="button"
-                    data-nav-toggle
-                    aria-expanded="false"
-                    aria-controls="nav-mobile"
-                    class="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-md border-2 border-ink bg-white shadow-[3px_3px_0_0_#1b1c1d]">
-                <span class="sr-only">Buka menu navigasi</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-                    <path d="M3 6h18M3 12h18M3 18h18"/>
-                </svg>
-            </button>
+            <div class="flex items-center justify-self-end">
+                {{-- Tombol menu untuk layar kecil --}}
+                <button type="button"
+                        data-nav-toggle
+                        aria-expanded="false"
+                        aria-controls="nav-mobile"
+                        class="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-md border-2 border-ink bg-white shadow-[3px_3px_0_0_#1b1c1d]">
+                    <span class="sr-only">Buka menu navigasi</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                        <path d="M3 6h18M3 12h18M3 18h18"/>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         {{-- Navigasi mobile --}}
         <nav id="nav-mobile" data-nav-panel hidden class="border-t border-line bg-header md:hidden">
             <ul class="mx-auto max-w-[1280px] px-5 py-3 sm:px-8">
                 @foreach ($links as $link)
-                    @php $active = request()->routeIs($link['route']); @endphp
                     <li>
-                        <a href="{{ route($link['route']) }}"
+                        <a href="{{ $link['href'] }}"
+                           data-nav-link
+                           data-nav-section="{{ $link['section'] }}"
                            @class([
                                'block rounded-md px-4 py-3 text-sm font-semibold tracking-wide uppercase',
-                               'bg-varya-dark text-white' => $active,
-                               'text-ink' => ! $active,
-                           ])>
+                               'bg-varya-dark text-white' => $link['active'],
+                               'text-ink' => ! $link['active'],
+                           ])
+                           @if ($link['active']) aria-current="page" @endif>
                             {{ $link['label'] }}
                         </a>
                     </li>

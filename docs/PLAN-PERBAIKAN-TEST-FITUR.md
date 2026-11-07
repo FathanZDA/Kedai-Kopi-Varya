@@ -13,7 +13,7 @@ Dokumen ini adalah **rencana pengerjaan**, bukan catatan hasil. Sumber aturan te
 | Commit terakhir | `aae928d` — `fitur: foto tentang kami dan pengaman harga checkout` |
 | Branch | `keputusan-tertunda` |
 | Working tree | bersih kecuali `docs/TEST-FITUR.md`, dokumen rencana ini, dan `public/images/promos/unggahan-promo-*` (artefak uji unggah, belum di-commit) |
-| Test | **terverifikasi 7 Nov 2026** - `php artisan test` → **224 passed** (1198 assertions) setelah S1-S3 dan penyesuaian kategori; Pint bersih, build berhasil. MySQL XAMPP harus hidup sebelum menjalankan test. |
+| Test | **terverifikasi 7 Nov 2026** — `php artisan test` → **228 passed** (1214 assertions) setelah S1-S4 dan penyesuaian kategori; Pint bersih, build berhasil. MySQL XAMPP harus hidup sebelum menjalankan test. |
 
 **Wajib sebelum menulis kode:** nyalakan MySQL XAMPP, lalu jalankan `php artisan test` sampai hijau. Jangan menyimpulkan ada bug kode sebelum MySQL hidup (lihat `docs/HANDOFF.md` §7). Kalau test menggantung lagi, cek `SHOW PROCESSLIST` sebelum menuduh kode.
 
@@ -171,6 +171,8 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 ### S4 — Navbar Pelanggan A: terpusat + satu halaman (anchor)
 
+**Status 7 Nov 2026: selesai dikerjakan di branch `perbaikan-s4-navbar-beranda`** — navbar memakai tiga kolom, tautan anchor, scroll-spy, dan halaman mandiri tetap aktif sesuai route. Verifikasi visual scroll-spy dan panel mobile masih manual.
+
 **Tujuan:** navigasi desktop berada di tengah, dan klik Beranda/Tentang/Menu/Lokasi menggulir di halaman `/`, tidak berpindah halaman.
 
 **Pendekatan yang disarankan (least destructive):** pertahankan route `/tentang`, `/menu`, `/lokasi` sebagai deep link/SEO, tetapi navbar memakai anchor ke beranda.
@@ -310,7 +312,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 **Wajib setelah S1–S7:**
 
-1. `php artisan test` - seluruh suite hijau (baseline terakhir yang tercatat: 224 passed; tambahan test S4-S7 akan menaikkan angka).
+1. `php artisan test` — seluruh suite hijau (baseline terakhir yang tercatat: 228 passed; tambahan test S5-S7 akan menaikkan angka).
 2. `php vendor/bin/pint --test` — bersih.
 3. `npm.cmd run build` — berhasil (ada perubahan JS/CSS).
 4. Manual QA sesuai §5.

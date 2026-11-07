@@ -159,6 +159,8 @@ Saat ini kasir menginput data pemesanan melalui Firebase, sedangkan *spreadsheet
 
 **Catatan:** Tidak ada route `/cek-pesanan`. Halaman `/pesanan/{kode}` hanya menjadi tujuan redirect Snap dan halaman konfirmasi yang dapat di-refresh; halaman ini tidak ditautkan sebagai menu pelacakan.
 
+**Catatan navigasi Pelanggan A:** navbar beranda memakai anchor `#beranda`, `#tentang`, `#menu`, dan `#lokasi` agar klik menu menggulir di halaman `/` tanpa berpindah halaman. Route `/tentang`, `/menu`, dan `/lokasi` tetap tersedia sebagai deep link/SEO; halaman `/menu` tetap menampilkan seluruh menu. Detail keputusan ada di `docs/DECISIONS.md` F-74.
+
 ---
 
 ### 5. Pengguna dan Peran

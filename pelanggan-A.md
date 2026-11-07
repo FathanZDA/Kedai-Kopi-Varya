@@ -25,10 +25,10 @@
 * Sistem akan menampilkan *Landing Page*.
 
 
-* Pelanggan A kemudian dapat memilih menu navigasi untuk melihat halaman "Tentang", "Menu", atau "Lokasi".
+* Pelanggan A kemudian dapat memilih menu navigasi "Tentang", "Menu", atau "Lokasi". Dari beranda, sistem menggulir ke section yang dipilih tanpa berpindah halaman; halaman mandiri `/tentang`, `/menu`, dan `/lokasi` tetap tersedia sebagai deep link.
 
 
-* Sistem akan merespons dengan menampilkan halaman pilihan tersebut agar pelanggan dapat melihat informasinya.
+* Sistem akan merespons dengan menampilkan section atau halaman pilihan tersebut agar pelanggan dapat melihat informasinya.
 
 
-* Jika Pelanggan A ingin melihat halaman lain, ia dapat memilih kembali menu yang tersedia, dan jika tidak, proses selesai.
+* Jika Pelanggan A ingin melihat bagian lain, ia dapat memilih kembali menu yang tersedia, dan jika tidak, proses selesai.

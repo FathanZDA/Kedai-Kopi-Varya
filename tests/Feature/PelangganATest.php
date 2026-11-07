@@ -35,6 +35,15 @@ class PelangganATest extends TestCase
         ];
     }
 
+    public static function standaloneNavigationPages(): array
+    {
+        return [
+            'tentang' => ['/tentang', 'tentang'],
+            'menu' => ['/menu', 'menu'],
+            'lokasi' => ['/lokasi', 'lokasi'],
+        ];
+    }
+
     #[DataProvider('publicPages')]
     public function test_halaman_publik_bisa_diakses(string $url): void
     {
@@ -55,6 +64,41 @@ class PelangganATest extends TestCase
             ->assertSee('Tentang Kami')
             ->assertSee('data-hero-slide', escape: false)
             ->assertSee('data-menu-item', escape: false);
+    }
+
+    public function test_beranda_memakai_navigasi_anchor_dan_id_beranda(): void
+    {
+        $beranda = route('pelanggan-a.beranda');
+        $response = $this->get('/');
+
+        $response->assertOk()
+            ->assertSee('id="beranda"', false)
+            ->assertSee('href="'.$beranda.'#beranda"', false)
+            ->assertSee('href="'.$beranda.'#tentang"', false)
+            ->assertSee('href="'.$beranda.'#menu"', false)
+            ->assertSee('href="'.$beranda.'#lokasi"', false);
+
+        $this->assertMatchesRegularExpression(
+            '/data-nav-section="beranda"[^>]*aria-current="page"/s',
+            $response->getContent()
+        );
+    }
+
+    #[DataProvider('standaloneNavigationPages')]
+    public function test_halaman_mandiri_menandai_navigasi_sesuai_halaman(string $url, string $section): void
+    {
+        $response = $this->get($url);
+
+        $response->assertOk();
+
+        $this->assertMatchesRegularExpression(
+            '/data-nav-section="'.preg_quote($section, '/').'"[^>]*aria-current="page"/s',
+            $response->getContent()
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/data-nav-section="beranda"[^>]*aria-current="page"/s',
+            $response->getContent()
+        );
     }
 
     public function test_beranda_menampilkan_pratinjau_empat_menu_dan_tombol_lihat_semua(): void

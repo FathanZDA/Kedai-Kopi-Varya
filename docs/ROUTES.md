@@ -106,6 +106,8 @@ Saat mengganti `/tentang-kami` menjadi `/tentang`, sediakan redirect 301 dari UR
 
 Beranda `/` menampilkan pratinjau **4 kartu menu** pertama dengan tombol "Lihat Semua Menu" yang memperluas seluruh kartu di tempat (tanpa pindah halaman). Halaman `/menu` tetap menampilkan seluruh menu tanpa batas. Atribut kontrak: `data-menu-preview-limit="4"` pada wadah menu beranda, `data-menu-preview-limit="0"` pada `/menu`, `data-menu-index` pada tiap item, dan tombol `data-menu-more` (bukan tautan). Pencarian/filter kategori mengabaikan batas pratinjau. Kategori database final: **Kopi** (`kopi`), **Bukan Kopi** (`bukan-kopi`), dan **Makanan & Camilan** (`makanan-camilan`); filter publik menambahkan **Semua** dan memakai `App\Support\MenuGroup` (alias slug lama tetap diterima selama transisi). Tata letak memakai 4 kolom desktop terpusat dan 2 kolom mobile. Detail keputusan ada di `docs/DECISIONS.md` F-72/F-73.
 
+Navigasi Pelanggan A memakai anchor ke beranda: `/#beranda`, `/#tentang`, `/#menu`, dan `/#lokasi`. Route `/tentang`, `/menu`, dan `/lokasi` tetap tersedia sebagai deep link/SEO dan tetap menandai pil aktif sesuai halaman; scroll-spy hanya berjalan di beranda karena keempat section lengkap di sana. Kontrak atribut: `data-nav-link`, `data-nav-section`, `data-nav-desktop`, dan `id="beranda"` pada beranda. Detail keputusan ada di `docs/DECISIONS.md` F-74.
+
 ### 2.3 Pelanggan B
 
 | Method | URI | Nama Route | Controller | Middleware |

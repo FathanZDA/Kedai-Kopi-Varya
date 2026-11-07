@@ -1,4 +1,6 @@
 <x-layouts.public>
+    <span id="beranda" class="block"></span>
+
     <x-public.ticker :store="$store" />
 
     <x-pelanggan-a.partials.hero :promos="$promos" />
