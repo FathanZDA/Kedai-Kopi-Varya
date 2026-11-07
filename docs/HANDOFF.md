@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 7 Nov 2026, setelah S1–S3 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan pada branch `perbaikan-s2-jam-operasional`. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`) dan diverifikasi user; S3 (pratinjau 4 menu, tata letak 4 kolom terpusat, kelompok filter publik) selesai di working tree dan **belum di-commit**.
+**Terakhir diperbarui:** 7 Nov 2026, setelah S1–S3 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`) dan diverifikasi user; S3 sudah di-commit di branch `perbaikan-s3-katalog-beranda` (`dec88cf`). Penyesuaian kategori database menjadi tiga baris (Kopi, Bukan Kopi, Makanan & Camilan) selesai di working tree dan **belum di-commit**.
 
 ---
 
@@ -10,11 +10,11 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `perbaikan-s2-jam-operasional` @ `c5387f4`; S3 7 Nov 2026 selesai di working tree dan **belum di-commit** |
-| Baseline test | `php artisan test` → **221 passed** (1169 assertions) setelah S3 7 Nov 2026 |
+| Branch aktif | `perbaikan-s3-katalog-beranda` @ `dec88cf`; penyesuaian kategori tiga baris + migration data di working tree dan **belum di-commit** |
+| Baseline test | `php artisan test` → **224 passed** (1198 assertions) setelah penyesuaian kategori 7 Nov 2026 |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
-| Database aplikasi | `kedai_varya` (MySQL, berisi data uji user) |
+| Database aplikasi | `kedai_varya` (MySQL, berisi data uji user); migration kategori tiga baris sudah dijalankan 7 Nov 2026 |
 | Database test | `kedai_varya_test` (MySQL, bukan SQLite) |
 
 Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terbaru, bukan dari `main`:
@@ -42,7 +42,8 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `docs-readme` | `0af5014` | README proyek, `.env.example` Midtrans, catatan SQLite |
 | `keputusan-tertunda` | `aae928d` | Kebijakan keranjang, foto Tentang Kami, `409` harga checkout, hapus SQLite |
 | `perbaikan-test-fitur` | `9d907c2` | Rencana perbaikan temuan uji fitur (S1–S8) |
-| `perbaikan-s2-jam-operasional` | `c5387f4` | S1 foto Tentang Kami + S2 jam operasional lewat dropdown jam/menit (sudah di-commit); S3 pratinjau katalog 4 menu, tata letak 4 kolom terpusat, dan kelompok filter publik di working tree |
+| `perbaikan-s2-jam-operasional` | `c5387f4` | S1 foto Tentang Kami + S2 jam operasional lewat dropdown jam/menit (sudah di-commit) |
+| `perbaikan-s3-katalog-beranda` | `dec88cf` | S3 pratinjau katalog 4 menu, tata letak 4 kolom terpusat, dan kelompok filter publik (sudah di-commit); penyesuaian kategori tiga baris + migration data di working tree |
 
 ---
 
@@ -471,19 +472,30 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Baseline **218 passed** (1152 assertions); Pint bersih; build berhasil.
 - Sisa rencana S4–S8 ada di `docs/PLAN-PERBAIKAN-TEST-FITUR.md`.
 
-### 5.16 `perbaikan-s2-jam-operasional` (S3)
+### 5.16 `perbaikan-s3-katalog-beranda` (S3)
 
-**Status:** selesai di working tree 7 Nov 2026, **belum di-commit**; buka/tutup dan pemesanan item ke-5+ masih perlu verifikasi manual user.
+**Status:** sudah di-commit 7 Nov 2026 di branch `perbaikan-s3-katalog-beranda` (`dec88cf`); buka/tutup dan pemesanan item ke-5+ masih perlu verifikasi manual user.
 
 - Beranda `/` dan `/pesan` mengirim `previewLimit: 4` ke komponen menu; wadah menu memakai `data-menu-preview-limit="4"` dan tiap kartu punya `data-menu-index`.
 - Tata letak menu diperbesar: **4 kolom di desktop**, 2 kolom di mobile, dibatasi `max-w-6xl` dan dipusatkan dengan flex-wrap sehingga baris terakhir juga ikut di tengah. Empat kartu pratinjau dan seluruh kartu setelah “Lihat Semua Menu” memakai ukuran/tata letak yang sama.
-- Filter publik memakai **Semua**, **Kopi**, **Bukan Kopi** (`teh` + `autentik`), dan **Makanan & Camilan** (`makanan` + `cemilan`) lewat `App\Support\MenuGroup`. Kategori database tetap lima baris (PRD AD-02e); tidak ada migration/perubahan data.
+- Filter publik memakai **Semua**, **Kopi**, **Bukan Kopi**, dan **Makanan & Camilan** lewat `App\Support\MenuGroup`. Kategori database juga sudah tiga baris (lihat §5.17); alias slug lama tetap diterima selama transisi.
 - `resources/js/pelanggan-a.js` (dipakai layout A dan B) menyembunyikan kartu ke-5+ selama belum diperluas dan tidak ada pencarian/filter aktif. Tombol `data-menu-more` adalah `<button>` toggle dengan `aria-expanded` dan label “Lihat Semua Menu” ↔ “Tampilkan Lebih Sedikit”; tombol disembunyikan bila menu ≤ 4 atau pencarian/filter aktif.
 - Pencarian/filter kategori menembus batas pratinjau, sehingga item ke-5+ tetap bisa ditambahkan ke keranjang Pelanggan B. `/menu` tetap penuh (`previewLimit=0`, tanpa tombol). Tanpa JS semua kartu tampil.
-- Test baru: `PelangganATest` (beranda memakai tombol, bukan tautan ke `/menu`; `/menu` tanpa tombol; kelompok filter dan jumlah item per kelompok), `PelangganBMenuTest` (12 kartu tetap dirender, 11 tombol `data-add-to-cart`, toggle bukan anchor `#menu`), dan `MenuGroupTest` (pemetaan kategori → kelompok).
-- Keputusan UI dicatat sebagai **F-72** dan **F-73** di `docs/DECISIONS.md`; kontrak atribut ada di `docs/ROUTES.md` §2.2–2.3, dan `admin.md` mencatat bahwa admin/kasir tetap memakai lima kategori asli.
+- Test baru: `PelangganATest` (beranda memakai tombol, bukan tautan ke `/menu`; `/menu` tanpa tombol; kelompok filter dan jumlah item per kelompok), `PelangganBMenuTest` (12 kartu tetap dirender, 11 tombol `data-add-to-cart`, toggle bukan anchor `#menu`), `MenuGroupTest` (pemetaan kategori → kelompok), dan `SederhanakanKategoriMenuTest` (migrasi lima kategori lama → tiga kategori, termasuk menu soft-delete). `AdminMenuCrudTest` memastikan halaman admin memakai tiga kategori baru.
+- Keputusan UI dicatat sebagai **F-72** dan **F-73** di `docs/DECISIONS.md`; kontrak atribut ada di `docs/ROUTES.md` §2.2–2.3, dan `admin.md` mencatat bahwa admin/kasir/publik memakai tiga kategori yang sama.
 
-## 5.17 Kandidat berikutnya
+### 5.17 Penyesuaian kategori tiga baris (lanjutan S3)
+
+**Status:** selesai di working tree 7 Nov 2026, **belum di-commit**; migration data sudah dijalankan di `kedai_varya`.
+
+- Kategori database disederhanakan dari lima menjadi tiga: **Kopi** (`kopi`), **Bukan Kopi** (`bukan-kopi`), dan **Makanan & Camilan** (`makanan-camilan`), sesuai permintaan user.
+- Migration `2026_11_07_000001_sederhanakan_kategori_menu` memindahkan menu dari Teh/Autentik ke Bukan Kopi dan dari Makanan/Cemilan ke Makanan & Camilan, termasuk menu yang sudah di-soft-delete, lalu menghapus kategori lama. Migration idempoten dan aman bila kategori lama sudah tidak ada.
+- `PelangganASeeder` sekarang membuat tiga kategori dan memetakan ulang 12 menu kanonik. Admin dan kasir membaca kategori dari database; form/filter admin otomatis menjadi tiga tab + Semua. SKU prefix admin memakai `BKP` untuk Bukan Kopi dan `MKN` untuk Makanan & Camilan.
+- `MenuGroup` tetap menjadi kontrak filter publik; slug lama (`teh`, `autentik`, `makanan`, `cemilan`) diterima sebagai alias selama transisi.
+- Test baru: `tests/Feature/SederhanakanKategoriMenuTest.php` (2 test) dan `AdminMenuCrudTest::test_halaman_kelola_menu_memakai_tiga_kategori_baru`. Baseline **224 passed** (1198 assertions); Pint bersih; build berhasil.
+- Dokumen diperbarui: PRD K-01b/AD-02e/tabel kategori, `admin.md`, `docs/DATABASE.md`, `docs/DECISIONS.md` F-15/F-73/O-01, `docs/ROUTES.md`, `README.md`, `AGENTS.md`.
+
+## 5.18 Kandidat berikutnya
 
 Slice S4–S8 masih terbuka di `docs/PLAN-PERBAIKAN-TEST-FITUR.md`; S4 (navbar satu halaman) dan S5 (pil aktif Pelanggan B) belum butuh keputusan, sedangkan S6 (periode dashboard) dan S7 (urutan promo) menunggu keputusan D3/D4. Pekerjaan operasional lain:
 
@@ -528,8 +540,8 @@ Slice S4–S8 masih terbuka di `docs/PLAN-PERBAIKAN-TEST-FITUR.md`; S4 (navbar s
 ## 8. Aturan singkat untuk sesi baru
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
-2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 218 passed).
-3. Potong branch baru dari ujung terbaru (`perbaikan-s2-jam-operasional` @ `c5387f4`), bukan dari `main`.
+2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 224 passed).
+3. Potong branch baru dari ujung terbaru (`perbaikan-s3-katalog-beranda` @ `dec88cf`), bukan dari `main`.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
 5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata selain keranjang tamu Pelanggan B (F-69). Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
@@ -543,10 +555,10 @@ Lanjutkan proyek Kedai Kopi Varya. Mulai dengan membaca docs/HANDOFF.md,
 lalu AGENTS.md, PRD.md, docs/DECISIONS.md, docs/ROUTES.md, docs/DATABASE.md.
 
 Verifikasi baseline dulu: git log -1 dan php artisan test (harus hijau;
-saat file ini ditulis 218 passed).
+saat file ini ditulis 224 passed).
 Kalau MySQL mati, nyalakan XAMPP dulu sebelum menyimpulkan ada bug kode.
 
-Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.17, dipotong
+Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.18, dipotong
 dari branch terbaru. Ikuti pola yang sudah ada: FormRequest, Service,
 API Resource, DB::transaction + lockForUpdate, enum, named route.
 
@@ -585,7 +597,8 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 4 Nov 2026 | `keputusan-tertunda` | `aae928d` | Kebijakan keranjang (dokumen), foto Tentang Kami + `foto_tentang`, `409` harga checkout, hapus `database/database.sqlite` |
 | 6 Nov 2026 | `perbaikan-s2-jam-operasional` | `ce5fa3a` | Perbaikan test: `tearDown()` admin tidak lagi menghapus unggahan asli |
 | 6 Nov 2026 | `perbaikan-s2-jam-operasional` | `c5387f4` | S1 foto Tentang Kami + S2 jam operasional lewat dropdown jam/menit |
-| 7 Nov 2026 | `perbaikan-s2-jam-operasional` (usulan) | *belum di-commit* | S3 pratinjau katalog 4 menu + tombol “Lihat Semua Menu” di beranda A/B, tata letak 4 kolom terpusat, kelompok filter publik (F-72/F-73) |
+| 7 Nov 2026 | `perbaikan-s3-katalog-beranda` | `dec88cf` | S3 pratinjau katalog 4 menu + tombol “Lihat Semua Menu” di beranda A/B, tata letak 4 kolom terpusat, kelompok filter publik (F-72/F-73) |
+| 7 Nov 2026 | `perbaikan-s3-katalog-beranda` | *belum di-commit* | Kategori database lima → tiga baris (Kopi, Bukan Kopi, Makanan & Camilan), migration data + seeder + admin/kasir + test |
 
 ---
 

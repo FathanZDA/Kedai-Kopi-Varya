@@ -104,7 +104,7 @@ Tidak ada registrasi publik. Akun dibuat lewat `DatabaseSeeder` (admin dan kasir
 
 Saat mengganti `/tentang-kami` menjadi `/tentang`, sediakan redirect 301 dari URI lama.
 
-Beranda `/` menampilkan pratinjau **4 kartu menu** pertama dengan tombol “Lihat Semua Menu” yang memperluas seluruh kartu di tempat (tanpa pindah halaman). Halaman `/menu` tetap menampilkan seluruh menu tanpa batas. Atribut kontrak: `data-menu-preview-limit="4"` pada wadah menu beranda, `data-menu-preview-limit="0"` pada `/menu`, `data-menu-index` pada tiap item, dan tombol `data-menu-more` (bukan tautan). Pencarian/filter kategori mengabaikan batas pratinjau. Filter publik memakai kelompok **Semua**, **Kopi**, **Bukan Kopi** (`teh` + `autentik`), dan **Makanan & Camilan** (`makanan` + `cemilan`) lewat `App\Support\MenuGroup`; tata letak memakai 4 kolom desktop terpusat dan 2 kolom mobile. Detail keputusan ada di `docs/DECISIONS.md` F-72/F-73.
+Beranda `/` menampilkan pratinjau **4 kartu menu** pertama dengan tombol "Lihat Semua Menu" yang memperluas seluruh kartu di tempat (tanpa pindah halaman). Halaman `/menu` tetap menampilkan seluruh menu tanpa batas. Atribut kontrak: `data-menu-preview-limit="4"` pada wadah menu beranda, `data-menu-preview-limit="0"` pada `/menu`, `data-menu-index` pada tiap item, dan tombol `data-menu-more` (bukan tautan). Pencarian/filter kategori mengabaikan batas pratinjau. Kategori database final: **Kopi** (`kopi`), **Bukan Kopi** (`bukan-kopi`), dan **Makanan & Camilan** (`makanan-camilan`); filter publik menambahkan **Semua** dan memakai `App\Support\MenuGroup` (alias slug lama tetap diterima selama transisi). Tata letak memakai 4 kolom desktop terpusat dan 2 kolom mobile. Detail keputusan ada di `docs/DECISIONS.md` F-72/F-73.
 
 ### 2.3 Pelanggan B
 
@@ -155,6 +155,7 @@ Catatan:
 Status implementasi 1 Nov 2026:
 
 - `GET /kasir/pesanan/baru`, `POST /kasir/pesanan`, `GET /kasir/pesanan`, `GET /kasir/pesanan/poll`, `GET /kasir/pesanan/{order}`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `GET /kasir/menu`, dan `PATCH /kasir/menu/{menu}/availability` **sudah aktif**.
+- Filter kategori kasir membaca tiga kategori tetap dari database: Kopi, Bukan Kopi, dan Makanan & Camilan, ditambah Semua. Admin memakai daftar yang sama.
 - `GET /kasir/pesanan/{order}` (`kasir.pesanan.show`) **sudah aktif**: detail dibaca ulang dari database untuk dialog Pesanan Masuk (§4.17).
 - Daftar pesanan memuat order yang dibuat pada hari berjalan (`created_at` hari ini, zona `Asia/Jakarta`), supaya order QRIS yang belum dibayar tetap tampil di tab Belum Dibayar meski belum punya nomor antrean. Order `dibatalkan` tidak ditampilkan (PRD K-02b), tetapi tetap tersimpan untuk laporan admin.
 - `POST .../cancel` dan `POST .../check-status` memakai `throttle:30,1` per pengguna.
@@ -706,7 +707,7 @@ Halaman Kelola Menu memakai form biasa (bukan API JSON) untuk tambah dan ubah me
 | Field | Aturan |
 |---|---|
 | `nama` | wajib, string, maks. 80 karakter |
-| `category_id` | wajib, integer, harus ada di `categories` |
+| `category_id` | wajib, integer, harus ada di `categories` (tiga kategori tetap: Kopi, Bukan Kopi, Makanan & Camilan) |
 | `harga` | wajib, integer, minimal 1 (Rupiah penuh) |
 | `deskripsi` | opsional, string, maks. 300 karakter |
 | `tersedia` | wajib, boolean (`1`/`0`) |

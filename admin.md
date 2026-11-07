@@ -165,7 +165,7 @@ Admin tidak memiliki fitur rekonsiliasi pembayaran, refund, atau manajemen akun 
 * **Menu yang dihapus menggunakan *soft delete*.** Menu tidak tampil untuk penjualan baru, tetapi data pesanan lama tetap utuh karena `order_items` menyimpan snapshot nama dan harga.
 * **Perubahan harga hanya berlaku untuk pesanan baru.** Pesanan lama tidak berubah.
 * Admin dapat mengubah ketersediaan menu. Kasir juga dapat mengubah ketersediaan, tetapi kasir tidak dapat mengubah data menu lainnya.
-* **Kategori menu menggunakan daftar tetap** yang sudah di-*seed*: **Kopi, Teh, Autentik, Makanan, Cemilan**. Tidak ada CRUD kategori pada versi ini. Di halaman publik, lima kategori itu dikelompokkan menjadi **Kopi**, **Bukan Kopi** (Teh + Autentik), dan **Makanan & Camilan** (Makanan + Cemilan) sesuai F-73; admin dan kasir tetap memakai lima kategori asli.
+* **Kategori menu menggunakan daftar tetap** yang sudah di-*seed*: **Kopi, Bukan Kopi, Makanan & Camilan**. Tidak ada CRUD kategori pada versi ini. Admin, kasir, dan halaman publik memakai tiga kategori yang sama sesuai F-73.
 * **Promosi nonaktif tidak tampil di landing page.** Promosi dengan periode yang sudah berakhir juga tidak ditampilkan sebagai promosi aktif.
 * **Informasi toko langsung berlaku** setelah disimpan, tanpa perlu mengubah kode program.
 * **Rekonsiliasi pembayaran tidak dilakukan di aplikasi.** Jika ada status yang perlu diperiksa, admin memeriksa dashboard Midtrans dan menindaklanjuti secara manual.

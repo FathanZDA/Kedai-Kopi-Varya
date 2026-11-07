@@ -13,7 +13,7 @@ Dokumen ini adalah **rencana pengerjaan**, bukan catatan hasil. Sumber aturan te
 | Commit terakhir | `aae928d` — `fitur: foto tentang kami dan pengaman harga checkout` |
 | Branch | `keputusan-tertunda` |
 | Working tree | bersih kecuali `docs/TEST-FITUR.md`, dokumen rencana ini, dan `public/images/promos/unggahan-promo-*` (artefak uji unggah, belum di-commit) |
-| Test | **terverifikasi 6 Nov 2026** — `php artisan test` → **214 passed** (1116 assertions) setelah S1–S2; Pint bersih, build berhasil. MySQL XAMPP harus hidup sebelum menjalankan test. |
+| Test | **terverifikasi 7 Nov 2026** - `php artisan test` → **224 passed** (1198 assertions) setelah S1-S3 dan penyesuaian kategori; Pint bersih, build berhasil. MySQL XAMPP harus hidup sebelum menjalankan test. |
 
 **Wajib sebelum menulis kode:** nyalakan MySQL XAMPP, lalu jalankan `php artisan test` sampai hijau. Jangan menyimpulkan ada bug kode sebelum MySQL hidup (lihat `docs/HANDOFF.md` §7). Kalau test menggantung lagi, cek `SHOW PROCESSLIST` sebelum menuduh kode.
 
@@ -126,7 +126,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 ### S3 — Katalog 4 menu + “Lihat Semua Menu” (A dan B)
 
-**Status 7 Nov 2026: selesai dikerjakan** — beranda A dan B mengirim `previewLimit=4`; semua kartu tetap dirender server, JS menyembunyikan kartu ke-5+ sampai tombol `data-menu-more` ditekan, pencarian/filter menembus batas, dan `/menu` tetap penuh. Grid diperbesar menjadi **4 kolom desktop terpusat** (2 kolom mobile), dan filter publik memakai kelompok **Semua/Kopi/Bukan Kopi/Makanan & Camilan** lewat `App\Support\MenuGroup` tanpa mengubah kategori database. Perilaku buka/tutup dan pemesanan item ke-5+ masih perlu verifikasi manual di browser.
+**Status 7 Nov 2026: S3 selesai dikerjakan dan sudah di-commit (`dec88cf`); penyesuaian kategori tiga baris menyusul di working tree.** Beranda A dan B mengirim `previewLimit=4`; semua kartu tetap dirender server, JS menyembunyikan kartu ke-5+ sampai tombol `data-menu-more` ditekan, pencarian/filter menembus batas, dan `/menu` tetap penuh. Grid diperbesar menjadi **4 kolom desktop terpusat** (2 kolom mobile), dan filter publik memakai kelompok **Semua/Kopi/Bukan Kopi/Makanan & Camilan** lewat `App\Support\MenuGroup`. Kategori database disederhanakan menjadi tiga baris (Kopi, Bukan Kopi, Makanan & Camilan) lewat migration `2026_11_07_000001_sederhanakan_kategori_menu`; admin dan kasir ikut memakai tiga kategori yang sama. Perilaku buka/tutup dan pemesanan item ke-5+ masih perlu verifikasi manual di browser.
 
 **Tujuan:** beranda menampilkan 4 kartu pertama; tombol memperluas seluruh menu **di tempat**; pencarian/filter tetap menemukan semua menu.
 
@@ -143,7 +143,10 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
   - Atribut yang sama; tombol “Lihat Semua Menu” yang sekarang `href="#menu"` diganti tombol toggle.
 - `resources/views/pelanggan-a/beranda.blade.php`, `resources/views/pelanggan-b/beranda.blade.php`: kirim `previewLimit: 4`.
 - `resources/views/pelanggan-a/menu.blade.php`: tetap tanpa batas (halaman menu penuh).
-- `app/Support/MenuGroup.php`: pemetaan kategori database → kelompok filter publik; kategori tak dikenal hanya tampil di “Semua”.
+- `app/Support/MenuGroup.php`: pemetaan kategori database → kelompok filter publik; kategori final `kopi`, `bukan-kopi`, dan `makanan-camilan`, dengan alias slug lama (`teh`, `autentik`, `makanan`, `cemilan`) selama transisi; kategori tak dikenal hanya tampil di "Semua".
+- `database/migrations/2026_11_07_000001_sederhanakan_kategori_menu.php`: migration data lima kategori lama → tiga kategori, memindahkan menu termasuk yang di-soft-delete.
+- `database/seeders/PelangganASeeder.php`: tiga kategori final dan pemetaan ulang 12 menu kanonik.
+- `app/Http/Controllers/AdminController.php`, `resources/js/admin.js`: prefix SKU admin menyesuaikan slug baru (`BKP`, `MKN`); admin/kasir membaca kategori dari database.
 - `resources/js/pelanggan-a.js` (dipakai A dan B — layout B memuat `pelanggan-a.js`):
   - State `expanded`; hitung `match` filter/pencarian seperti sekarang.
   - `hidden = !match || (!expanded && !filterAktif && index >= limit)`.
@@ -160,9 +163,9 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 - `/menu` tetap menampilkan seluruh menu.
 - Tanpa JS, semua menu tetap tampil (progressive enhancement) — tidak ada data yang hilang.
 
-**Test:** `tests/Feature/PelangganATest` / test Pelanggan B: halaman beranda memuat `data-menu-preview-limit="4"`, memuat seluruh item, dan **tidak** lagi memuat tautan “Lihat Semua Menu” ke `route('pelanggan-a.menu')` di beranda. `tests/Unit/MenuGroupTest` memastikan pemetaan kategori → kelompok. Perilaku buka/tutup diverifikasi manual.
+**Test:** `tests/Feature/PelangganATest` / test Pelanggan B: halaman beranda memuat `data-menu-preview-limit="4"`, memuat seluruh item, dan **tidak** lagi memuat tautan "Lihat Semua Menu" ke `route('pelanggan-a.menu')` di beranda. `tests/Unit/MenuGroupTest` memastikan pemetaan kategori → kelompok (termasuk alias slug lama). `tests/Feature/SederhanakanKategoriMenuTest` memastikan migration menggabungkan lima kategori lama menjadi tiga dan memindahkan menu, termasuk yang di-soft-delete. `AdminMenuCrudTest` memastikan halaman admin memakai tiga kategori baru. Perilaku buka/tutup diverifikasi manual.
 
-**Dokumen:** `docs/DECISIONS.md` — keputusan UI baru (batas pratinjau 4, ekspansi di klien, halaman `/menu` tetap penuh); `docs/ROUTES.md` §2.2 catatan bahwa beranda memakai anchor + pratinjau.
+**Dokumen:** `docs/DECISIONS.md` - keputusan UI baru (batas pratinjau 4, ekspansi di klien, halaman `/menu` tetap penuh) dan F-73 diperbarui untuk kategori tiga baris; `docs/ROUTES.md` §2.2 catatan bahwa beranda memakai anchor + pratinjau; `docs/DATABASE.md` data kanonik tiga kategori.
 
 ---
 
@@ -307,7 +310,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 **Wajib setelah S1–S7:**
 
-1. `php artisan test` — seluruh suite hijau (baseline terakhir yang tercatat: 211 passed; tambahan test S1–S7 akan menaikkan angka).
+1. `php artisan test` - seluruh suite hijau (baseline terakhir yang tercatat: 224 passed; tambahan test S4-S7 akan menaikkan angka).
 2. `php vendor/bin/pint --test` — bersih.
 3. `npm.cmd run build` — berhasil (ada perubahan JS/CSS).
 4. Manual QA sesuai §5.

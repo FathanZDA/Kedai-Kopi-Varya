@@ -68,7 +68,7 @@ php artisan serve
 
 `database/seeders/DatabaseSeeder.php` membuat satu akun `admin` dan satu akun `kasir`. Email dan kata sandinya ada di seeder tersebut; kata sandi tidak didokumentasikan di README demi keamanan. Tidak ada registrasi publik maupun UI manajemen akun — ganti kredensial bawaan sebelum dipakai di luar pengembangan.
 
-Data katalog kanonik (5 kategori, 12 menu, 3 promosi, 7 baris jam toko) berasal dari `database/seeders/PelangganASeeder.php`.
+Data katalog kanonik (3 kategori, 12 menu, 3 promosi, 7 baris jam toko) berasal dari `database/seeders/PelangganASeeder.php`.
 
 ### Folder unggahan
 

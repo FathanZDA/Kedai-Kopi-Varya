@@ -463,10 +463,8 @@ function categoryLabel(id) {
 function generateSku(category, menus) {
     const prefixes = {
         kopi: 'KOP',
-        teh: 'TEH',
-        autentik: 'AUT',
-        makanan: 'MKN',
-        cemilan: 'CML',
+        'bukan-kopi': 'BKP',
+        'makanan-camilan': 'MKN',
     };
 
     const prefix = prefixes[category] ?? 'SKU';

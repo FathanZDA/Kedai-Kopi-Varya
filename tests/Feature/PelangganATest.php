@@ -99,14 +99,14 @@ class PelangganATest extends TestCase
         }
 
         $this->assertSame(12, Menu::count());
-        $this->assertSame(5, Category::count());
+        $this->assertSame(3, Category::count());
     }
 
-    public function test_matcha_creamy_berada_di_kategori_teh(): void
+    public function test_matcha_creamy_berada_di_kategori_bukan_kopi(): void
     {
         $menu = Menu::where('slug', 'matcha-creamy')->firstOrFail();
 
-        $this->assertSame('Teh', $menu->category->nama);
+        $this->assertSame('Bukan Kopi', $menu->category->nama);
     }
 
     public function test_harga_diformat_gaya_indonesia(): void

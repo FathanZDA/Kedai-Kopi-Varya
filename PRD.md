@@ -312,7 +312,7 @@ Kasir hanya memiliki **tiga fitur utama** berikut. Tidak ada halaman dashboard, 
 ##### [K-01] Buat Pesanan — Tunai *(Prioritas: Must)*
 
 * **[K-01a] Halaman awal:** Setelah login, kasir langsung diarahkan ke halaman **Buat Pesanan**.
-* **[K-01b] Pilih menu:** Menampilkan menu yang tersedia dengan pencarian dan filter kategori **Semua**, **Kopi**, **Teh**, **Autentik**, **Makanan**, dan **Cemilan**. Menu habis tetap tampil dengan label **Habis** dan tidak dapat dipilih.
+* **[K-01b] Pilih menu:** Menampilkan menu yang tersedia dengan pencarian dan filter kategori **Semua**, **Kopi**, **Bukan Kopi**, dan **Makanan & Camilan**. Menu habis tetap tampil dengan label **Habis** dan tidak dapat dipilih.
 * **[K-01c] Keranjang pesanan:** Kasir dapat menambah, mengurangi, dan menghapus item, serta mengisi catatan per item. Catatan disimpan di `order_items.catatan`.
 * **[K-01d] Data pelanggan:** Nama pelanggan (wajib), tipe pesanan **Dine In** atau **Take Away** (wajib), dan nama kasir yang terisi otomatis dari akun yang login. Untuk order tunai, kasir disimpan di `orders.cashier_id`.
 * **[K-01e] Pembayaran tunai:** Sistem menghitung subtotal dan total, kasir menginput uang diterima, sistem memvalidasi `uang_diterima >= total`, lalu menampilkan kembalian.
@@ -355,7 +355,7 @@ Admin hanya memiliki **lima fitur utama** berikut.
 * **[AD-02b] Tambah menu:** Nama, kategori, harga, deskripsi, foto, dan status ketersediaan.
 * **[AD-02c] Ubah menu:** Mengubah seluruh data menu, termasuk harga dan ketersediaan.
 * **[AD-02d] Hapus menu:** Menghapus menu dengan *soft delete* setelah konfirmasi. Menu yang dihapus tidak tampil di halaman pelanggan dan kasir, tetapi riwayat pesanan lama tetap utuh.
-* **[AD-02e] Kategori:** Kategori menggunakan daftar tetap yang sudah di-*seed*: **Kopi, Teh, Autentik, Makanan, Cemilan**. Tidak ada CRUD kategori terpisah pada versi ini.
+* **[AD-02e] Kategori:** Kategori menggunakan daftar tetap yang sudah di-*seed*: **Kopi, Bukan Kopi, Makanan & Camilan**. Tidak ada CRUD kategori terpisah pada versi ini.
 
 ##### [AD-03] Laporan Transaksi *(Prioritas: Must)*
 
@@ -592,7 +592,7 @@ Admin hanya memiliki **lima fitur utama** berikut.
 | Kolom | Tipe | Keterangan |
 |---|---|---|
 | id | bigint | Primary key |
-| nama | string | Kopi, Teh, Autentik, Makanan, Cemilan |
+| nama | string | Kopi, Bukan Kopi, Makanan & Camilan |
 | slug | string | Unik |
 | urutan | integer | Urutan tampil |
 
@@ -995,7 +995,7 @@ Saat pembayaran lunas (`settlement` atau `capture` dengan `fraud_status=accept`)
 * Kode pesanan menggunakan 8 karakter acak dari huruf/angka tanpa karakter ambigu (`I`, `O`, `0`, `1`) agar halaman konfirmasi tidak mudah ditebak dan mudah dibacakan.
 * Nomor antrean di-*reset* harian dan ditampilkan tiga digit.
 * Tidak ada nomor meja pada versi ini.
-* Kategori menu menggunakan daftar tetap: **Kopi, Teh, Autentik, Makanan, Cemilan**; tidak ada CRUD kategori.
+* Kategori menu menggunakan daftar tetap: **Kopi, Bukan Kopi, Makanan & Camilan**; tidak ada CRUD kategori.
 * Akun kasir/admin dibuat melalui *seeder*; belum ada UI manajemen akun.
 * Database aplikasi dan test menggunakan **MySQL**; SQLite tidak dipakai.
 * Data menu, pesanan, dan pembayaran disimpan di database, bukan `localStorage`/`sessionStorage`.

@@ -45,7 +45,8 @@ class AdminMenuCrudTest extends TestCase
         $this->berkasAwal = glob(public_path('images/menus/unggahan-*')) ?: [];
 
         $this->kopi = Category::create(['nama' => 'Kopi', 'slug' => 'kopi', 'urutan' => 1]);
-        Category::create(['nama' => 'Teh', 'slug' => 'teh', 'urutan' => 2]);
+        Category::create(['nama' => 'Bukan Kopi', 'slug' => 'bukan-kopi', 'urutan' => 2]);
+        Category::create(['nama' => 'Makanan & Camilan', 'slug' => 'makanan-camilan', 'urutan' => 3]);
 
         $this->menu = Menu::create([
             'category_id' => $this->kopi->id,
@@ -252,6 +253,26 @@ class AdminMenuCrudTest extends TestCase
             ->assertSee('name="nama"', false)
             ->assertSee('name="foto"', false)
             ->assertSee('enctype="multipart/form-data"', false);
+    }
+
+    public function test_halaman_kelola_menu_memakai_tiga_kategori_baru(): void
+    {
+        $this->actingAs($this->admin)
+            ->get(route('admin.menu.index'))
+            ->assertOk()
+            ->assertSee('data-admin-menu-category="kopi"', false)
+            ->assertSee('data-admin-menu-category="bukan-kopi"', false)
+            ->assertSee('data-admin-menu-category="makanan-camilan"', false)
+            ->assertDontSee('data-admin-menu-category="teh"', false)
+            ->assertDontSee('data-admin-menu-category="autentik"', false)
+            ->assertDontSee('data-admin-menu-category="makanan"', false)
+            ->assertDontSee('data-admin-menu-category="cemilan"', false);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.menu.create'))
+            ->assertOk()
+            ->assertSee('Bukan Kopi')
+            ->assertSee('Makanan & Camilan');
     }
 
     public function test_admin_dapat_mengubah_ketersediaan_dari_tabel(): void

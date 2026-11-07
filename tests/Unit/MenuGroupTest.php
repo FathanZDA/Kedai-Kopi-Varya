@@ -10,8 +10,10 @@ class MenuGroupTest extends TestCase
     public function test_kategori_dikelompokkan_untuk_filter_publik(): void
     {
         $this->assertSame(MenuGroup::KOPI, MenuGroup::forSlug('kopi'));
+        $this->assertSame(MenuGroup::BUKAN_KOPI, MenuGroup::forSlug('bukan-kopi'));
         $this->assertSame(MenuGroup::BUKAN_KOPI, MenuGroup::forSlug('teh'));
         $this->assertSame(MenuGroup::BUKAN_KOPI, MenuGroup::forSlug('autentik'));
+        $this->assertSame(MenuGroup::MAKANAN_CAMILAN, MenuGroup::forSlug('makanan-camilan'));
         $this->assertSame(MenuGroup::MAKANAN_CAMILAN, MenuGroup::forSlug('makanan'));
         $this->assertSame(MenuGroup::MAKANAN_CAMILAN, MenuGroup::forSlug('cemilan'));
     }

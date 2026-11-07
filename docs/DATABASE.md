@@ -116,7 +116,7 @@ Index: `email` unik, `role`.
 | `created_at` | timestamp | yes | null | |
 | `updated_at` | timestamp | yes | null | |
 
-Kategori final: **Kopi, Teh, Autentik, Makanan, Cemilan**. Tidak ada CRUD kategori.
+Kategori final: **Kopi, Bukan Kopi, Makanan & Camilan**. Tidak ada CRUD kategori.
 
 ### 4.3 `menus`
 
@@ -496,6 +496,7 @@ erDiagram
 | `menus.is_featured` | Selesai | Kolom dihapus. |
 | `menus.sort_order` | Selesai | Menjadi `urutan`. |
 | `categories.sort_order` | Selesai | Menjadi `urutan`. |
+| Kategori final | Selesai | Tiga baris: `kopi`, `bukan-kopi`, `makanan-camilan`; migration `2026_11_07_000001_sederhanakan_kategori_menu` menggabungkan kategori lama. |
 | `promos` | Selesai | Field Indonesia + `mulai`/`berakhir`; `subtitle`/`badge_text` dihapus. |
 | `store_settings` | Selesai | Field PRD; `landmark`/`hours` JSON dihapus. |
 | Jam toko | Selesai | Tabel `store_hours` berisi 7 baris. |
@@ -517,10 +518,8 @@ erDiagram
 | Urutan | Nama | Slug |
 |---|---|---|
 | 1 | Kopi | `kopi` |
-| 2 | Teh | `teh` |
-| 3 | Autentik | `autentik` |
-| 4 | Makanan | `makanan` |
-| 5 | Cemilan | `cemilan` |
+| 2 | Bukan Kopi | `bukan-kopi` |
+| 3 | Makanan & Camilan | `makanan-camilan` |
 
 ### 10.2 Menu
 
@@ -530,20 +529,21 @@ Sumber kanonik: `database/seeders/PelangganASeeder.php`.
 |---|---|---|---|---|
 | 1 | Varya Signature | Kopi | 22.000 | Ya |
 | 2 | Americano Street | Kopi | 18.000 | Ya |
-| 3 | Matcha Creamy | Teh | 24.000 | Ya |
-| 4 | Sunset Mocktail | Autentik | 26.000 | Ya |
-| 5 | Artisan Jasmine | Teh | 18.000 | Ya |
+| 3 | Matcha Creamy | Bukan Kopi | 24.000 | Ya |
+| 4 | Sunset Mocktail | Bukan Kopi | 26.000 | Ya |
+| 5 | Artisan Jasmine | Bukan Kopi | 18.000 | Ya |
 | 6 | Caramel Macchiato | Kopi | 25.000 | Ya |
-| 7 | Roti Bakar Mix | Makanan | 20.000 | Ya |
-| 8 | Truffle Fries | Makanan | 22.000 | Ya |
-| 9 | Bowl Sambal Matah | Makanan | 28.000 | Ya |
-| 10 | Almond Croissant | Cemilan | 26.000 | Ya |
-| 11 | Dimsum Mentai | Makanan | 24.000 | Ya |
+| 7 | Roti Bakar Mix | Makanan & Camilan | 20.000 | Ya |
+| 8 | Truffle Fries | Makanan & Camilan | 22.000 | Ya |
+| 9 | Bowl Sambal Matah | Makanan & Camilan | 28.000 | Ya |
+| 10 | Almond Croissant | Makanan & Camilan | 26.000 | Ya |
+| 11 | Dimsum Mentai | Makanan & Camilan | 24.000 | Ya |
 | 12 | Cold Brew Grit | Kopi | 30.000 | Tidak |
 
 Catatan:
 
-- `Matcha Creamy` sudah berada di kategori Teh pada seeder dan database.
+- `Matcha Creamy` berada di kategori Bukan Kopi pada seeder dan database.
+- Migration `2026_11_07_000001_sederhanakan_kategori_menu` menggabungkan kategori lama: Teh + Autentik menjadi Bukan Kopi, dan Makanan + Cemilan menjadi Makanan & Camilan. Menu yang sudah ada, termasuk yang di-soft-delete, dipindahkan sebelum kategori lama dihapus.
 - Admin dan kasir membaca 12 menu kanonik dari database; tidak ada lagi daftar 24 menu demo di controller. Menu baru ditambahkan lewat CRUD admin setelah backend selesai.
 - PRD §2.1 menyebut menu terlaris Mie Ae, Vanilla Latte, dan Heejo. Daftar menu lengkap dan harga ketiganya belum ada di PRD; jangan mengarang harga. Tambahkan lewat admin jika datanya sudah pasti.
 
@@ -572,7 +572,8 @@ Data demo order (menunggu, lunas, gagal, `perlu_diperiksa`) belum ada. Tabel tra
 10. Buat `payments`.
 11. Buat `payment_notifications`.
 12. Tambah index/constraint yang belum dibuat.
+13. Gabungkan lima kategori lama menjadi tiga kategori final dan pindahkan `menus.category_id` lewat `2026_11_07_000001_sederhanakan_kategori_menu`.
 
 Jangan mengubah migration lama yang sudah dijalankan; buat migration baru. Jika database hanya berisi data demo dan sudah disetujui, `migrate:fresh --seed` boleh dipakai; jika ada data nyata, gunakan migration rename.
 
-Status 27 Okt 2026: langkah 1–6 selesai lewat `2026_10_25_000001_align_schema_with_prd`. Langkah 7–11 selesai lewat satu migration, `2026_10_27_000001_buat_tabel_transaksi`, dengan urutan `queue_counters` → `orders` → `order_items` → `payments` → `payment_notifications`. Langkah 12 (index/constraint susulan) tidak diperlukan karena semua index dan constraint sudah dibuat bersama tabelnya; sudah diverifikasi lewat `information_schema.STATISTICS` dan tidak ada index ganda pada kolom foreign key.
+Status 27 Okt 2026: langkah 1–6 selesai lewat `2026_10_25_000001_align_schema_with_prd`. Langkah 7–11 selesai lewat satu migration, `2026_10_27_000001_buat_tabel_transaksi`, dengan urutan `queue_counters` → `orders` → `order_items` → `payments` → `payment_notifications`. Langkah 12 (index/constraint susulan) tidak diperlukan karena semua index dan constraint sudah dibuat bersama tabelnya; sudah diverifikasi lewat `information_schema.STATISTICS` dan tidak ada index ganda pada kolom foreign key. Langkah 13 selesai 7 Nov 2026.

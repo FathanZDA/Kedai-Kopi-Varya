@@ -47,7 +47,7 @@ Jika keputusan berubah, tambahkan baris baru dan tandai yang lama sebagai `SUPER
 | F-12 | Pembatalan/pelacakan pelanggan | Pelanggan tidak punya tombol batal atau fitur cek pesanan. | PRD §4.2, §8.4.8–9 |
 | F-13 | Kode pesanan | 8 karakter acak tanpa `I`, `O`, `0`, `1`; unik. Tidak memakai prefix `ORD-` atau `TRX-`. | PRD §15.1 |
 | F-14 | Laporan | Hanya transaksi `lunas` yang dihitung sebagai pendapatan. | PRD §8.8.1 |
-| F-15 | Kategori | Daftar tetap 5 kategori: **Kopi, Teh, Autentik, Makanan, Cemilan**. Tidak ada CRUD kategori. | PRD §7.4 K-01b, §7.5 AD-02e yang diperbarui |
+| F-15 | Kategori | Daftar tetap 3 kategori: **Kopi, Bukan Kopi, Makanan & Camilan**. Tidak ada CRUD kategori. | PRD §7.4 K-01b, §7.5 AD-02e yang diperbarui |
 | F-16 | Akun | Akun admin/kasir dibuat lewat seeder; belum ada UI manajemen akun. | PRD §4.2, §15.1 |
 | F-17 | Nomor meja | Tidak dipakai pada versi ini. | PRD §4.2, §15.1 |
 | F-18 | Pembaruan pesanan | Polling 5–10 detik; bukan websocket. | PRD §4.2, §7.4 K-02d |
@@ -105,7 +105,7 @@ Jika keputusan berubah, tambahkan baris baru dan tandai yang lama sebagai `SUPER
 | F-70 | Foto Tentang Kami | **FINAL.** Kolom baru `store_settings.foto_tentang` (varchar 255, nullable) ditambahkan lewat migration baru. Unggahan memakai endpoint terpisah `POST /admin/toko/foto-tentang` (multipart, validasi `App\Http\Requests\Admin\AboutPhotoRequest`: JPG/PNG/WEBP, maks. 3 MB) dan `DELETE /admin/toko/foto-tentang`, sehingga `PUT /admin/toko` tetap JSON (F-64). Berkas disimpan di `public/images/toko` dengan prefiks `unggahan-`; hanya berkas berprefiks itu yang dihapus saat foto diganti/dihapus, sehingga aset kanonik tidak tersentuh. `null` berarti halaman `/tentang` memakai placeholder bermotif yang sudah ada, dan panel admin berstatus “Tidak Tampil”. Satu foto dipakai untuk bingkai desktop (3:2) dan mobile (16:9) dengan pemotongan CSS. | PRD AD-05; F-34/F-36/F-64; `docs/ROUTES.md` §4.14 |
 | F-71 | Konflik harga saat checkout | **FINAL.** `POST /pesan/checkout` mewajibkan `item.*.harga_satuan` sebagai **harga acuan** yang dilihat pelanggan di keranjang. Server membandingkannya dengan `menus.harga`: bila berbeda, checkout ditolak `409` dengan `data.item` berisi `menu_id`, `nama`, `harga_lama`, `harga_baru`, dan tidak ada order/payment yang dibuat. Menu habis atau sudah dihapus tetap `422` pada field `item`. Harga yang ditagih selalu `menus.harga`, bukan nilai kiriman browser. Alur kasir tunai tidak berubah: `siapkanItem` hanya memeriksa harga ketika `periksaHarga` aktif, karena kasir melihat total final di dialog sebelum menyimpan. | PRD B-10, §8.2 butir 8; `docs/ROUTES.md` §4.1 |
 | F-72 | Pratinjau katalog beranda | **FINAL.** Beranda `/` (Pelanggan A) dan `/pesan` (Pelanggan B) tetap merender **seluruh** kartu menu dari server, lalu `previewLimit=4` membuat `resources/js/pelanggan-a.js` menyembunyikan kartu ke-5 dan seterusnya selama belum diperluas dan tidak ada pencarian/filter aktif. Tombol `data-menu-more` adalah `<button>` toggle (`aria-expanded`, label “Lihat Semua Menu” ↔ “Tampilkan Lebih Sedikit”), bukan tautan ke `/menu`; tombol disembunyikan bila jumlah menu ≤ 4 atau pencarian/filter aktif. Pencarian dan filter kategori selalu menampilkan semua hasil yang cocok, sehingga item ke-5+ tetap dapat ditambahkan ke keranjang Pelanggan B. Halaman `/menu` tetap penuh (`previewLimit=0`, tanpa tombol). Tanpa JavaScript semua kartu tampil (progressive enhancement), dan data menu tidak pernah dipotong di server. | `docs/PLAN-PERBAIKAN-TEST-FITUR.md` S3; `docs/ROUTES.md` §2.2 |
-| F-73 | Kelompok filter & tata letak menu publik | **FINAL.** Filter kategori publik di `/`, `/pesan`, dan `/menu` memakai tiga kelompok tampilan: **Kopi** (`kopi`), **Bukan Kopi** (`teh` + `autentik`), dan **Makanan & Camilan** (`makanan` + `cemilan`), ditambah **Semua**. Pemetaan ada di `App\Support\MenuGroup`; kategori database tetap lima baris (PRD AD-02e) agar admin/kasir masih bisa membedakan teh, autentik, makanan, dan cemilan — tidak ada migration atau perubahan data. Tata letak menu memakai **4 kolom di desktop** dan 2 kolom di mobile, dibatasi `max-w-6xl`, dipusatkan, dan memakai flex-wrap sehingga baris terakhir ikut di tengah; 4 kartu pratinjau dan seluruh kartu setelah “Lihat Semua Menu” memakai ukuran serta tata letak yang sama. Filter tetap di tengah. | PRD AD-02e; F-72; `docs/ROUTES.md` §2.2–2.3 |
+| F-73 | Kelompok filter, kategori, & tata letak menu | **FINAL.** Kategori database final tiga baris: **Kopi** (`kopi`), **Bukan Kopi** (`bukan-kopi`), dan **Makanan & Camilan** (`makanan-camilan`). Migration `2026_11_07_000001_sederhanakan_kategori_menu` menggabungkan kategori lama (Teh + Autentik → Bukan Kopi; Makanan + Cemilan → Makanan & Camilan) dan memindahkan seluruh menu, termasuk yang di-soft-delete. Admin, kasir, dan filter publik memakai tiga kategori yang sama; filter publik tetap menampilkan **Semua** dan memakai `App\Support\MenuGroup` (alias slug lama tetap diterima selama transisi). Tidak ada CRUD kategori. Tata letak menu memakai **4 kolom di desktop** dan 2 kolom di mobile, dibatasi `max-w-6xl`, dipusatkan, dan memakai flex-wrap sehingga baris terakhir ikut di tengah; 4 kartu pratinjau dan seluruh kartu setelah “Lihat Semua Menu” memakai ukuran serta tata letak yang sama. Filter tetap di tengah. | PRD AD-02e, K-01b; F-72; `docs/ROUTES.md` §2.2–2.3 |
 
 ---
 
@@ -123,7 +123,7 @@ Catatan: O-16 bersifat operasional dan tidak menghambat pembuatan dokumen, migra
 
 | ID lama | Topik | Status baru | Keputusan |
 |---|---|---|---|
-| O-01 | Daftar kategori | FINAL | 5 kategori: Kopi, Teh, Autentik, Makanan, Cemilan. |
+| O-01 | Daftar kategori | FINAL | 3 kategori: Kopi, Bukan Kopi, Makanan & Camilan. |
 | O-02 | Nama kolom database | FINAL | Kolom bisnis Indonesia sesuai PRD; tabel mengikuti PRD; kolom teknis framework English. |
 | O-03 | `siap_saji` | FINAL | Dihapus dari MVP. |
 | O-04 | Format kode | FINAL | 8 karakter acak; tanpa `ORD-`/`TRX-`. |
@@ -148,7 +148,7 @@ Catatan: O-16 bersifat operasional dan tidak menghambat pembuatan dokumen, migra
 | Konflik | Keputusan |
 |---|---|
 | Timezone `Asia/Surabaya` vs `Asia/Jakarta` | `Asia/Jakarta`; `Asia/Surabaya` tidak valid. |
-| Kategori 3/4/5 versi | 5 kategori final. |
+| Kategori 3/4/5 versi | 3 kategori final: Kopi, Bukan Kopi, Makanan & Camilan. |
 | Harga menu berbeda antara seeder dan admin | Seeder 12 menu menjadi kanonik; data admin demo diganti. |
 | `siap_saji` tidak ada di PRD | Dihapus dari MVP. |
 | `ORD-`/`TRX-` vs kode 8 karakter | Kode 8 karakter; prefix dihapus. |
@@ -199,3 +199,4 @@ Catatan: O-16 bersifat operasional dan tidak menghambat pembuatan dokumen, migra
 | 4 Nov 2026 | Keputusan tertunda diselesaikan user: keranjang Pelanggan B tetap di browser sebagai pengecualian resmi F-29 (F-69), foto Tentang Kami mendapat kolom `foto_tentang` + endpoint unggah sendiri (F-70), checkout publik memakai `409` saat harga menu berubah (F-71), dan `database/database.sqlite` dihapus. | Agent |
 | 7 Nov 2026 | Katalog beranda Pelanggan A dan B dibatasi tampilan 4 kartu dengan tombol “Lihat Semua Menu” yang memperluas di tempat (F-72); seluruh kartu tetap dirender server, pencarian/filter menembus batas, dan `/menu` tetap penuh. | Agent |
 | 7 Nov 2026 | Filter publik memakai kelompok Kopi/Bukan Kopi/Makanan & Camilan (F-73); tata letak menu diperbesar menjadi 4 kolom terpusat di desktop dan 2 kolom di mobile, dengan ukuran sama untuk kartu pratinjau maupun hasil ekspansi. | Agent |
+| 7 Nov 2026 | Kategori database disederhanakan dari 5 menjadi 3 (Kopi, Bukan Kopi, Makanan & Camilan) atas permintaan user; migration data memindahkan seluruh menu, termasuk yang di-soft-delete, dan admin/kasir ikut membaca tiga kategori baru. | Agent |

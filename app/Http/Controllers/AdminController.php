@@ -362,10 +362,8 @@ class AdminController extends Controller
     {
         $skuPrefixes = [
             'kopi' => 'KOP',
-            'teh' => 'TEH',
-            'autentik' => 'AUT',
-            'makanan' => 'MKN',
-            'cemilan' => 'CML',
+            'bukan-kopi' => 'BKP',
+            'makanan-camilan' => 'MKN',
         ];
 
         $skuCounters = [];

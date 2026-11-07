@@ -13,8 +13,10 @@ class MenuGroup
     public const LAINNYA = 'lainnya';
 
     /**
-     * Kelompok filter publik. Kategori database tetap lima baris (PRD AD-02e),
-     * tetapi tampilan publik menggabungkannya agar lebih ringkas.
+     * Kelompok filter publik. Kategori database final ada tiga baris
+     * (Kopi, Bukan Kopi, Makanan & Camilan). Slug lama tetap diterima
+     * sebagai alias agar halaman publik tidak rusak bila migrasi data
+     * belum dijalankan.
      *
      * @return array<int, array{slug: string, label: string, categories: array<int, string>}>
      */
@@ -29,12 +31,12 @@ class MenuGroup
             [
                 'slug' => self::BUKAN_KOPI,
                 'label' => 'Bukan Kopi',
-                'categories' => ['teh', 'autentik'],
+                'categories' => ['bukan-kopi', 'teh', 'autentik'],
             ],
             [
                 'slug' => self::MAKANAN_CAMILAN,
                 'label' => 'Makanan & Camilan',
-                'categories' => ['makanan', 'cemilan'],
+                'categories' => ['makanan-camilan', 'makanan', 'cemilan'],
             ],
         ];
     }
