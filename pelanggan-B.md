@@ -21,7 +21,7 @@ Pelanggan B **tidak memiliki fitur Cek Pesanan atau pelacakan pesanan**. Setelah
 
 **Akses Fitur (Use Case):**
 
-* Memiliki akses yang sama dengan Pelanggan A (melihat *landing page*, menu, tentang, dan lokasi).
+* Memiliki akses yang sama dengan Pelanggan A (melihat *landing page*, menu, tentang, dan lokasi). Navigasi Beranda/Tentang/Menu/Lokasi memakai anchor ke section di `/pesan`, dan pil aktif mengikuti section; alur pesanan tetap menandai Menu.
 
 * Dapat masuk langsung ke menu mode pesan setelah *scan* QR.
 

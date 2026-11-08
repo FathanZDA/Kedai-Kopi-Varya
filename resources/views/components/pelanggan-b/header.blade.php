@@ -6,12 +6,13 @@
         'pelanggan-b.checkout',
         'pesanan.status',
     ]);
+    $berandaUrl = route('pelanggan-b.beranda');
 
     $links = [
-        ['href' => route('pelanggan-b.beranda'), 'label' => 'Beranda', 'active' => $isBeranda],
-        ['href' => route('pelanggan-b.beranda').'#tentang', 'label' => 'Tentang Kami', 'active' => false],
-        ['href' => route('pelanggan-b.beranda').'#menu', 'label' => 'Menu', 'active' => $isOrderFlow],
-        ['href' => route('pelanggan-b.beranda').'#lokasi', 'label' => 'Lokasi', 'active' => false],
+        ['section' => 'beranda', 'href' => $berandaUrl.'#beranda', 'label' => 'Beranda', 'active' => $isBeranda],
+        ['section' => 'tentang', 'href' => $berandaUrl.'#tentang', 'label' => 'Tentang Kami', 'active' => false],
+        ['section' => 'menu', 'href' => $berandaUrl.'#menu', 'label' => 'Menu', 'active' => $isOrderFlow],
+        ['section' => 'lokasi', 'href' => $berandaUrl.'#lokasi', 'label' => 'Lokasi', 'active' => false],
     ];
 @endphp
 
@@ -24,6 +25,9 @@
             <nav class="hidden items-center gap-1 lg:flex" aria-label="Navigasi utama">
                 @foreach ($links as $link)
                     <a href="{{ $link['href'] }}"
+                       data-nav-link
+                       data-nav-section="{{ $link['section'] }}"
+                       data-nav-desktop
                        @class([
                            'rounded-full px-5 py-2 text-sm font-semibold tracking-wide uppercase transition-colors',
                            'bg-varya-dark text-white' => $link['active'],
@@ -69,11 +73,14 @@
                 @foreach ($links as $link)
                     <li>
                         <a href="{{ $link['href'] }}"
+                           data-nav-link
+                           data-nav-section="{{ $link['section'] }}"
                            @class([
                                'block rounded-md px-4 py-3 text-sm font-semibold tracking-wide uppercase',
                                'bg-varya-dark text-white' => $link['active'],
                                'text-ink' => ! $link['active'],
-                           ])>
+                           ])
+                           @if ($link['active']) aria-current="page" @endif>
                             {{ $link['label'] }}
                         </a>
                     </li>

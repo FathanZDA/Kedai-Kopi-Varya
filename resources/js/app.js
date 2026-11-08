@@ -52,14 +52,27 @@ function initSectionNav() {
 
     if (links.length === 0 || sections.length !== 4) return;
 
+    const header = document.querySelector('header');
+    const root = document.documentElement;
+
     let activeSection = null;
     let ticking = false;
+    let lockUntil = 0;
+
+    const activeOffset = () => {
+        const headerHeight = header?.offsetHeight ?? 0;
+        const scrollPadding = Number.parseFloat(window.getComputedStyle(root).scrollPaddingTop) || 0;
+
+        return Math.max(headerHeight, scrollPadding) + 8;
+    };
 
     const update = () => {
         ticking = false;
 
-        const header = document.querySelector('header');
-        const offset = (header?.offsetHeight ?? 0) + 16;
+        // Jangan biarkan scroll-spy menimpa pilihan pengguna selama smooth scroll.
+        if (Date.now() < lockUntil) return;
+
+        const offset = activeOffset();
         let nextSection = sections[0].id;
 
         sections.forEach((section) => {
@@ -94,6 +107,30 @@ function initSectionNav() {
 
         sections.forEach((section) => observer.observe(section));
     }
+
+    links.forEach((link) => {
+        link.addEventListener('click', () => {
+            lockUntil = Date.now() + 1500;
+            activeSection = link.dataset.navSection;
+            setActiveNavLink(links, activeSection);
+        });
+    });
+
+    const releaseLock = () => {
+        if (Date.now() >= lockUntil) return;
+
+        lockUntil = 0;
+        scheduleUpdate();
+    };
+
+    if ('onscrollend' in window) {
+        window.addEventListener('scrollend', releaseLock, { passive: true });
+    }
+
+    // Scroll manual atau keyboard membatalkan kunci klik.
+    ['wheel', 'touchstart', 'keydown'].forEach((type) => {
+        window.addEventListener(type, releaseLock, { passive: true });
+    });
 
     window.addEventListener('scroll', scheduleUpdate, { passive: true });
     window.addEventListener('hashchange', scheduleUpdate);

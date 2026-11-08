@@ -55,4 +55,52 @@ class PelangganBMenuTest extends TestCase
             $response->assertSee($menu->nama);
         }
     }
+
+    public function test_beranda_pesan_memakai_navigasi_section(): void
+    {
+        $beranda = route('pelanggan-b.beranda');
+        $response = $this->get($beranda);
+
+        $response->assertOk()
+            ->assertSee('id="beranda"', false)
+            ->assertSee('href="'.$beranda.'#beranda"', false)
+            ->assertSee('href="'.$beranda.'#tentang"', false)
+            ->assertSee('href="'.$beranda.'#menu"', false)
+            ->assertSee('href="'.$beranda.'#lokasi"', false)
+            ->assertSee('data-nav-section="beranda"', false)
+            ->assertSee('data-nav-section="tentang"', false)
+            ->assertSee('data-nav-section="menu"', false)
+            ->assertSee('data-nav-section="lokasi"', false);
+
+        $html = $response->getContent();
+
+        $this->assertMatchesRegularExpression(
+            '/data-nav-section="beranda"[^>]*aria-current="page"/s',
+            $html
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/data-nav-section="menu"[^>]*aria-current="page"/s',
+            $html
+        );
+    }
+
+    public function test_alur_pesanan_tetap_menandai_menu_aktif(): void
+    {
+        $urls = [
+            route('pelanggan-b.produk', 'varya-signature'),
+            route('pelanggan-b.keranjang'),
+            route('pelanggan-b.checkout'),
+        ];
+
+        foreach ($urls as $url) {
+            $response = $this->get($url);
+
+            $response->assertOk();
+            $this->assertMatchesRegularExpression(
+                '/data-nav-section="menu"[^>]*aria-current="page"/s',
+                $response->getContent(),
+                'Menu harus aktif di '.$url
+            );
+        }
+    }
 }

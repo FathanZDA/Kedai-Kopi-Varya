@@ -13,7 +13,7 @@ Dokumen ini adalah **rencana pengerjaan**, bukan catatan hasil. Sumber aturan te
 | Commit terakhir | `aae928d` — `fitur: foto tentang kami dan pengaman harga checkout` |
 | Branch | `keputusan-tertunda` |
 | Working tree | bersih kecuali `docs/TEST-FITUR.md`, dokumen rencana ini, dan `public/images/promos/unggahan-promo-*` (artefak uji unggah, belum di-commit) |
-| Test | **terverifikasi 7 Nov 2026** — `php artisan test` → **228 passed** (1214 assertions) setelah S1-S4 dan penyesuaian kategori; Pint bersih, build berhasil. MySQL XAMPP harus hidup sebelum menjalankan test. |
+| Test | **terverifikasi 7 Nov 2026** — `php artisan test` → **230 passed** (1232 assertions) setelah S1-S5 dan penyesuaian kategori; Pint bersih, build berhasil. MySQL XAMPP harus hidup sebelum menjalankan test. |
 
 **Wajib sebelum menulis kode:** nyalakan MySQL XAMPP, lalu jalankan `php artisan test` sampai hijau. Jangan menyimpulkan ada bug kode sebelum MySQL hidup (lihat `docs/HANDOFF.md` §7). Kalau test menggantung lagi, cek `SHOW PROCESSLIST` sebelum menuduh kode.
 
@@ -171,7 +171,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 ### S4 — Navbar Pelanggan A: terpusat + satu halaman (anchor)
 
-**Status 7 Nov 2026: selesai dikerjakan di branch `perbaikan-s4-navbar-beranda`** — navbar memakai tiga kolom, tautan anchor, scroll-spy, dan halaman mandiri tetap aktif sesuai route. Verifikasi visual scroll-spy dan panel mobile masih manual.
+**Status 7 Nov 2026: selesai dikerjakan di branch `perbaikan-s4-navbar-beranda`** — navbar memakai tiga kolom, tautan anchor, scroll-spy, dan halaman mandiri tetap aktif sesuai route. Tindak lanjut 8 Nov 2026: pola responsif disamakan dengan Pelanggan B (`lg`, flex di bawah `lg`). Verifikasi visual scroll-spy dan panel mobile masih manual.
 
 **Tujuan:** navigasi desktop berada di tengah, dan klik Beranda/Tentang/Menu/Lokasi menggulir di halaman `/`, tidak berpindah halaman.
 
@@ -180,7 +180,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 **Perubahan:**
 
 - `resources/views/components/public/header.blade.php`
-  - Layout desktop menjadi tiga kolom setara (`grid grid-cols-[1fr_auto_1fr]`): brand kiri, nav tengah, aksi kanan; nav tetap `hidden md:flex`.
+  - Layout desktop menjadi tiga kolom setara (`grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]`): brand kiri, nav tengah, aksi kanan; nav tetap `hidden lg:flex` (breakpoint disamakan dengan Pelanggan B pada 8 Nov 2026).
   - Tautan menjadi `route('pelanggan-a.beranda').'#tentang'`, `...'#menu'`, `...'#lokasi'`, dan Beranda ke `route('pelanggan-a.beranda')` / `#beranda`.
   - Tambahkan `data-nav-section` + `data-nav-link`; aktif server-side hanya untuk halaman mandiri (`routeIs('pelanggan-a.tentang')` dsb.).
   - Panel mobile memakai tautan yang sama dan menutup panel setelah diklik.
@@ -189,7 +189,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 **Kriteria penerimaan:**
 
-- Navbar desktop rata tengah secara visual pada lebar ≥768px; mobile tetap tombol menu.
+- Navbar desktop rata tengah secara visual pada lebar ≥1024px (`lg`); di bawahnya memakai tombol menu seperti Pelanggan B.
 - Dari `/`, klik Tentang/Menu/Lokasi menggulir ke section tanpa request halaman baru; URL boleh berubah menjadi `#...`.
 - Pil hijau mengikuti section yang sedang terlihat saat scroll.
 - Dari `/menu`, `/tentang`, atau `/lokasi`, klik navbar membawa ke beranda lalu ke section yang benar.
@@ -203,6 +203,8 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 ---
 
 ### S5 — Pil aktif Pelanggan B mengikuti section
+
+**Status 7 Nov 2026: selesai dikerjakan di branch `perbaikan-s5-pil-aktif-pelanggan-b`** — header B memakai `data-nav-section`; scroll-spy berjalan di `/pesan`; alur pesanan tetap menandai Menu. QA menemukan pil tidak langsung pindah saat klik selain Beranda; sudah diperbaiki dengan offset `scroll-padding-top` + kunci section saat klik (berlaku untuk A dan B). Verifikasi visual akhir masih manual.
 
 **Tujuan:** pil hijau berpindah ke Tentang/Menu/Lokasi saat diklik atau digulir.
 
@@ -312,7 +314,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 **Wajib setelah S1–S7:**
 
-1. `php artisan test` — seluruh suite hijau (baseline terakhir yang tercatat: 228 passed; tambahan test S5-S7 akan menaikkan angka).
+1. `php artisan test` — seluruh suite hijau (baseline terakhir yang tercatat: 230 passed; tambahan test S6-S7 akan menaikkan angka).
 2. `php vendor/bin/pint --test` — bersih.
 3. `npm.cmd run build` — berhasil (ada perubahan JS/CSS).
 4. Manual QA sesuai §5.

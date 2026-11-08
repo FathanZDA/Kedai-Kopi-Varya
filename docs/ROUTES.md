@@ -106,7 +106,7 @@ Saat mengganti `/tentang-kami` menjadi `/tentang`, sediakan redirect 301 dari UR
 
 Beranda `/` menampilkan pratinjau **4 kartu menu** pertama dengan tombol "Lihat Semua Menu" yang memperluas seluruh kartu di tempat (tanpa pindah halaman). Halaman `/menu` tetap menampilkan seluruh menu tanpa batas. Atribut kontrak: `data-menu-preview-limit="4"` pada wadah menu beranda, `data-menu-preview-limit="0"` pada `/menu`, `data-menu-index` pada tiap item, dan tombol `data-menu-more` (bukan tautan). Pencarian/filter kategori mengabaikan batas pratinjau. Kategori database final: **Kopi** (`kopi`), **Bukan Kopi** (`bukan-kopi`), dan **Makanan & Camilan** (`makanan-camilan`); filter publik menambahkan **Semua** dan memakai `App\Support\MenuGroup` (alias slug lama tetap diterima selama transisi). Tata letak memakai 4 kolom desktop terpusat dan 2 kolom mobile. Detail keputusan ada di `docs/DECISIONS.md` F-72/F-73.
 
-Navigasi Pelanggan A memakai anchor ke beranda: `/#beranda`, `/#tentang`, `/#menu`, dan `/#lokasi`. Route `/tentang`, `/menu`, dan `/lokasi` tetap tersedia sebagai deep link/SEO dan tetap menandai pil aktif sesuai halaman; scroll-spy hanya berjalan di beranda karena keempat section lengkap di sana. Kontrak atribut: `data-nav-link`, `data-nav-section`, `data-nav-desktop`, dan `id="beranda"` pada beranda. Detail keputusan ada di `docs/DECISIONS.md` F-74.
+Navigasi Pelanggan A memakai anchor ke beranda: `/#beranda`, `/#tentang`, `/#menu`, dan `/#lokasi`. Route `/tentang`, `/menu`, dan `/lokasi` tetap tersedia sebagai deep link/SEO dan tetap menandai pil aktif sesuai halaman; scroll-spy hanya berjalan di beranda karena keempat section lengkap di sana. Navbar desktop Pelanggan A dan B sama-sama muncul mulai breakpoint `lg` (≥1024px); di bawahnya memakai tombol menu mobile. Kontrak atribut: `data-nav-link`, `data-nav-section`, `data-nav-desktop`, dan `id="beranda"` pada beranda. Detail keputusan ada di `docs/DECISIONS.md` F-74.
 
 ### 2.3 Pelanggan B
 
@@ -129,6 +129,7 @@ Catatan:
 - `/pesan/menu/{menu:slug}` adalah tambahan UI untuk detail produk; tidak menambah aturan bisnis baru.
 - `POST /pesan/checkout` menggantikan simulasi di `resources/js/pelanggan-b.js`.
 - Beranda `/pesan` memakai pratinjau **4 kartu menu** yang sama (`data-menu-preview-limit="4"`, tombol `data-menu-more`); seluruh kartu tetap dirender server dan item ke-5+ dapat ditambahkan ke keranjang setelah diperluas atau lewat pencarian/filter. Filter publik memakai kelompok yang sama (Kopi/Bukan Kopi/Makanan & Camilan) dan tata letak 4 kolom desktop terpusat. Detail ada di F-72/F-73.
+- Navbar `/pesan` memakai anchor `#beranda`/`#tentang`/`#menu`/`#lokasi` dan scroll-spy; halaman alur pesanan (`produk`, `keranjang`, `checkout`, status) tetap menandai Menu aktif. Kontrak atribut sama dengan Pelanggan A (F-74).
 
 ### 2.4 Kasir
 

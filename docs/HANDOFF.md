@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 7 Nov 2026, setelah S1–S3 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`) dan diverifikasi user; S3 sudah di-commit di branch `perbaikan-s3-katalog-beranda` (`dec88cf`). Penyesuaian kategori database menjadi tiga baris (Kopi, Bukan Kopi, Makanan & Camilan) selesai di working tree dan **belum di-commit**.
+**Terakhir diperbarui:** 8 Nov 2026, setelah S1–S5 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`); S3 di `dec88cf` + penyesuaian kategori `83554b7`; S4 di `76536ca`; S5 dikerjakan di branch `perbaikan-s5-pil-aktif-pelanggan-b` dan **belum di-commit**. Navbar Pelanggan A kini mengikuti pola responsif Pelanggan B (`lg`).
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `perbaikan-s4-navbar-beranda` (dari `83554b7`); perubahan S4 di working tree dan **belum di-commit** |
-| Baseline test | `php artisan test` → **228 passed** (1214 assertions) setelah S4 7 Nov 2026 |
+| Branch aktif | `perbaikan-s5-pil-aktif-pelanggan-b` (dari `76536ca`); perubahan S5 di working tree dan **belum di-commit** |
+| Baseline test | `php artisan test` → **230 passed** (1232 assertions) setelah S5 7 Nov 2026 |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user); migration kategori tiga baris sudah dijalankan 7 Nov 2026 |
@@ -497,18 +497,30 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.18 `perbaikan-s4-navbar-beranda` (S4)
 
-**Status:** selesai dikerjakan 7 Nov 2026 di branch `perbaikan-s4-navbar-beranda`, **belum di-commit**; scroll-spy dan panel mobile masih perlu QA browser.
+**Status:** selesai dikerjakan 7 Nov 2026 di branch `perbaikan-s4-navbar-beranda`, **sudah di-commit**; scroll-spy dan panel mobile masih perlu QA browser.
 
-- Header Pelanggan A memakai grid tiga kolom: brand kiri, nav tengah, kolom kanan kosong; tombol menu hanya tampil di mobile. Tautan Beranda/Tentang/Menu/Lokasi memakai anchor ke `route('pelanggan-a.beranda')` + `#beranda`/`#tentang`/`#menu`/`#lokasi`.
+- Header Pelanggan A memakai grid tiga kolom: brand kiri, nav tengah, kolom kanan kosong; tombol menu hanya tampil di mobile. Sejak 8 Nov 2026 pola responsifnya disamakan dengan Pelanggan B: di bawah `lg` memakai flex + tombol menu, nav desktop dan grid tiga kolom baru aktif mulai `lg` (≥1024px). Tautan Beranda/Tentang/Menu/Lokasi memakai anchor ke `route('pelanggan-a.beranda')` + `#beranda`/`#tentang`/`#menu`/`#lokasi`.
 - `resources/views/pelanggan-a/beranda.blade.php` mendapat `<span id="beranda" class="block"></span>`. Route `/tentang`, `/menu`, `/lokasi` tetap ada; halaman mandiri menandai pil aktif dari route, sedangkan beranda memakai scroll-spy.
 - `resources/js/app.js`: `initSectionNav()` memakai `IntersectionObserver` + listener scroll, memperbarui kelas aktif dan `aria-current`, serta tidak berjalan bila keempat section tidak lengkap. Panel mobile menutup setelah tautan diklik.
 - `resources/css/app.css`: `scroll-behavior: smooth` tidak dipaksa saat `prefers-reduced-motion: reduce`.
 - Test baru: `PelangganATest` memastikan href anchor, `id="beranda"`, dan pil aktif halaman mandiri. Baseline **228 passed** (1214 assertions); Pint bersih; build berhasil.
 - Keputusan dicatat sebagai **F-74**; PRD §4.3 dan `docs/ROUTES.md` §2.2 diperbarui.
 
-## 5.19 Kandidat berikutnya
+### 5.19 `perbaikan-s5-pil-aktif-pelanggan-b` (S5)
 
-Slice S4 sudah selesai; S5 (pil aktif Pelanggan B) berikutnya, sedangkan S6 (periode dashboard) dan S7 (urutan promo) menunggu keputusan D3/D4. Pekerjaan operasional lain:
+**Status:** selesai dikerjakan 7 Nov 2026 di branch `perbaikan-s5-pil-aktif-pelanggan-b`, **belum di-commit**; QA browser pil aktif dan panel mobile masih perlu.
+
+- `resources/views/components/pelanggan-b/header.blade.php`: tautan Beranda/Tentang/Menu/Lokasi memakai `data-nav-link`, `data-nav-section`, dan `data-nav-desktop`; href Beranda menjadi `#beranda`; state awal Beranda hanya di `/pesan`, Menu hanya di alur pesanan (`produk`, `keranjang`, `checkout`, status).
+- `resources/js/app.js` `initSectionNav()` dari S4 dipakai ulang; di `/pesan` keempat section lengkap sehingga pil mengikuti scroll/klik, sedangkan halaman alur pesanan tidak menjalankan scroll-spy dan tetap menandai Menu.
+- Panel mobile memakai tautan yang sama, ikut state aktif, dan menutup setelah diklik lewat `initNavToggle()`.
+- Test baru di `PelangganBMenuTest`: anchor + `data-nav-section` beranda, Beranda aktif awal, Menu tidak aktif awal, dan Menu tetap aktif di produk/keranjang/checkout. Baseline **230 passed** (1232 assertions); Pint bersih; build berhasil.
+- Perbaikan setelah QA: `initSectionNav()` memakai `scroll-padding-top` sebagai offset aktif (Pelanggan B memakai `scroll-pt-28`, bukan hanya tinggi header) dan mengunci section yang diklik selama smooth scroll. Pil langsung berpindah saat tautan diklik dan tidak menunggu klik berikutnya; berlaku untuk Pelanggan A dan B.
+- Tindak lanjut 8 Nov 2026: navbar Pelanggan A disamakan pola responsifnya dengan Pelanggan B. Di bawah `lg` memakai flex `justify-between` + tombol menu; mulai `lg` memakai grid tiga kolom dengan nav terpusat. Link desktop memakai `px-5`, panel/toggle memakai `lg:hidden`.
+- Tidak ada keputusan baru; mengikuti F-74.
+
+## 5.20 Kandidat berikutnya
+
+Slice S5 sudah selesai; S6 (periode dashboard) dan S7 (urutan promo) menunggu keputusan D3/D4. Pekerjaan operasional lain:
 
 | # | Topik | Catatan | Acuan |
 |---|---|---|---|
@@ -551,8 +563,8 @@ Slice S4 sudah selesai; S5 (pil aktif Pelanggan B) berikutnya, sedangkan S6 (per
 ## 8. Aturan singkat untuk sesi baru
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
-2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 228 passed).
-3. Potong branch baru dari ujung terbaru (`perbaikan-s4-navbar-beranda` setelah commit S4), bukan dari `main`.
+2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 230 passed).
+3. Potong branch baru dari ujung terbaru (`perbaikan-s5-pil-aktif-pelanggan-b` setelah commit S5), bukan dari `main`.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
 5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata selain keranjang tamu Pelanggan B (F-69). Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
@@ -566,10 +578,10 @@ Lanjutkan proyek Kedai Kopi Varya. Mulai dengan membaca docs/HANDOFF.md,
 lalu AGENTS.md, PRD.md, docs/DECISIONS.md, docs/ROUTES.md, docs/DATABASE.md.
 
 Verifikasi baseline dulu: git log -1 dan php artisan test (harus hijau;
-saat file ini ditulis 228 passed).
+saat file ini ditulis 230 passed).
 Kalau MySQL mati, nyalakan XAMPP dulu sebelum menyimpulkan ada bug kode.
 
-Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.19, dipotong
+Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.20, dipotong
 dari branch terbaru. Ikuti pola yang sudah ada: FormRequest, Service,
 API Resource, DB::transaction + lockForUpdate, enum, named route.
 
