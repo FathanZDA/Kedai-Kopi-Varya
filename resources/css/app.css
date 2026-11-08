@@ -5,7 +5,643 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/*
+|--------------------------------------------------------------------------
+| Tema Kedai Kopi Varya
+|--------------------------------------------------------------------------
+| Palet diambil langsung dari file desain di folder /design (sampling piksel),
+| bukan ditebak. Nilai hex ditulis sebagai komentar di sebelah kanan.
+|
+*/
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Typography */
+    --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
+    --font-mono: 'Space Mono', ui-monospace, 'Courier New', monospace;
+
+    /* Warna dasar */
+    --color-canvas: #f5f3f4; /* latar halaman        */
+    --color-surface: #ffffff; /* kartu / panel        */
+    --color-header: #faf9fa; /* latar header         */
+
+    /* Teks */
+    --color-ink: #1b1c1d; /* teks utama + border   */
+    --color-ink-soft: #545555; /* teks paragraf         */
+    --color-muted: #8d8d8e; /* teks sekunder         */
+
+    /* Garis */
+    --color-line: #e5e7eb; /* garis tipis           */
+    --color-line-strong: #c9c8c9; /* garis lebih tegas     */
+
+    /* Hijau Varya */
+    --color-varya: #2e6b47; /* hijau aksi / tombol   */
+    --color-varya-dark: #115231; /* hijau tua / ticker   */
+    --color-varya-light: #d4e4ce; /* hijau muda / stripe   */
+    --color-varya-muted: #869582; /* hijau keabu-abuan     */
+
+    /* Aksen */
+    --color-rust: #a53f18; /* stiker promo          */
+    --color-brown: #852800; /* badge stok habis     */
+
+    /* Footer */
+    --color-footer: #303031; /* footer gelap          */
+    --color-footer-bar: #e9e8e9; /* bar tengah footer    */
+
+    /* Area kasir */
+    --color-kasir-canvas: #f3f1e9; /* latar area kasir     */
+    --color-kasir-panel: #fbfaf5; /* panel / kartu kasir  */
+    --color-kasir-head: #e7efe4; /* kepala tabel kasir   */
+    --color-kasir-amber: #f2c66d; /* aksen peringatan     */
+    --color-kasir-amber-soft: #fff4d8; /* latar peringatan     */
+
+    /* Area admin */
+    --color-admin-canvas: #f5f3f4; /* latar area admin     */
+    --color-admin-panel: #fbfaf5; /* panel / kartu admin  */
+    --color-admin-head: #efedee; /* kepala tabel admin   */
+    --color-admin-mint: #e2efd9; /* hijau muda preview   */
+    --color-admin-soft: #f6f4ec; /* latar lembut         */
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+    }
+
+    body {
+        background-color: var(--color-canvas);
+        color: var(--color-ink);
+        font-family: var(--font-serif);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Judul section memakai display font */
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-display);
+    }
+}
+
+@layer components {
+    /*
+    | Gaya neo-brutalist yang dipakai konsisten di desain:
+    | border tebal hitam + bayangansolid tanpa blur.
+    */
+    .brut {
+        border: 3px solid var(--color-ink);
+        border-radius: 14px;
+        box-shadow: 5px 5px 0 0 var(--color-ink);
+    }
+
+    .brut-sm {
+        border: 2px solid var(--color-ink);
+        border-radius: 999px;
+        box-shadow: 3px 3px 0 0 var(--color-ink);
+    }
+
+    /* Judul besar section */
+    .title-xl {
+        font-family: var(--font-display);
+        font-weight: 900;
+        letter-spacing: -0.01em;
+        line-height: 1.05;
+        text-transform: uppercase;
+    }
+
+    /* Label kecil monospace */
+    .tag {
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    /* Judul kartu produk */
+    .product-name {
+        font-family: var(--font-display);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Komponen area kasir
+    |--------------------------------------------------------------------------
+    */
+
+    .kasir-shell {
+        background-color: var(--color-kasir-canvas);
+    }
+
+    /* Garis diagonal hijau khas desain kasir. */
+    .kasir-stripes {
+        background-image: repeating-linear-gradient(
+            45deg,
+            var(--color-varya-dark) 0,
+            var(--color-varya-dark) 8px,
+            transparent 8px,
+            transparent 16px
+        );
+    }
+
+    .kasir-stripe-divider {
+        height: 12px;
+        background-image: repeating-linear-gradient(
+            115deg,
+            var(--color-varya-dark) 0,
+            var(--color-varya-dark) 9px,
+            transparent 9px,
+            transparent 16px
+        );
+        -webkit-mask-image: linear-gradient(to right, #000 0%, #000 76%, transparent 100%);
+        mask-image: linear-gradient(to right, #000 0%, #000 76%, transparent 100%);
+    }
+
+    .kasir-title {
+        font-family: var(--font-display);
+        font-weight: 900;
+        letter-spacing: 0.005em;
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    .kasir-card {
+        border: 2px solid var(--color-ink);
+        border-radius: 10px;
+        background-color: var(--color-kasir-panel);
+        box-shadow: 4px 4px 0 0 var(--color-ink);
+    }
+
+    .kasir-dialog {
+        width: calc(100% - 2rem);
+        max-width: 560px;
+        max-height: calc(100vh - 2rem);
+        margin: auto;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .kasir-dialog::backdrop {
+        background: rgb(16 22 18 / 62%);
+        backdrop-filter: blur(3px);
+    }
+
+    .kasir-dialog[open] .kasir-dialog-card {
+        animation: kasir-dialog-in 160ms ease-out;
+    }
+
+    .kasir-dialog-card {
+        overflow: hidden;
+        border: 2px solid var(--color-ink);
+        border-radius: 10px;
+        background-color: var(--color-kasir-panel);
+        box-shadow: 6px 6px 0 0 var(--color-ink);
+    }
+
+    .kasir-dialog-scroll {
+        max-height: calc(100vh - 10rem);
+        overflow-y: auto;
+    }
+
+    .payment-caret {
+        display: inline-block;
+        width: 2px;
+        height: 1.5rem;
+        margin-left: 3px;
+        background-color: currentColor;
+        animation: kasir-caret 1s steps(1) infinite;
+        vertical-align: -0.2rem;
+    }
+
+    .kasir-scrollbar {
+        scrollbar-color: var(--color-varya-muted) transparent;
+        scrollbar-width: thin;
+    }
+
+    .kasir-scrollbar::-webkit-scrollbar {
+        width: 7px;
+        height: 7px;
+    }
+
+    .kasir-scrollbar::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background-color: var(--color-varya-muted);
+    }
+
+    @keyframes kasir-dialog-in {
+        from {
+            opacity: 0;
+            transform: translateY(10px) scale(0.985);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes kasir-caret {
+        0%,
+        49% {
+            opacity: 1;
+        }
+        50%,
+        100% {
+            opacity: 0;
+        }
+    }
+}@layer components {
+    /*
+    |--------------------------------------------------------------------------
+    | Komponen area admin
+    |--------------------------------------------------------------------------
+    | Bahasa visual mengikuti desain: border hitam tebal, bayangan solid,
+    | permukaan krem, dan aksen hijau Varya.
+    */
+
+    .admin-shell {
+        background-color: var(--color-admin-canvas);
+    }
+
+    .admin-card {
+        border: 2px solid var(--color-ink);
+        border-radius: 10px;
+        background-color: var(--color-admin-panel);
+        box-shadow: 4px 4px 0 0 var(--color-ink);
+    }
+
+    .admin-title {
+        font-family: var(--font-display);
+        font-weight: 900;
+        letter-spacing: 0.005em;
+        line-height: 0.98;
+        text-transform: uppercase;
+    }
+
+    .admin-stripes {
+        background-image: repeating-linear-gradient(
+            45deg,
+            var(--color-varya-dark) 0,
+            var(--color-varya-dark) 7px,
+            transparent 7px,
+            transparent 14px
+        );
+    }
+
+    .admin-input,
+    .admin-select,
+    .admin-textarea {
+        width: 100%;
+        border: 2px solid var(--color-ink);
+        border-radius: 6px;
+        background-color: #ffffff;
+        padding: 0.65rem 0.75rem;
+        font-family: var(--font-serif);
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--color-ink);
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .admin-input::placeholder,
+    .admin-textarea::placeholder {
+        color: var(--color-muted);
+    }
+
+    .admin-input:focus,
+    .admin-select:focus,
+    .admin-textarea:focus {
+        border-color: var(--color-varya-dark);
+        outline: none;
+        box-shadow: 0 0 0 3px rgb(46 107 71 / 16%);
+    }
+
+    .admin-select {
+        appearance: none;
+        background-image:
+            linear-gradient(45deg, transparent 50%, var(--color-ink) 50%),
+            linear-gradient(135deg, var(--color-ink) 50%, transparent 50%);
+        background-position:
+            calc(100% - 16px) 50%,
+            calc(100% - 11px) 50%;
+        background-repeat: no-repeat;
+        background-size: 5px 5px, 5px 5px;
+        padding-right: 2rem;
+    }
+
+    .admin-label {
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        line-height: 1.35;
+        text-transform: uppercase;
+        color: var(--color-ink);
+    }
+
+    .admin-btn-primary,
+    .admin-btn-secondary,
+    .admin-btn-danger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        border: 2px solid var(--color-ink);
+        border-radius: 6px;
+        padding: 0.7rem 1rem;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        line-height: 1.1;
+        text-transform: uppercase;
+        box-shadow: 3px 3px 0 0 var(--color-ink);
+        transition: transform 150ms ease, background-color 150ms ease;
+    }
+
+    .admin-btn-primary {
+        background-color: var(--color-varya-dark);
+        color: #ffffff;
+    }
+
+    .admin-btn-secondary {
+        background-color: var(--color-admin-panel);
+        color: var(--color-ink);
+    }
+
+    .admin-btn-danger {
+        background-color: #fbe1de;
+        color: var(--color-rust);
+    }
+
+    .admin-btn-primary:hover,
+    .admin-btn-secondary:hover,
+    .admin-btn-danger:hover {
+        transform: translateY(-1px);
+    }
+
+    .admin-btn-primary:hover {
+        background-color: var(--color-varya);
+    }
+
+    .admin-btn-secondary:hover {
+        background-color: var(--color-varya-light);
+    }
+
+    .admin-btn-danger:hover {
+        background-color: #f7cfc9;
+    }
+
+    .admin-btn-primary:disabled,
+    .admin-btn-secondary:disabled,
+    .admin-btn-danger:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+        transform: none;
+    }
+
+    .admin-dialog {
+        width: calc(100% - 2rem);
+        max-width: 500px;
+        max-height: calc(100vh - 2rem);
+        margin: auto;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .admin-dialog::backdrop {
+        background: rgb(16 22 18 / 62%);
+        backdrop-filter: blur(3px);
+    }
+
+    .admin-dialog[open] .admin-dialog-card {
+        animation: admin-dialog-in 160ms ease-out;
+    }
+
+    .admin-dialog-card {
+        overflow: hidden;
+        border: 2px solid var(--color-ink);
+        border-radius: 10px;
+        background-color: var(--color-admin-panel);
+        box-shadow: 6px 6px 0 0 var(--color-ink);
+    }
+
+    .admin-scrollbar {
+        scrollbar-color: var(--color-varya-muted) transparent;
+        scrollbar-width: thin;
+    }
+
+    .admin-scrollbar::-webkit-scrollbar {
+        width: 7px;
+        height: 7px;
+    }
+
+    .admin-scrollbar::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background-color: var(--color-varya-muted);
+    }
+
+    /* Peta dekoratif pada pratinjau informasi toko. */
+    .admin-map {
+        background-color: #dfe8d7;
+        background-image:
+            linear-gradient(90deg, rgb(255 255 255 / 75%) 2px, transparent 2px),
+            linear-gradient(rgb(255 255 255 / 75%) 2px, transparent 2px),
+            linear-gradient(32deg, transparent 47%, #ffffff 47%, #ffffff 50%, transparent 50%),
+            linear-gradient(148deg, transparent 43%, #ffffff 43%, #ffffff 46%, transparent 46%),
+            linear-gradient(90deg, transparent 64%, #b9d0ae 64%, #b9d0ae 66%, transparent 66%);
+        background-size: 42px 42px, 42px 42px, 100% 100%, 100% 100%, 100% 100%;
+    }
+
+    /* Batang grafik jam sibuk. */
+    .admin-bar {
+        min-height: 8px;
+        border: 2px solid var(--color-ink);
+        border-bottom: 0;
+        border-radius: 5px 5px 0 0;
+        background-color: var(--color-varya-light);
+    }
+
+    .admin-bar[data-active='true'] {
+        background-color: var(--color-varya-dark);
+    }
+
+    /* Bingkai preview foto promosi. */
+    .admin-preview-frame {
+        position: relative;
+        overflow: hidden;
+        border: 2px solid var(--color-ink);
+        background-color: #e9e5d9;
+    }
+
+    .admin-preview-frame::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(135deg, rgb(255 255 255 / 14%) 25%, transparent 25%, transparent 50%, rgb(255 255 255 / 14%) 50%, rgb(255 255 255 / 14%) 75%, transparent 75%);
+        background-size: 10px 10px;
+        opacity: 0.3;
+    }
+
+    .admin-checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: var(--font-serif);
+        font-size: 12px;
+        color: var(--color-ink-soft);
+    }
+
+    .admin-checkbox input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--color-varya-dark);
+    }
+
+    @keyframes admin-dialog-in {
+        from {
+            opacity: 0;
+            transform: translateY(10px) scale(0.985);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+}
+
+@layer components {
+    /*
+    |--------------------------------------------------------------------------
+    | Halaman autentikasi
+    |--------------------------------------------------------------------------
+    | Latar bergaris diagonal, kartu putih ber-border tebal, dan tombol hijau
+    | mengikuti desain pada design/auth.
+    */
+
+    .auth-shell {
+        background-color: #eef3ea;
+        background-image: repeating-linear-gradient(
+            45deg,
+            rgb(17 82 49 / 7%) 0 6px,
+            transparent 6px 30px
+        );
+    }
+
+    .auth-card {
+        border: 3px solid var(--color-ink);
+        border-radius: 2px;
+        background-color: #ffffff;
+        box-shadow: 8px 8px 0 0 var(--color-ink);
+    }
+
+    .auth-label {
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        line-height: 1.35;
+        text-transform: uppercase;
+        color: var(--color-ink);
+    }
+
+    .auth-input {
+        width: 100%;
+        border: 2px solid var(--color-ink);
+        border-radius: 2px;
+        background-color: #ffffff;
+        padding: 0.85rem 1rem;
+        font-family: var(--font-serif);
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--color-ink);
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .auth-input::placeholder {
+        color: var(--color-muted);
+    }
+
+    .auth-input:focus {
+        border-color: var(--color-varya-dark);
+        outline: none;
+        box-shadow: 0 0 0 3px rgb(46 107 71 / 18%);
+    }
+
+    .auth-input-error {
+        border-color: var(--color-rust);
+        background-color: #fffafa;
+    }
+
+    .auth-input-error:focus {
+        border-color: var(--color-rust);
+        box-shadow: 0 0 0 3px rgb(165 63 24 / 16%);
+    }
+
+    .auth-checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-family: var(--font-serif);
+        font-size: 12px;
+        color: var(--color-ink-soft);
+    }
+
+    .auth-checkbox input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--color-varya-dark);
+    }
+
+    .auth-submit {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        border: 2px solid var(--color-ink);
+        border-radius: 2px;
+        background-color: var(--color-varya-dark);
+        padding: 0.95rem 1.25rem;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        line-height: 1.1;
+        text-transform: uppercase;
+        color: #ffffff;
+        box-shadow: 4px 4px 0 0 var(--color-ink);
+        transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .auth-submit:hover {
+        background-color: var(--color-varya);
+        transform: translate(-1px, -1px);
+        box-shadow: 5px 5px 0 0 var(--color-ink);
+    }
+
+    .auth-submit:active {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 0 var(--color-ink);
+    }
+
+    .auth-submit:focus-visible {
+        outline: 3px solid var(--color-varya);
+        outline-offset: 3px;
+    }
 }

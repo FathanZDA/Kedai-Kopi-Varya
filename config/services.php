@@ -35,4 +35,28 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Midtrans — QRIS dinamis (Sandbox)
+    |--------------------------------------------------------------------------
+    |
+    | Server key hanya boleh dibaca backend dan tidak pernah dikirim ke browser.
+    | Client key bersifat publik dan dipakai Snap.js untuk membuka popup.
+    | Mode produksi belum diaktifkan pada versi ini; nilai is_production
+    | hanya menentukan host Snap yang dipanggil.
+    |
+    */
+
+    'midtrans' => [
+        'merchant_id' => env('MIDTRANS_MERCHANT_ID'),
+        'client_key' => env('MIDTRANS_CLIENT_KEY'),
+        'server_key' => env('MIDTRANS_SERVER_KEY'),
+        'is_production' => (bool) env('MIDTRANS_IS_PRODUCTION', false),
+        'snap_sandbox_url' => env(
+            'MIDTRANS_SNAP_SANDBOX_URL',
+            'https://app.sandbox.midtrans.com/snap/v1/transactions'
+        ),
+        'api_sandbox_url' => env('MIDTRANS_API_SANDBOX_URL', 'https://api.sandbox.midtrans.com/v2'),
+    ],
+
 ];
