@@ -232,6 +232,8 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 ### S6 — Dashboard: tiga kotak periode yang bisa diklik
 
+**Status 8 Nov 2026: selesai dikerjakan di branch `perbaikan-s6-periode-dashboard`** — default `hari`, minggu Senin-Minggu; test dashboard lulus. Perubahan belum di-commit.
+
 **Tujuan:** kotak ringkasan operasional menjadi tiga pilihan — **Hari Ini**, **Minggu Ini**, **Bulan Ini** — dan memilih salah satu menampilkan ringkasan periode itu.
 
 **Pendekatan yang disarankan:** server-side dengan query string `?periode=hari|minggu|bulan`, default `hari`. Tanpa JS, mudah diuji, dan tetap satu halaman (`GET`).
@@ -244,17 +246,17 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
   - Hanya `status_pembayaran = lunas` untuk pendapatan/transaksi; semua status untuk hitungan pesanan.
   - `data()` tetap mengembalikan data lama (menu terlaris bulan, transaksi terbaru, pesanan menunggu/diproses hari ini) + `ringkasan` untuk periode aktif.
 - `app/Http/Controllers/AdminController@dashboard`
-  - Baca `?periode`, validasi ke `hari|minggu|bulan`, fallback `bulan` atau `hari` sesuai keputusan; kirim `periodeAktif`, `ringkasan`, dan label.
+  - Baca `?periode`, validasi ke `hari|minggu|bulan`, fallback `hari`; kirim `periodeAktif`, `ringkasan`, `ringkasanPeriode`, dan label.
 - `resources/views/admin/dashboard.blade.php`
   - Tiga kotak menjadi `<a href="{{ route('admin.dashboard', ['periode' => '...']) }}">` dengan angka ringkas; kotak aktif diberi `aria-current="page"` dan gaya aktif.
   - Kartu “Total Pendapatan” dan “Total Pesanan” memakai `ringkasan` periode aktif; subtitle menyebut periode (mis. “Hanya transaksi lunas • Minggu Ini”).
   - Menu terlaris tetap “bulan ini”; pesanan menunggu/diproses tetap “hari ini” dengan label jelas.
 - `resources/js/admin.js`: `initDashboard()` tidak menghitung ulang angka ringkasan (tetap hanya tabel transaksi). Tidak ada perubahan data.
 
-**Keputusan yang perlu disetujui user:**
+**Keputusan user (8 Nov 2026):**
 
-- Periode default: **hari ini** (disarankan) atau tetap **bulan ini**.
-- Definisi “minggu”: **Senin–Minggu** (disarankan, konvensi Indonesia) atau Minggu–Sabtu.
+- Periode default: **hari ini**.
+- Definisi “minggu”: **Senin–Minggu** (diputuskan; konvensi Indonesia), bukan Minggu–Sabtu.
 
 **Kriteria penerimaan:**
 
@@ -314,7 +316,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 **Wajib setelah S1–S7:**
 
-1. `php artisan test` — seluruh suite hijau (baseline terakhir yang tercatat: 230 passed; tambahan test S6-S7 akan menaikkan angka).
+1. `php artisan test` — seluruh suite hijau (baseline terakhir yang tercatat: 235 passed setelah S6; tambahan test S7 akan menaikkan angka).
 2. `php vendor/bin/pint --test` — bersih.
 3. `npm.cmd run build` — berhasil (ada perubahan JS/CSS).
 4. Manual QA sesuai §5.

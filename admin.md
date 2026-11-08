@@ -71,6 +71,7 @@ Admin tidak memiliki fitur rekonsiliasi pembayaran, refund, atau manajemen akun 
    * Perbandingan pendapatan QRIS dan tunai (hanya transaksi lunas).
    * Lima menu terlaris.
    * Sepuluh transaksi terbaru.
+   * Pilihan periode **Hari Ini** (default), **Minggu Ini** (Senin–Minggu), dan **Bulan Ini** untuk ringkasan pendapatan/pesanan; menu terlaris, pesanan menunggu/diproses, dan transaksi terbaru tidak ikut berubah.
 
 4. Admin memilih salah satu fitur lain pada menu: Kelola Menu, Laporan Transaksi, Iklan & Promosi, atau Informasi Toko.
 
@@ -160,6 +161,7 @@ Admin tidak memiliki fitur rekonsiliasi pembayaran, refund, atau manajemen akun 
 **Detail Penting:**
 
 * **Dashboard hanya menghitung transaksi lunas sebagai pendapatan.** Pesanan menunggu, gagal, kedaluwarsa, dibatalkan, atau perlu diperiksa tidak dihitung.
+* **Periode dashboard:** default **Hari Ini**; pilihan **Minggu Ini** memakai Senin–Minggu, dan **Bulan Ini** memakai bulan berjalan. Pilihan periode hanya mengubah ringkasan pendapatan/pesanan; menu terlaris tetap bulan berjalan, sedangkan pesanan menunggu/diproses dan transaksi terbaru tetap memakai aturan harian/terbaru.
 * **Laporan terhubung dengan kasir.** Semua transaksi tunai yang dibuat kasir dan pesanan QRIS yang lunas otomatis muncul di laporan.
 * **Laporan menampilkan QRIS dan tunai**, termasuk perbandingan total keduanya.
 * **Menu yang dihapus menggunakan *soft delete*.** Menu tidak tampil untuk penjualan baru, tetapi data pesanan lama tetap utuh karena `order_items` menyimpan snapshot nama dan harga.

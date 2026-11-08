@@ -246,6 +246,119 @@ class AdminDashboardTest extends TestCase
             ->assertDontSee('TRX00001');
     }
 
+    public function test_dashboard_default_memakai_periode_hari_dan_menampilkan_tiga_tautan(): void
+    {
+        $this->buatOrder(['kode_pesanan' => 'HARIDEF1', 'dibuat_pada' => '2026-11-02 09:00:00']);
+        $this->buatOrder(['kode_pesanan' => 'KEMARDEF', 'dibuat_pada' => '2026-11-01 09:00:00']);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.dashboard'));
+
+        $response->assertOk()
+            ->assertSee('Hari Ini')
+            ->assertSee('Minggu Ini')
+            ->assertSee('Bulan Ini')
+            ->assertSee(route('admin.dashboard', ['periode' => 'hari']), false)
+            ->assertSee(route('admin.dashboard', ['periode' => 'minggu']), false)
+            ->assertSee(route('admin.dashboard', ['periode' => 'bulan']), false);
+
+        $this->assertSame('hari', $response->viewData('periodeAktif'));
+        $this->assertSame('hari', $response->viewData('ringkasan')['periode']);
+        $this->assertSame(1, $response->viewData('ringkasan')['orders']);
+        $this->assertSame(1, $response->viewData('ringkasanPeriode')['minggu']['orders']);
+        $this->assertSame(2, $response->viewData('ringkasanPeriode')['bulan']['orders']);
+        $this->assertMatchesRegularExpression(
+            '/data-periode="hari"\s+aria-current="page"/',
+            $response->getContent()
+        );
+    }
+
+    public function test_periode_hari_hanya_menghitung_order_hari_ini(): void
+    {
+        $this->buatOrder(['kode_pesanan' => 'HARIHARI', 'dibuat_pada' => '2026-11-02 09:00:00']);
+        $this->buatOrder(['kode_pesanan' => 'KEMARINH', 'dibuat_pada' => '2026-11-01 09:00:00']);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.dashboard', ['periode' => 'hari']));
+
+        $response->assertOk();
+
+        $ringkasan = $response->viewData('ringkasan');
+
+        $this->assertSame('hari', $ringkasan['periode']);
+        $this->assertSame(1, $ringkasan['orders']);
+        $this->assertSame(1, $ringkasan['count']);
+        $this->assertSame(22000, $ringkasan['revenue']);
+        $this->assertSame(1, $ringkasan['pembanding']);
+        $this->assertSame(0.0, (float) $ringkasan['change_percent']);
+    }
+
+    public function test_periode_minggu_memakai_senin_sampai_minggu(): void
+    {
+        // Senin berjalan ikut; Minggu kemarin dan Senin minggu lalu tidak ikut.
+        $this->buatOrder(['kode_pesanan' => 'SENINW01', 'dibuat_pada' => '2026-11-02 09:00:00']);
+        $this->buatOrder(['kode_pesanan' => 'MINGGU01', 'dibuat_pada' => '2026-11-01 09:00:00']);
+        $this->buatOrder(['kode_pesanan' => 'SENINLW1', 'dibuat_pada' => '2026-10-26 09:00:00']);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.dashboard', ['periode' => 'minggu']));
+
+        $response->assertOk()
+            ->assertSee('Minggu Ini');
+
+        $ringkasan = $response->viewData('ringkasan');
+
+        $this->assertSame('minggu', $ringkasan['periode']);
+        $this->assertSame(1, $ringkasan['orders']);
+        $this->assertSame(1, $ringkasan['count']);
+        $this->assertSame(22000, $ringkasan['revenue']);
+        $this->assertSame(2, $ringkasan['pembanding']);
+        $this->assertSame(-50.0, (float) $ringkasan['change_percent']);
+        $this->assertMatchesRegularExpression(
+            '/data-periode="minggu"\s+aria-current="page"/',
+            $response->getContent()
+        );
+    }
+
+    public function test_periode_bulan_hanya_menghitung_bulan_berjalan(): void
+    {
+        $this->buatOrder(['kode_pesanan' => 'NOVEMBER', 'dibuat_pada' => '2026-11-02 09:00:00']);
+        $this->buatOrder(['kode_pesanan' => 'OKTOBER1', 'dibuat_pada' => '2026-10-20 09:00:00']);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.dashboard', ['periode' => 'bulan']));
+
+        $response->assertOk()
+            ->assertSee('Bulan Ini');
+
+        $ringkasan = $response->viewData('ringkasan');
+
+        $this->assertSame('bulan', $ringkasan['periode']);
+        $this->assertSame(1, $ringkasan['orders']);
+        $this->assertSame(1, $ringkasan['count']);
+        $this->assertSame(22000, $ringkasan['revenue']);
+        $this->assertSame(1, $ringkasan['pembanding']);
+        $this->assertSame(0.0, (float) $ringkasan['change_percent']);
+    }
+
+    public function test_periode_tidak_valid_jatuh_ke_hari_ini_tanpa_error(): void
+    {
+        $this->buatOrder(['kode_pesanan' => 'VALIDHR1', 'dibuat_pada' => '2026-11-02 09:00:00']);
+        $this->buatOrder(['kode_pesanan' => 'KEMARINV', 'dibuat_pada' => '2026-11-01 09:00:00']);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.dashboard', ['periode' => 'tahun']));
+
+        $response->assertOk();
+        $this->assertSame('hari', $response->viewData('periodeAktif'));
+        $this->assertSame(1, $response->viewData('ringkasan')['orders']);
+
+        // Query array juga tidak boleh menghasilkan error.
+        $this->actingAs($this->admin)
+            ->get(route('admin.dashboard').'?periode[]=minggu')
+            ->assertOk()
+            ->assertViewHas('periodeAktif', 'hari');
+    }
+
     public function test_tamu_diarahkan_ke_login_dan_kasir_tidak_bisa_membuka_dashboard(): void
     {
         $this->get(route('admin.dashboard'))->assertRedirect(route('login'));

@@ -14,12 +14,15 @@ use Carbon\CarbonImmutable;
  * Ringkasan Dashboard admin (PRD AD-01, `admin.md` §A).
  *
  * Semua angka dihitung dari `orders`, `order_items`, dan `payments`:
- * - Pendapatan hari ini dan bulan berjalan hanya dari transaksi `lunas`.
- * - Pesanan menunggu pembayaran dan pesanan diproses dihitung untuk hari
- *   berjalan, sama dengan cakupan halaman Pesanan Masuk kasir.
+ * - Pendapatan periode aktif hanya dari transaksi `lunas`.
+ * - Periode ringkasan: hari ini (default), minggu ini (Senin-Minggu), atau
+ *   bulan ini. Nilai `periode` tidak valid jatuh ke `hari`.
+ * - Pesanan menunggu pembayaran dan pesanan diproses tetap dihitung untuk
+ *   hari berjalan, sama dengan cakupan halaman Pesanan Masuk kasir.
  * - Menu terlaris memakai snapshot `order_items` dari transaksi `lunas`
  *   bulan berjalan.
- * - Transaksi terbaru tidak difilter status, hanya urutan waktu.
+ * - Transaksi terbaru tidak difilter status maupun periode, hanya urutan
+ *   waktu.
  */
 class DashboardService
 {
@@ -29,51 +32,43 @@ class DashboardService
 
     private const BATAS_MENU = 5;
 
+    /** @var list<string> */
+    private const PERIODE = ['hari', 'minggu', 'bulan'];
+
     /**
      * Seluruh data yang dibutuhkan halaman dashboard.
      *
      * @return array<string, mixed>
      */
-    public function data(): array
+    public function data(string $periode = 'hari'): array
     {
         $sekarang = CarbonImmutable::now(self::ZONA);
+        $periode = $this->periodeValid($periode);
         $hariIni = [$sekarang->startOfDay(), $sekarang->endOfDay()];
-        $kemarin = $sekarang->subDay();
-        $kemarinRange = [$kemarin->startOfDay(), $kemarin->endOfDay()];
         $bulanIni = [$sekarang->startOfMonth(), $sekarang->endOfMonth()];
 
-        $lunasBulan = Order::query()
-            ->where('status_pembayaran', StatusPembayaran::Lunas->value)
-            ->whereBetween('created_at', $bulanIni);
-
-        $pendapatanBulan = (int) (clone $lunasBulan)->sum('total');
-        $transaksiLunasBulan = (clone $lunasBulan)->count();
-        $qrisBulan = (int) (clone $lunasBulan)
-            ->where('metode_pembayaran', MetodePembayaran::Qris->value)
-            ->sum('total');
-        $tunaiBulan = $pendapatanBulan - $qrisBulan;
-
-        $pesananHariIni = Order::query()->whereBetween('created_at', $hariIni)->count();
-        $pesananKemarin = Order::query()->whereBetween('created_at', $kemarinRange)->count();
+        $ringkasanHari = $this->ringkasanPada('hari', $sekarang);
+        $ringkasanMinggu = $this->ringkasanPada('minggu', $sekarang);
+        $ringkasanBulan = $this->ringkasanPada('bulan', $sekarang);
+        $ringkasanAktif = match ($periode) {
+            'minggu' => $ringkasanMinggu,
+            'bulan' => $ringkasanBulan,
+            default => $ringkasanHari,
+        };
 
         return [
             'today_label' => $sekarang->locale('id')->translatedFormat('l, j F Y').' // '.$sekarang->format('H:i').' WIB',
             'month_label' => $sekarang->locale('id')->translatedFormat('F Y'),
-            'today_revenue' => (int) Order::query()
-                ->where('status_pembayaran', StatusPembayaran::Lunas->value)
-                ->whereBetween('created_at', $hariIni)
-                ->sum('total'),
-            'month_revenue' => $pendapatanBulan,
-            'month_count' => $transaksiLunasBulan,
-            'month_qris' => $qrisBulan,
-            'month_cash' => $tunaiBulan,
-            'qris_percent' => $pendapatanBulan > 0 ? round(($qrisBulan / $pendapatanBulan) * 100, 1) : 0,
-            'cash_percent' => $pendapatanBulan > 0 ? round(($tunaiBulan / $pendapatanBulan) * 100, 1) : 0,
-            'today_orders' => $pesananHariIni,
-            'yesterday_orders' => $pesananKemarin,
-            'orders_change_percent' => $pesananKemarin > 0
-                ? round((($pesananHariIni - $pesananKemarin) / $pesananKemarin) * 100, 1)
-                : null,
+            'today_revenue' => $ringkasanHari['revenue'],
+            'month_revenue' => $ringkasanBulan['revenue'],
+            'month_count' => $ringkasanBulan['count'],
+            'month_qris' => $ringkasanBulan['qris'],
+            'month_cash' => $ringkasanBulan['tunai'],
+            'qris_percent' => $ringkasanBulan['qris_percent'],
+            'cash_percent' => $ringkasanBulan['cash_percent'],
+            'today_orders' => $ringkasanHari['orders'],
+            'yesterday_orders' => $ringkasanHari['pembanding'],
+            'orders_change_percent' => $ringkasanHari['change_percent'],
             'pending_payments' => Order::query()
                 ->whereBetween('created_at', $hariIni)
                 ->where('status_pembayaran', StatusPembayaran::Menunggu->value)
@@ -84,7 +79,121 @@ class DashboardService
                 ->count(),
             'popular_menus' => $this->menuTerlaris($bulanIni),
             'recent_orders' => $this->transaksiTerbaru(),
+            'periode' => $periode,
+            'ringkasan' => $ringkasanAktif,
+            'ringkasan_periode' => [
+                'hari' => $ringkasanHari,
+                'minggu' => $ringkasanMinggu,
+                'bulan' => $ringkasanBulan,
+            ],
         ];
+    }
+
+    /**
+     * Periode dashboard yang sah. Nilai kosong/tidak dikenal menjadi `hari`.
+     */
+    public function periodeValid(mixed $periode): string
+    {
+        return is_string($periode) && in_array($periode, self::PERIODE, true)
+            ? $periode
+            : 'hari';
+    }
+
+    /**
+     * Ringkasan satu periode. Minggu memakai Senin sebagai hari pertama.
+     *
+     * @return array<string, mixed>
+     */
+    public function ringkasan(string $periode): array
+    {
+        return $this->ringkasanPada(
+            $this->periodeValid($periode),
+            CarbonImmutable::now(self::ZONA),
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function ringkasanPada(string $periode, CarbonImmutable $sekarang): array
+    {
+        [$mulai, $akhir, $mulaiPembanding, $akhirPembanding, $pembandingLabel] = $this->rentangPeriode($periode, $sekarang);
+
+        $lunas = Order::query()
+            ->where('status_pembayaran', StatusPembayaran::Lunas->value)
+            ->whereBetween('created_at', [$mulai, $akhir]);
+
+        $revenue = (int) (clone $lunas)->sum('total');
+        $count = (clone $lunas)->count();
+        $qris = (int) (clone $lunas)
+            ->where('metode_pembayaran', MetodePembayaran::Qris->value)
+            ->sum('total');
+        $tunai = $revenue - $qris;
+
+        $orders = Order::query()
+            ->whereBetween('created_at', [$mulai, $akhir])
+            ->count();
+        $pembanding = Order::query()
+            ->whereBetween('created_at', [$mulaiPembanding, $akhirPembanding])
+            ->count();
+
+        return [
+            'periode' => $periode,
+            'label' => $this->labelPeriode($periode),
+            'revenue' => $revenue,
+            'count' => $count,
+            'qris' => $qris,
+            'tunai' => $tunai,
+            'qris_percent' => $revenue > 0 ? round(($qris / $revenue) * 100, 1) : 0,
+            'cash_percent' => $revenue > 0 ? round(($tunai / $revenue) * 100, 1) : 0,
+            'orders' => $orders,
+            'pembanding' => $pembanding,
+            'pembanding_label' => $pembandingLabel,
+            'change_percent' => $pembanding > 0
+                ? round((($orders - $pembanding) / $pembanding) * 100, 1)
+                : null,
+        ];
+    }
+
+    private function labelPeriode(string $periode): string
+    {
+        return match ($periode) {
+            'minggu' => 'Minggu Ini',
+            'bulan' => 'Bulan Ini',
+            default => 'Hari Ini',
+        };
+    }
+
+    /**
+     * Rentang periode aktif dan periode pembandingnya.
+     *
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable, 2: CarbonImmutable, 3: CarbonImmutable, 4: string}
+     */
+    private function rentangPeriode(string $periode, CarbonImmutable $sekarang): array
+    {
+        return match ($periode) {
+            'minggu' => [
+                $sekarang->startOfWeek(CarbonImmutable::MONDAY),
+                $sekarang,
+                $sekarang->startOfWeek(CarbonImmutable::MONDAY)->subWeek(),
+                $sekarang->startOfWeek(CarbonImmutable::MONDAY)->subWeek()->endOfWeek(),
+                'minggu lalu',
+            ],
+            'bulan' => [
+                $sekarang->startOfMonth(),
+                $sekarang->endOfMonth(),
+                $sekarang->startOfMonth()->subMonth(),
+                $sekarang->startOfMonth()->subMonth()->endOfMonth(),
+                'bulan lalu',
+            ],
+            default => [
+                $sekarang->startOfDay(),
+                $sekarang->endOfDay(),
+                $sekarang->subDay()->startOfDay(),
+                $sekarang->subDay()->endOfDay(),
+                'kemarin',
+            ],
+        };
     }
 
     /**

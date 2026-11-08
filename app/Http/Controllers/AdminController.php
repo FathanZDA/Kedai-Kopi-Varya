@@ -43,9 +43,10 @@ use Illuminate\View\View;
  */
 class AdminController extends Controller
 {
-    public function dashboard(DashboardService $dashboard): View
+    public function dashboard(Request $request, DashboardService $dashboard): View
     {
-        $data = $dashboard->data();
+        $periode = $dashboard->periodeValid($request->query('periode'));
+        $data = $dashboard->data($periode);
         $menus = $this->menuData();
 
         return view('admin.dashboard', [
@@ -53,11 +54,14 @@ class AdminController extends Controller
             'orders' => $data['recent_orders'],
             'menus' => $menus,
             'popularMenus' => $data['popular_menus'],
+            'periodeAktif' => $data['periode'],
+            'ringkasan' => $data['ringkasan'],
+            'ringkasanPeriode' => $data['ringkasan_periode'],
             'summary' => [
-                'revenue' => $data['month_revenue'],
-                'count' => $data['month_count'],
-                'qris_percent' => $data['qris_percent'],
-                'cash_percent' => $data['cash_percent'],
+                'revenue' => $data['ringkasan']['revenue'],
+                'count' => $data['ringkasan']['count'],
+                'qris_percent' => $data['ringkasan']['qris_percent'],
+                'cash_percent' => $data['ringkasan']['cash_percent'],
             ],
             'pendingPayments' => $data['pending_payments'],
             'processingCount' => $data['processing'],

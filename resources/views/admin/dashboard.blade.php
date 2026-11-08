@@ -36,19 +36,23 @@
                     </p>
                 </div>
 
-                <div class="flex shrink-0 items-stretch overflow-hidden rounded-md border-2 border-ink bg-admin-soft shadow-[3px_3px_0_0_#1b1c1d]">
-                    <div class="flex min-w-[72px] flex-col justify-center bg-ink px-3 py-3 text-center text-white">
-                        <p class="tag text-[7px] leading-tight font-bold text-white/70">Hari<br>Ini</p>
-                    </div>
-                    <div class="flex min-w-[68px] flex-col justify-center border-l border-ink px-3 py-3 text-center">
-                        <p class="font-display text-[24px] leading-none font-black">{{ $todayOrders }}</p>
-                        <p class="tag mt-1 text-[7px] font-bold text-muted">Hari</p>
-                    </div>
-                    <div class="flex min-w-[86px] flex-col justify-center border-l border-ink px-3 py-3 text-center">
-                        <p class="font-display text-[24px] leading-none font-black">{{ $summary['count'] }}</p>
-                        <p class="tag mt-1 text-[7px] font-bold text-muted">Bulan Ini</p>
-                    </div>
-                </div>
+                <nav class="flex shrink-0 items-stretch overflow-hidden rounded-md border-2 border-ink bg-admin-soft shadow-[3px_3px_0_0_#1b1c1d]"
+                     aria-label="Pilih periode ringkasan">
+                    @foreach (['hari', 'minggu', 'bulan'] as $periode)
+                        @php
+                            $aktif = $periode === $periodeAktif;
+                            $ringkasanKotak = $ringkasanPeriode[$periode];
+                        @endphp
+                        <a href="{{ route('admin.dashboard', ['periode' => $periode]) }}"
+                           data-periode="{{ $periode }}"
+                           @if ($aktif) aria-current="page" @endif
+                           class="flex min-w-[78px] flex-col justify-center px-3 py-3 text-center transition-colors {{ $loop->first ? '' : 'border-l border-ink' }} {{ $aktif ? 'bg-ink text-white' : 'bg-admin-soft text-ink hover:bg-varya-light' }}">
+                            <p class="tag text-[7px] leading-tight font-bold {{ $aktif ? 'text-white/70' : 'text-muted' }}">{{ $ringkasanKotak['label'] }}</p>
+                            <p class="font-display text-[24px] leading-none font-black">{{ $ringkasanKotak['orders'] }}</p>
+                            <p class="tag mt-1 text-[7px] font-bold {{ $aktif ? 'text-white/70' : 'text-muted' }}">Pesanan</p>
+                        </a>
+                    @endforeach
+                </nav>
             </div>
         </section>
 
@@ -57,8 +61,8 @@
             <article class="admin-card flex flex-col p-4 sm:p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="tag text-[9px] font-bold text-ink">Total Pesanan Hari Ini</p>
-                        <p class="mt-1 font-serif text-[11px] text-muted">Semua saluran transaksi</p>
+                        <p class="tag text-[9px] font-bold text-ink">Total Pesanan</p>
+                        <p class="mt-1 font-serif text-[11px] text-muted">Semua saluran transaksi &bull; {{ $ringkasan['label'] }}</p>
                     </div>
                     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-md border-2 border-ink bg-admin-panel">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -69,27 +73,27 @@
                 </div>
 
                 <div class="mt-5 flex items-end gap-2">
-                    <span class="font-display text-[44px] leading-none font-black">{{ $todayOrders }}</span>
+                    <span class="font-display text-[44px] leading-none font-black">{{ $ringkasan['orders'] }}</span>
                     <span class="font-display pb-1 text-[18px] leading-none font-bold uppercase text-ink">Pesanan</span>
                 </div>
 
                 <div class="mt-4 flex items-center gap-2 border-t border-line-strong/70 pt-3">
-                    @if ($ordersChangePercent !== null)
+                    @if ($ringkasan['change_percent'] !== null)
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 {{ $ordersChangePercent >= 0 ? 'text-varya-dark' : 'text-rust' }}" aria-hidden="true">
-                            @if ($ordersChangePercent >= 0)
+                             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 {{ $ringkasan['change_percent'] >= 0 ? 'text-varya-dark' : 'text-rust' }}" aria-hidden="true">
+                            @if ($ringkasan['change_percent'] >= 0)
                                 <path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>
                             @else
                                 <path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/>
                             @endif
                         </svg>
                         <p class="font-mono text-[8px] leading-relaxed font-bold text-ink-soft">
-                            <strong class="{{ $ordersChangePercent >= 0 ? 'text-varya-dark' : 'text-rust' }}">{{ $ordersChangePercent >= 0 ? '+' : '-' }}{{ number_format(abs($ordersChangePercent), 1, ',', '.') }}%</strong>
-                            dibanding kemarin ({{ $yesterdayOrders }} pesanan)
+                            <strong class="{{ $ringkasan['change_percent'] >= 0 ? 'text-varya-dark' : 'text-rust' }}">{{ $ringkasan['change_percent'] >= 0 ? '+' : '-' }}{{ number_format(abs($ringkasan['change_percent']), 1, ',', '.') }}%</strong>
+                            dibanding {{ $ringkasan['pembanding_label'] }} ({{ $ringkasan['pembanding'] }} pesanan)
                         </p>
                     @else
                         <p class="font-mono text-[8px] leading-relaxed font-bold text-muted">
-                            Belum ada pesanan kemarin sebagai pembanding
+                            Belum ada pesanan {{ $ringkasan['pembanding_label'] }} sebagai pembanding
                         </p>
                     @endif
                 </div>
@@ -99,7 +103,7 @@
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <p class="tag text-[9px] font-bold text-ink">Total Pendapatan</p>
-                        <p class="mt-1 font-serif text-[11px] text-muted">Hanya transaksi lunas &bull; {{ $monthLabel }}</p>
+                        <p class="mt-1 font-serif text-[11px] text-muted">Hanya transaksi lunas &bull; {{ $ringkasan['label'] }}</p>
                     </div>
                     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-md border-2 border-ink bg-varya-dark text-white">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -111,14 +115,14 @@
 
                 <div class="mt-5 flex flex-wrap items-end gap-2">
                     <span class="font-display text-[37px] leading-none font-black text-varya-dark sm:text-[40px]">
-                        {{ number_format($summary['revenue'], 0, ',', '.') }}
+                        {{ number_format($ringkasan['revenue'], 0, ',', '.') }}
                     </span>
                     <span class="font-display pb-1 text-[18px] leading-none font-bold uppercase text-ink">IDR</span>
                 </div>
 
                 <div class="mt-4 border-t border-line-strong/70 pt-3">
                     <p class="font-mono text-[8px] leading-relaxed font-bold text-ink-soft">
-                        Hari ini {{ $formatRupiah($todayRevenue) }} &bull; QRIS {{ number_format($summary['qris_percent'], 1, ',', '.') }}% &bull; Tunai {{ number_format($summary['cash_percent'], 1, ',', '.') }}%
+                        {{ $ringkasan['count'] }} transaksi lunas &bull; QRIS {{ number_format($ringkasan['qris_percent'], 1, ',', '.') }}% &bull; Tunai {{ number_format($ringkasan['cash_percent'], 1, ',', '.') }}%
                     </p>
                 </div>
             </article>
@@ -172,8 +176,8 @@
                                 Pencatatan otomatis sinkron dari QR Meja &amp; Kasir Depan
                             </p>
                             <p class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[8px] font-bold">
-                                <span class="text-rust">&#9679; {{ $pendingPayments }} menunggu bayar</span>
-                                <span class="text-[#8a6415]">&#9679; {{ $processingCount }} diproses</span>
+                                <span class="text-rust">&#9679; {{ $pendingPayments }} menunggu bayar hari ini</span>
+                                <span class="text-[#8a6415]">&#9679; {{ $processingCount }} diproses hari ini</span>
                             </p>
                         </div>
                     </div>
@@ -215,7 +219,7 @@
                 </div>
 
                 <div class="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink bg-[#f7f5ec] px-4 py-3">
-                    <p data-dashboard-orders-record class="tag text-[8px] font-bold text-muted">Menampilkan 0 dari 0 pesanan tercatat hari ini</p>
+                    <p data-dashboard-orders-record class="tag text-[8px] font-bold text-muted">Menampilkan 0 dari 0 transaksi terbaru</p>
                     <div data-dashboard-orders-pagination class="flex flex-wrap items-center gap-1.5"></div>
                 </div>
             </section>

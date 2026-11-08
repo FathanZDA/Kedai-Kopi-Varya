@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 8 Nov 2026, setelah S1–S5 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`); S3 di `dec88cf` + penyesuaian kategori `83554b7`; S4 di `76536ca`; S5 dikerjakan di branch `perbaikan-s5-pil-aktif-pelanggan-b` dan **belum di-commit**. Navbar Pelanggan A kini mengikuti pola responsif Pelanggan B (`lg`).
+**Terakhir diperbarui:** 8 Nov 2026, setelah S1–S6 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`); S3 di `dec88cf` + penyesuaian kategori `83554b7`; S4 di `76536ca`; S5 di `3d1a812`; S6 dikerjakan di branch `perbaikan-s6-periode-dashboard` dan **belum di-commit**. Dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`).
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `perbaikan-s5-pil-aktif-pelanggan-b` (dari `76536ca`); perubahan S5 di working tree dan **belum di-commit** |
-| Baseline test | `php artisan test` → **230 passed** (1232 assertions) setelah S5 7 Nov 2026 |
+| Branch aktif | `perbaikan-s6-periode-dashboard` (dari `3d1a812`); perubahan S6 di working tree dan **belum di-commit** |
+| Baseline test | `php artisan test` → **235 passed** (1274 assertions) setelah S6 8 Nov 2026 |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user); migration kategori tiga baris sudah dijalankan 7 Nov 2026 |
@@ -43,7 +43,10 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `keputusan-tertunda` | `aae928d` | Kebijakan keranjang, foto Tentang Kami, `409` harga checkout, hapus SQLite |
 | `perbaikan-test-fitur` | `9d907c2` | Rencana perbaikan temuan uji fitur (S1–S8) |
 | `perbaikan-s2-jam-operasional` | `c5387f4` | S1 foto Tentang Kami + S2 jam operasional lewat dropdown jam/menit (sudah di-commit) |
-| `perbaikan-s3-katalog-beranda` | `dec88cf` | S3 pratinjau katalog 4 menu, tata letak 4 kolom terpusat, dan kelompok filter publik (sudah di-commit); penyesuaian kategori tiga baris + migration data di working tree |
+| `perbaikan-s3-katalog-beranda` | `dec88cf` + `83554b7` | S3 pratinjau katalog 4 menu, tata letak 4 kolom terpusat, kelompok filter publik, dan kategori tiga baris (sudah di-commit) |
+| `perbaikan-s4-navbar-beranda` | `76536ca` | S4 navigasi beranda satu halaman dengan anchor + scroll-spy (sudah di-commit) |
+| `perbaikan-s5-pil-aktif-pelanggan-b` | `3d1a812` | S5 pil aktif Pelanggan B + responsive navbar A mengikuti B (sudah di-commit) |
+| `perbaikan-s6-periode-dashboard` | *working tree* | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (belum di-commit) |
 
 ---
 
@@ -508,7 +511,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.19 `perbaikan-s5-pil-aktif-pelanggan-b` (S5)
 
-**Status:** selesai dikerjakan 7 Nov 2026 di branch `perbaikan-s5-pil-aktif-pelanggan-b`, **belum di-commit**; QA browser pil aktif dan panel mobile masih perlu.
+**Status:** selesai dikerjakan 7 Nov 2026 di branch `perbaikan-s5-pil-aktif-pelanggan-b`, **sudah di-commit** di `3d1a812`; QA browser pil aktif dan panel mobile lolos.
 
 - `resources/views/components/pelanggan-b/header.blade.php`: tautan Beranda/Tentang/Menu/Lokasi memakai `data-nav-link`, `data-nav-section`, dan `data-nav-desktop`; href Beranda menjadi `#beranda`; state awal Beranda hanya di `/pesan`, Menu hanya di alur pesanan (`produk`, `keranjang`, `checkout`, status).
 - `resources/js/app.js` `initSectionNav()` dari S4 dipakai ulang; di `/pesan` keempat section lengkap sehingga pil mengikuti scroll/klik, sedangkan halaman alur pesanan tidak menjalankan scroll-spy dan tetap menandai Menu.
@@ -518,9 +521,20 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Tindak lanjut 8 Nov 2026: navbar Pelanggan A disamakan pola responsifnya dengan Pelanggan B. Di bawah `lg` memakai flex `justify-between` + tombol menu; mulai `lg` memakai grid tiga kolom dengan nav terpusat. Link desktop memakai `px-5`, panel/toggle memakai `lg:hidden`.
 - Tidak ada keputusan baru; mengikuti F-74.
 
-## 5.20 Kandidat berikutnya
+### 5.20 `perbaikan-s6-periode-dashboard` (S6)
 
-Slice S5 sudah selesai; S6 (periode dashboard) dan S7 (urutan promo) menunggu keputusan D3/D4. Pekerjaan operasional lain:
+**Status:** selesai dikerjakan 8 Nov 2026 di branch `perbaikan-s6-periode-dashboard`, **belum di-commit**; QA browser tiga kotak periode masih perlu.
+
+- `DashboardService` menambah `periodeValid()` + `ringkasan()`; `data($periode)` mengembalikan ringkasan aktif dan `ringkasan_periode` untuk tiga kotak.
+- Periode: `hari` default, `minggu` Senin 00:00 s/d sekarang, `bulan` awal s/d akhir bulan; nilai tidak valid jatuh ke `hari`.
+- Hanya transaksi `lunas` untuk pendapatan/transaksi; `orders` menghitung semua status; pembanding memakai periode sebelumnya.
+- `AdminController@dashboard` membaca `?periode`; view menampilkan tiga tautan dengan `aria-current="page"` pada kotak aktif, kartu Total Pesanan/Total Pendapatan memakai periode aktif, sedangkan menu terlaris (bulan), pesanan menunggu/diproses (hari ini), dan transaksi terbaru tidak berubah.
+- Test baru di `AdminDashboardTest`: default hari + tiga tautan, batas hari, minggu Senin-Minggu, bulan berjalan, dan fallback tidak valid. Baseline **235 passed** (1274 assertions); Pint bersih; build berhasil.
+- Dokumen diperbarui: PRD AD-01, F-66, `admin.md`, `docs/ROUTES.md` 4.16, `docs/PLAN` S6, `AGENTS.md`.
+
+## 5.21 Kandidat berikutnya
+
+Slice S5 dan S6 sudah selesai; S7 (urutan promo) menunggu keputusan D4. Pekerjaan operasional lain:
 
 | # | Topik | Catatan | Acuan |
 |---|---|---|---|
@@ -535,7 +549,7 @@ Slice S5 sudah selesai; S6 (periode dashboard) dan S7 (urutan promo) menunggu ke
 | `O-16` akun/kredensial Midtrans | OPEN operasional (sandbox sudah diuji end-to-end) | URL ngrok berubah setiap restart; perbarui Notification URL Midtrans. Kredensial produksi belum disiapkan. Lihat `docs/MIDTRANS-SETUP.md`. |
 | D1 navigasi Pelanggan A satu halaman | **Selesai** (F-74, S4) | Navbar anchor ke `/#section`, route `/tentang`, `/menu`, `/lokasi` tetap sebagai deep link; scroll-spy di beranda; halaman mandiri tetap aktif sesuai route. |
 | D2 katalog beranda 4 item | **Selesai** (F-72) | Pratinjau 4 kartu, ekspansi di klien, `/menu` tetap penuh. |
-| D3 periode dashboard | OPEN (menunggu keputusan sebelum S6) | Usulan: tambah “Minggu Ini” + query `?periode`, default hari ini, minggu Senin–Minggu; F-66 berubah. |
+| D3 periode dashboard | **Selesai** (F-66, S6) | Diputuskan: tambah “Minggu Ini” + query `?periode`, default hari ini, minggu Senin–Minggu; F-66 berubah. |
 | D4 urutan promo | OPEN (menunggu diagnosis sebelum S7) | Usulan: diagnosis dulu; bila perlu `urutan` unik + normalisasi 1..N; F-63 berubah bila aturan diperketat. |
 | Foto Tentang Kami | **Selesai** (F-70) | Kolom `foto_tentang` + endpoint unggah terpisah |
 | `409 "menu berubah"` pada checkout/order | **Selesai** (F-71) | Harga acuan wajib di checkout publik; kasir tunai tidak berubah |
@@ -563,8 +577,8 @@ Slice S5 sudah selesai; S6 (periode dashboard) dan S7 (urutan promo) menunggu ke
 ## 8. Aturan singkat untuk sesi baru
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
-2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 230 passed).
-3. Potong branch baru dari ujung terbaru (`perbaikan-s5-pil-aktif-pelanggan-b` setelah commit S5), bukan dari `main`.
+2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 235 passed).
+3. Potong branch baru dari ujung terbaru (`perbaikan-s6-periode-dashboard` setelah commit S6), bukan dari `main`.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
 5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata selain keranjang tamu Pelanggan B (F-69). Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
@@ -578,10 +592,10 @@ Lanjutkan proyek Kedai Kopi Varya. Mulai dengan membaca docs/HANDOFF.md,
 lalu AGENTS.md, PRD.md, docs/DECISIONS.md, docs/ROUTES.md, docs/DATABASE.md.
 
 Verifikasi baseline dulu: git log -1 dan php artisan test (harus hijau;
-saat file ini ditulis 230 passed).
+saat file ini ditulis 235 passed).
 Kalau MySQL mati, nyalakan XAMPP dulu sebelum menyimpulkan ada bug kode.
 
-Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.20, dipotong
+Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.21, dipotong
 dari branch terbaru. Ikuti pola yang sudah ada: FormRequest, Service,
 API Resource, DB::transaction + lockForUpdate, enum, named route.
 
@@ -621,7 +635,10 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 6 Nov 2026 | `perbaikan-s2-jam-operasional` | `ce5fa3a` | Perbaikan test: `tearDown()` admin tidak lagi menghapus unggahan asli |
 | 6 Nov 2026 | `perbaikan-s2-jam-operasional` | `c5387f4` | S1 foto Tentang Kami + S2 jam operasional lewat dropdown jam/menit |
 | 7 Nov 2026 | `perbaikan-s3-katalog-beranda` | `dec88cf` | S3 pratinjau katalog 4 menu + tombol “Lihat Semua Menu” di beranda A/B, tata letak 4 kolom terpusat, kelompok filter publik (F-72/F-73) |
-| 7 Nov 2026 | `perbaikan-s3-katalog-beranda` | *belum di-commit* | Kategori database lima → tiga baris (Kopi, Bukan Kopi, Makanan & Camilan), migration data + seeder + admin/kasir + test |
+| 7 Nov 2026 | `perbaikan-s3-katalog-beranda` | `83554b7` | Kategori database lima → tiga baris (Kopi, Bukan Kopi, Makanan & Camilan), migration data + seeder + admin/kasir + test |
+| 7 Nov 2026 | `perbaikan-s4-navbar-beranda` | `76536ca` | S4 navigasi beranda satu halaman dengan anchor + scroll-spy (F-74) |
+| 8 Nov 2026 | `perbaikan-s5-pil-aktif-pelanggan-b` | `3d1a812` | S5 pil aktif Pelanggan B + responsive navbar A mengikuti B |
+| 8 Nov 2026 | `perbaikan-s6-periode-dashboard` | *belum di-commit* | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (F-66) |
 
 ---
 
