@@ -47,7 +47,7 @@ Dokumen ini adalah **rencana pengerjaan**, bukan catatan hasil. Sumber aturan te
 | 5 | S5 — Pil aktif Pelanggan B | P1 | S | Rendah |
 | 6 | S6 — Dashboard 3 periode | P2 (fitur baru) | L | Sedang (query param, test) |
 | 7 | S7 — Urutan promo > 4 | Selesai (diagnosis + UI + validasi unik) | S/M | Rendah |
-| 8 | S8 — Regression & dokumen | Wajib | S | — |
+| 8 | S8 — Regression & dokumen | Selesai (regression otomatis + dokumen) | S | — |
 
 Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti pola repo: FormRequest → Service → Resource, `DB::transaction` + `lockForUpdate` bila menyentuh order/pembayaran, named route, tanpa dependency baru.
 
@@ -277,7 +277,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 **Tujuan:** memastikan `urutan` 5 dan seterusnya tersimpan, tampil, dan diputar dengan benar; bila ternyata bukan bug server, hilangkan kebingungan di UI.
 
-**Status:** **selesai 8 Nov 2026** di branch `perbaikan-s7-urutan-promo`. Diagnosis menunjukkan **tidak ada bug server**: `urutan` 5/10 tersimpan apa adanya, admin memuat 5 promo, dan landing page A/B merender 5 slide berurutan. Perbaikan difokuskan ke kebingungan UI dan pencegahan nomor ganda.
+**Status:** **selesai 8 Nov 2026** di branch `perbaikan-s7-urutan-promo` (commit `483770c`). Diagnosis menunjukkan **tidak ada bug server**: `urutan` 5/10 tersimpan apa adanya, admin memuat 5 promo, dan landing page A/B merender 5 slide berurutan. Perbaikan difokuskan ke kebingungan UI dan pencegahan nomor ganda.
 
 - `Promo::scopeOrdered()` hanya `orderBy('urutan')->orderBy('id')`.
 - `PelangganAController`/`PelangganBController` mengambil `Promo::active()->ordered()->get()` tanpa `limit`.
@@ -315,9 +315,11 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 ### S8 — Regression, build, dan dokumentasi
 
+**Status 8 Nov 2026: selesai untuk regression otomatis dan dokumentasi.** `php artisan test` **240 passed** (1299 assertions), Pint bersih, dan `npm.cmd run build` berhasil. QA browser S7 sudah lolos; checklist manual §5 tetap dipakai sebagai smoke test akhir sebelum merge/deploy.
+
 **Wajib setelah S1–S7:**
 
-1. `php artisan test` - seluruh suite hijau (baseline terakhir yang tercatat: 240 passed setelah S7).
+1. `php artisan test` — seluruh suite hijau (baseline terakhir yang tercatat: 240 passed setelah S7).
 2. `php vendor/bin/pint --test` — bersih.
 3. `npm.cmd run build` — berhasil (ada perubahan JS/CSS).
 4. Manual QA sesuai §5.
@@ -342,6 +344,8 @@ Bila user memilih arah lain (mis. navbar tetap multi-halaman, atau dashboard mem
 ---
 
 ## 5. Checklist QA manual (setelah S1–S7)
+
+**Status 8 Nov 2026:** temuan fungsional S1–S7 sudah ditutup; QA browser S7 sudah lolos. Checklist ini tetap disarankan sebagai smoke test akhir sebelum merge ke `main` dan sebelum deploy.
 
 **Pelanggan A**
 

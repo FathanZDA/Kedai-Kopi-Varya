@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 8 Nov 2026, setelah S1–S7 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`); S3 di `dec88cf` + penyesuaian kategori `83554b7`; S4 di `76536ca`; S5 di `3d1a812`; S6 di `9cfe908`; S7 dikerjakan di branch `perbaikan-s7-urutan-promo` dan **belum di-commit**. Dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
+**Terakhir diperbarui:** 8 Nov 2026, setelah S1–S8 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`); S3 di `dec88cf` + penyesuaian kategori `83554b7`; S4 di `76536ca`; S5 di `3d1a812`; S6 di `9cfe908`; S7 di `483770c`; S8 dikerjakan di branch `perbaikan-s8-regression-dokumen` dan **belum di-commit**. Dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `perbaikan-s7-urutan-promo` (dari `9cfe908`); perubahan S7 di working tree dan **belum di-commit** |
-| Baseline test | `php artisan test` → **240 passed** (1299 assertions) setelah S7 8 Nov 2026 |
+| Branch aktif | `perbaikan-s8-regression-dokumen` (dari `483770c`); perubahan S8 di working tree dan **belum di-commit** |
+| Baseline test | `php artisan test` → **240 passed** (1299 assertions) setelah S8 8 Nov 2026 |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user); migration kategori tiga baris sudah dijalankan 7 Nov 2026 |
@@ -47,7 +47,8 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `perbaikan-s4-navbar-beranda` | `76536ca` | S4 navigasi beranda satu halaman dengan anchor + scroll-spy (sudah di-commit) |
 | `perbaikan-s5-pil-aktif-pelanggan-b` | `3d1a812` | S5 pil aktif Pelanggan B + responsive navbar A mengikuti B (sudah di-commit) |
 | `perbaikan-s6-periode-dashboard` | `9cfe908` | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (sudah di-commit) |
-| `perbaikan-s7-urutan-promo` | *working tree* | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max(urutan)+1` (belum di-commit) |
+| `perbaikan-s7-urutan-promo` | `483770c` | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max(urutan)+1` (sudah di-commit) |
+| `perbaikan-s8-regression-dokumen` | *working tree* | S8 regression final, penutupan status temuan, dan dokumentasi rilis (belum di-commit) |
 
 ---
 
@@ -535,7 +536,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.21 `perbaikan-s7-urutan-promo` (S7)
 
-**Status:** selesai dikerjakan 8 Nov 2026 di branch `perbaikan-s7-urutan-promo`, **belum di-commit**; QA browser label/kartu promo masih perlu.
+**Status:** selesai dikerjakan 8 Nov 2026 di branch `perbaikan-s7-urutan-promo`, **sudah di-commit** di `483770c`; QA browser label/kartu promo lolos.
 
 - Diagnosis: `urutan` 5/10 tersimpan apa adanya, admin memuat 5 promo, dan landing page A/B merender 5 slide berurutan. Tidak ada bug server; masalahnya adalah label UI dan potensi nomor ganda.
 - `PromoRequest` sekarang menolak `urutan` yang sudah dipakai promo lain, tetapi tetap mengizinkan promo yang sedang diubah mempertahankan nomornya.
@@ -545,12 +546,23 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Dokumen diperbarui: F-63, `docs/ROUTES.md` §4.13, `admin.md`, `docs/PLAN` S7, `AGENTS.md`, dan file ini.
 - Tidak ada perubahan skema, route, atau dependency; normalisasi 1..N tidak dipakai karena nilai 5/10 memang valid.
 
-## 5.22 Kandidat berikutnya
+### 5.22 `perbaikan-s8-regression-dokumen` (S8)
 
-Slice S5, S6, dan S7 sudah selesai; S8 (regression, build, dan dokumentasi) berikutnya. Pekerjaan operasional lain:
+**Status:** selesai dikerjakan 8 Nov 2026 di branch `perbaikan-s8-regression-dokumen`, **belum di-commit**. Ini slice dokumentasi/regression; tidak ada perubahan kode aplikasi.
+
+- `php artisan test` → **240 passed** (1299 assertions); `php vendor/bin/pint --test` → passed; `npm.cmd run build` → berhasil; `git diff --check` → bersih.
+- `docs/TEST-FITUR.md` diberi tabel status tindak lanjut: seluruh temuan fungsional S1–S7 ditutup; item yang tersisa hanya checklist QA manual, ekspor PDF/Excel Fase 2, kredensial Midtrans produksi, dan keranjang server-side.
+- `docs/PLAN-PERBAIKAN-TEST-FITUR.md` menandai S8 selesai untuk regression otomatis + dokumentasi dan menambahkan catatan smoke test akhir sebelum merge/deploy.
+- `AGENTS.md` dan file ini diperbarui ke status S8.
+- Langkah berikutnya: smoke test manual §5, lalu merge branch ini ke `main` (`main` masih di `e6527c4` dan branch S8 dapat fast-forward 36 commit) dan deploy sesuai README.
+
+## 5.23 Kandidat berikutnya
+
+Slice S1–S8 sudah selesai. Pekerjaan operasional lain:
 
 | # | Topik | Catatan | Acuan |
 |---|---|---|---|
+| 0 | Merge ke `main` + deploy | Lakukan setelah smoke test manual §5; `main` masih di `e6527c4` dan bisa fast-forward ke ujung S8 | README; `docs/HANDOFF.md` §5.22 |
 | 1 | Ekspor laporan PDF/Excel | Fase 2, belum masuk scope | F-19; PRD AD-03 |
 | 2 | Akun/kredensial Midtrans produksi | Operasional, butuh akun dan URL publik | O-16; `docs/MIDTRANS-SETUP.md` |
 | 3 | Keranjang server-side | Hanya relevan bila Pelanggan B kelak punya akun | F-69 |
@@ -591,7 +603,7 @@ Slice S5, S6, dan S7 sudah selesai; S8 (regression, build, dan dokumentasi) beri
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
 2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 240 passed).
-3. Potong branch baru dari ujung terbaru (`perbaikan-s7-urutan-promo` setelah commit S7), bukan dari `main`.
+3. Potong branch baru dari ujung terbaru (`perbaikan-s8-regression-dokumen` setelah commit S8), bukan dari `main`.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
 5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata selain keranjang tamu Pelanggan B (F-69). Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
@@ -608,7 +620,7 @@ Verifikasi baseline dulu: git log -1 dan php artisan test (harus hijau;
 saat file ini ditulis 240 passed).
 Kalau MySQL mati, nyalakan XAMPP dulu sebelum menyimpulkan ada bug kode.
 
-Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.22, dipotong
+Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.23, dipotong
 dari branch terbaru. Ikuti pola yang sudah ada: FormRequest, Service,
 API Resource, DB::transaction + lockForUpdate, enum, named route.
 
@@ -652,7 +664,8 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 7 Nov 2026 | `perbaikan-s4-navbar-beranda` | `76536ca` | S4 navigasi beranda satu halaman dengan anchor + scroll-spy (F-74) |
 | 8 Nov 2026 | `perbaikan-s5-pil-aktif-pelanggan-b` | `3d1a812` | S5 pil aktif Pelanggan B + responsive navbar A mengikuti B |
 | 8 Nov 2026 | `perbaikan-s6-periode-dashboard` | `9cfe908` | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (F-66) |
-| 8 Nov 2026 | `perbaikan-s7-urutan-promo` | *belum di-commit* | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max+1` (F-63) |
+| 8 Nov 2026 | `perbaikan-s7-urutan-promo` | `483770c` | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max+1` (F-63) |
+| 8 Nov 2026 | `perbaikan-s8-regression-dokumen` | *belum di-commit* | S8 regression final, status temuan, dan dokumentasi rilis |
 
 ---
 

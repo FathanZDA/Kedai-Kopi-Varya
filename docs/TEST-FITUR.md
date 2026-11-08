@@ -35,3 +35,31 @@ Pelanggan B :
 Kasir :
 
 Admin :
+
+---
+
+## Status tindak lanjut — 8 Nov 2026
+
+Semua temuan fungsional di atas sudah ditutup di slice S1–S7. Dokumen ini tetap menyimpan catatan asli sebagai riwayat.
+
+| Temuan | Status | Bukti / irisan |
+|---|---|---|
+| Pelanggan A: foto Tentang Kami tidak muncul | **Selesai** | S1; unggah foto tersimpan dan tampil di `/` serta `/tentang` |
+| Pelanggan A: katalog cukup 4 menu + "Lihat Semua Menu" | **Selesai** | S3; pratinjau 4 kartu, ekspansi di klien, `/menu` tetap penuh |
+| Pelanggan A: navbar terpusat dan anchor satu halaman | **Selesai** | S4; anchor + scroll-spy, route mandiri tetap ada |
+| Pelanggan B: foto Tentang Kami tidak muncul | **Selesai** | S1; memakai partial yang sama dengan Pelanggan A |
+| Pelanggan B: katalog cukup 4 menu + "Lihat Semua Menu" | **Selesai** | S3; item ke-5+ tetap bisa dipesan setelah ekspansi/pencarian |
+| Pelanggan B: pil navbar tidak berpindah | **Selesai** | S5; pil mengikuti section, alur pesanan tetap menandai Menu |
+| Pelanggan B: checkout dan keranjang | **Aman** | Tidak ada perubahan perilaku; regression S8 hijau |
+| Kasir: semua fitur | **Aman** | Regression S8 hijau; tidak ada perubahan yang diminta |
+| Admin: dashboard tiga kotak periode | **Selesai** | S6; Hari Ini/Minggu Ini/Bulan Ini lewat `?periode` |
+| Admin: urutan slide promo > 4 | **Selesai** | S7; diagnosis menunjukkan server sudah benar, UI posisi/urutan diperjelas dan `urutan` dibuat unik |
+| Admin: foto Tentang Kami gagal disimpan | **Selesai** | S1; input file tidak lagi dikosongkan sebelum submit |
+| Admin: jam operasional | **Selesai** | S2; tujuh hari tampil langsung dengan dropdown jam/menit |
+
+**Yang masih terbuka (bukan bug fungsional):**
+
+- Checklist QA manual akhir §5 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` tetap disarankan sebagai smoke test sebelum deploy.
+- Ekspor laporan PDF/Excel masih Fase 2 (F-19).
+- Kredensial Midtrans produksi dan URL webhook publik masih operasional (O-16).
+- Keranjang server-side hanya relevan bila Pelanggan B kelak punya akun (F-69).
