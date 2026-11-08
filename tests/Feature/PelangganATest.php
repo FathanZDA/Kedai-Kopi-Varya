@@ -66,6 +66,37 @@ class PelangganATest extends TestCase
             ->assertSee('data-menu-item', escape: false);
     }
 
+    public function test_landing_page_dan_halaman_pesan_menampilkan_lima_slide_sesuai_urutan(): void
+    {
+        Promo::query()->delete();
+
+        foreach (range(1, 5) as $urutan) {
+            Promo::create([
+                'judul' => "Promo Slide {$urutan}",
+                'deskripsi' => null,
+                'gambar' => null,
+                'urutan' => $urutan,
+                'aktif' => true,
+                'mulai' => null,
+                'berakhir' => null,
+            ]);
+        }
+
+        foreach (['/', '/pesan'] as $url) {
+            $response = $this->get($url)->assertOk();
+
+            $this->assertSame(5, substr_count($response->getContent(), 'data-hero-slide='));
+            $response->assertSee('data-hero-slide="4"', false);
+            $response->assertSeeInOrder([
+                'Promo Slide 1',
+                'Promo Slide 2',
+                'Promo Slide 3',
+                'Promo Slide 4',
+                'Promo Slide 5',
+            ]);
+        }
+    }
+
     public function test_beranda_memakai_navigasi_anchor_dan_id_beranda(): void
     {
         $beranda = route('pelanggan-a.beranda');

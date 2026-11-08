@@ -134,7 +134,7 @@ Admin tidak memiliki fitur rekonsiliasi pembayaran, refund, atau manajemen akun 
 
 4. Sistem menyimpan perubahan.
 
-5. Promosi aktif langsung tampil di *landing page* sesuai urutan.
+5. Promosi aktif langsung tampil di *landing page* sesuai urutan. Nomor urut tidak harus 1-4; angka lebih besar tampil belakangan, dan satu nomor hanya boleh dipakai satu promosi.
 
 **E. Informasi Toko**
 

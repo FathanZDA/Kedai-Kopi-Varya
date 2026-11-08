@@ -29,7 +29,7 @@ Dokumen ini adalah **rencana pengerjaan**, bukan catatan hasil. Sumber aturan te
 | 4 | Pelanggan A | Navbar harus di tengah seperti Pelanggan B dan klik navbar tidak pindah halaman. | Header publik memakai empat route terpisah (`pelanggan-a.menu`, `.tentang`, `.lokasi`) dan layout `justify-between` tanpa kolom tengah. Halaman `/` sebenarnya sudah memuat semua section (`#tentang`, `#menu`, `#lokasi`). | Kebutuhan UI + PRD gap | S4 |
 | 5 | Pelanggan B | Pil hijau aktif tetap di “Beranda” saat klik Tentang/Menu/Lokasi. | **Bug terverifikasi.** `resources/views/components/pelanggan-b/header.blade.php` menentukan aktif dari nama route; tautan anchor `#tentang`/`#lokasi` di-hardcode `active => false`, dan tidak ada scroll-spy. | Bug front-end | S5 |
 | 6 | Admin → Dashboard | Tiga kotak ringkasan operasional harus bisa diklik: hari ini / minggu ini / bulan ini. | Belum ada fitur. Strip di `dashboard.blade.php` hanya dua angka statis (hari ini & bulan ini) tanpa tautan atau state. `DashboardService` hanya menghitung hari ini + bulan berjalan. | Fitur baru | S6 |
-| 7 | Admin → Iklan & Promosi | Urutan slide > 4 “berubah menjadi 1”. | **Belum terbukti di kode.** Tidak ada `take(4)`/`limit(4)` pada promo; `Promo::ordered()` = `urutan, id`, hero merender semua slide, validasi `urutan` 1–999. Perlu reproduksi sebelum memperbaiki. | Dugaan bug / ekspektasi UI | S7 |
+| 7 | Admin → Iklan & Promosi | Urutan slide > 4 “berubah menjadi 1”. | **Selesai (S7).** Diagnosis: tidak ada `take(4)`/`limit(4)`; `urutan` 5/10 tersimpan dan semua slide tampil. Kebingungan berasal dari label “Slide NN” yang memakai posisi, bukan nomor urut. UI diperjelas dan `urutan` dibuat unik. | Ekspektasi UI | S7 |
 | 8 | Kasir, Kelola Menu, Laporan | “Aman.” | Tidak ada perubahan yang diminta. Cukup regression check di S8. | — | S8 |
 
 **Catatan penting:** dua file `public/images/promos/unggahan-promo-*` adalah hasil uji unggah promo, bukan aset kanonik. Jangan di-commit; putuskan bersama user apakah folder unggahan runtime perlu masuk `.gitignore` (di luar scope perbaikan ini).
@@ -46,7 +46,7 @@ Dokumen ini adalah **rencana pengerjaan**, bukan catatan hasil. Sumber aturan te
 | 4 | S4 — Navbar Pelanggan A | P1 | M | Sedang (anchor + scroll-spy) |
 | 5 | S5 — Pil aktif Pelanggan B | P1 | S | Rendah |
 | 6 | S6 — Dashboard 3 periode | P2 (fitur baru) | L | Sedang (query param, test) |
-| 7 | S7 — Urutan promo > 4 | P2 (butuh reproduksi) | S/M | Tidak pasti |
+| 7 | S7 — Urutan promo > 4 | Selesai (diagnosis + UI + validasi unik) | S/M | Rendah |
 | 8 | S8 — Regression & dokumen | Wajib | S | — |
 
 Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti pola repo: FormRequest → Service → Resource, `DB::transaction` + `lockForUpdate` bila menyentuh order/pembayaran, named route, tanpa dependency baru.
@@ -277,13 +277,14 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 **Tujuan:** memastikan `urutan` 5 dan seterusnya tersimpan, tampil, dan diputar dengan benar; bila ternyata bukan bug server, hilangkan kebingungan di UI.
 
-**Status:** **belum bisa dipastikan dari kode.** Yang sudah diperiksa dan **tidak** membatasi:
+**Status:** **selesai 8 Nov 2026** di branch `perbaikan-s7-urutan-promo`. Diagnosis menunjukkan **tidak ada bug server**: `urutan` 5/10 tersimpan apa adanya, admin memuat 5 promo, dan landing page A/B merender 5 slide berurutan. Perbaikan difokuskan ke kebingungan UI dan pencegahan nomor ganda.
 
 - `Promo::scopeOrdered()` hanya `orderBy('urutan')->orderBy('id')`.
 - `PelangganAController`/`PelangganBController` mengambil `Promo::active()->ordered()->get()` tanpa `limit`.
 - `hero.blade.php` merender semua slide; `pelanggan-a.js` memutar `slides.length` berapa pun.
 - `PromoRequest` mengizinkan `urutan` 1–999; `promos.urutan` `unsigned int`.
 - `PromoService` menyimpan `(int) $data['urutan']` tanpa normalisasi.
+- Perbaikan: label kartu menjadi **Posisi NN** (bukan “Slide NN”) dengan badge **Urutan #N**, nilai awal form memakai `max(urutan) + 1`, pesan bantuan menjelaskan angka besar tampil belakangan, dan `PromoRequest` menolak `urutan` yang sudah dipakai promo lain.
 
 **Langkah diagnosis (wajib lebih dulu):**
 
@@ -316,7 +317,7 @@ Kerjakan satu irisan per commit, dipotong dari ujung branch terbaru, mengikuti p
 
 **Wajib setelah S1–S7:**
 
-1. `php artisan test` — seluruh suite hijau (baseline terakhir yang tercatat: 235 passed setelah S6; tambahan test S7 akan menaikkan angka).
+1. `php artisan test` - seluruh suite hijau (baseline terakhir yang tercatat: 240 passed setelah S7).
 2. `php vendor/bin/pint --test` — bersih.
 3. `npm.cmd run build` — berhasil (ada perubahan JS/CSS).
 4. Manual QA sesuai §5.

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validasi tambah dan ubah promosi oleh admin (PRD AD-04b, §8.9).
@@ -26,7 +27,13 @@ class PromoRequest extends FormRequest
         return [
             'judul' => ['required', 'string', 'max:80'],
             'deskripsi' => ['nullable', 'string', 'max:220'],
-            'urutan' => ['required', 'integer', 'min:1', 'max:999'],
+            'urutan' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:999',
+                Rule::unique('promos', 'urutan')->ignore($this->route('promo')),
+            ],
             'aktif' => ['required', 'boolean'],
             'mulai' => ['nullable', 'date'],
             'berakhir' => ['nullable', 'date', 'after_or_equal:mulai'],
@@ -47,6 +54,7 @@ class PromoRequest extends FormRequest
             'urutan.integer' => 'Urutan harus berupa angka bulat.',
             'urutan.min' => 'Urutan minimal 1.',
             'urutan.max' => 'Urutan maksimal 999.',
+            'urutan.unique' => 'Urutan tampil sudah dipakai promosi lain. Pilih nomor lain.',
             'aktif.required' => 'Status tampil wajib dipilih.',
             'aktif.boolean' => 'Status tampil harus bernilai aktif atau nonaktif.',
             'mulai.date' => 'Tanggal mulai tidak valid.',

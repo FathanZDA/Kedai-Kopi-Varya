@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 8 Nov 2026, setelah S1–S6 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`); S3 di `dec88cf` + penyesuaian kategori `83554b7`; S4 di `76536ca`; S5 di `3d1a812`; S6 dikerjakan di branch `perbaikan-s6-periode-dashboard` dan **belum di-commit**. Dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`).
+**Terakhir diperbarui:** 8 Nov 2026, setelah S1–S7 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`); S3 di `dec88cf` + penyesuaian kategori `83554b7`; S4 di `76536ca`; S5 di `3d1a812`; S6 di `9cfe908`; S7 dikerjakan di branch `perbaikan-s7-urutan-promo` dan **belum di-commit**. Dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `perbaikan-s6-periode-dashboard` (dari `3d1a812`); perubahan S6 di working tree dan **belum di-commit** |
-| Baseline test | `php artisan test` → **235 passed** (1274 assertions) setelah S6 8 Nov 2026 |
+| Branch aktif | `perbaikan-s7-urutan-promo` (dari `9cfe908`); perubahan S7 di working tree dan **belum di-commit** |
+| Baseline test | `php artisan test` → **240 passed** (1299 assertions) setelah S7 8 Nov 2026 |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user); migration kategori tiga baris sudah dijalankan 7 Nov 2026 |
@@ -46,7 +46,8 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `perbaikan-s3-katalog-beranda` | `dec88cf` + `83554b7` | S3 pratinjau katalog 4 menu, tata letak 4 kolom terpusat, kelompok filter publik, dan kategori tiga baris (sudah di-commit) |
 | `perbaikan-s4-navbar-beranda` | `76536ca` | S4 navigasi beranda satu halaman dengan anchor + scroll-spy (sudah di-commit) |
 | `perbaikan-s5-pil-aktif-pelanggan-b` | `3d1a812` | S5 pil aktif Pelanggan B + responsive navbar A mengikuti B (sudah di-commit) |
-| `perbaikan-s6-periode-dashboard` | *working tree* | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (belum di-commit) |
+| `perbaikan-s6-periode-dashboard` | `9cfe908` | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (sudah di-commit) |
+| `perbaikan-s7-urutan-promo` | *working tree* | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max(urutan)+1` (belum di-commit) |
 
 ---
 
@@ -532,9 +533,21 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - Test baru di `AdminDashboardTest`: default hari + tiga tautan, batas hari, minggu Senin-Minggu, bulan berjalan, dan fallback tidak valid. Baseline **235 passed** (1274 assertions); Pint bersih; build berhasil.
 - Dokumen diperbarui: PRD AD-01, F-66, `admin.md`, `docs/ROUTES.md` 4.16, `docs/PLAN` S6, `AGENTS.md`.
 
-## 5.21 Kandidat berikutnya
+### 5.21 `perbaikan-s7-urutan-promo` (S7)
 
-Slice S5 dan S6 sudah selesai; S7 (urutan promo) menunggu keputusan D4. Pekerjaan operasional lain:
+**Status:** selesai dikerjakan 8 Nov 2026 di branch `perbaikan-s7-urutan-promo`, **belum di-commit**; QA browser label/kartu promo masih perlu.
+
+- Diagnosis: `urutan` 5/10 tersimpan apa adanya, admin memuat 5 promo, dan landing page A/B merender 5 slide berurutan. Tidak ada bug server; masalahnya adalah label UI dan potensi nomor ganda.
+- `PromoRequest` sekarang menolak `urutan` yang sudah dipakai promo lain, tetapi tetap mengizinkan promo yang sedang diubah mempertahankan nomornya.
+- `resources/views/admin/promosi.blade.php`: bantuan menjelaskan angka besar tampil belakangan; nilai awal form memakai `max(urutan) + 1`; input dibatasi 1–999.
+- `resources/js/admin.js`: kartu memakai label **Posisi NN** (bukan “Slide NN”), badge **Urutan #N** tetap, nilai awal editor memakai nomor terbesar + 1, dan validasi klien menolak nomor ganda.
+- Test baru: `AdminPromoCrudTest` mencakup simpan 5/10, admin memuat 5 promo, validasi unik, dan default `max+1`; `PelangganATest` mencakup 5 slide di `/` dan `/pesan`. Baseline **240 passed** (1299 assertions); Pint bersih; build berhasil.
+- Dokumen diperbarui: F-63, `docs/ROUTES.md` §4.13, `admin.md`, `docs/PLAN` S7, `AGENTS.md`, dan file ini.
+- Tidak ada perubahan skema, route, atau dependency; normalisasi 1..N tidak dipakai karena nilai 5/10 memang valid.
+
+## 5.22 Kandidat berikutnya
+
+Slice S5, S6, dan S7 sudah selesai; S8 (regression, build, dan dokumentasi) berikutnya. Pekerjaan operasional lain:
 
 | # | Topik | Catatan | Acuan |
 |---|---|---|---|
@@ -550,7 +563,7 @@ Slice S5 dan S6 sudah selesai; S7 (urutan promo) menunggu keputusan D4. Pekerjaa
 | D1 navigasi Pelanggan A satu halaman | **Selesai** (F-74, S4) | Navbar anchor ke `/#section`, route `/tentang`, `/menu`, `/lokasi` tetap sebagai deep link; scroll-spy di beranda; halaman mandiri tetap aktif sesuai route. |
 | D2 katalog beranda 4 item | **Selesai** (F-72) | Pratinjau 4 kartu, ekspansi di klien, `/menu` tetap penuh. |
 | D3 periode dashboard | **Selesai** (F-66, S6) | Diputuskan: tambah “Minggu Ini” + query `?periode`, default hari ini, minggu Senin–Minggu; F-66 berubah. |
-| D4 urutan promo | OPEN (menunggu diagnosis sebelum S7) | Usulan: diagnosis dulu; bila perlu `urutan` unik + normalisasi 1..N; F-63 berubah bila aturan diperketat. |
+| D4 urutan promo | **Selesai** (F-63, S7) | Diagnosis: server benar, nilai 5/10 tersimpan dan tampil. Perbaikan: UI posisi vs urutan, default `max(urutan)+1`, dan validasi `urutan` unik; normalisasi 1..N tidak dipakai. |
 | Foto Tentang Kami | **Selesai** (F-70) | Kolom `foto_tentang` + endpoint unggah terpisah |
 | `409 "menu berubah"` pada checkout/order | **Selesai** (F-71) | Harga acuan wajib di checkout publik; kasir tunai tidak berubah |
 | Keranjang Pelanggan B | **Selesai** (F-69) | Tetap di browser sebagai pengecualian resmi F-29 |
@@ -577,8 +590,8 @@ Slice S5 dan S6 sudah selesai; S7 (urutan promo) menunggu keputusan D4. Pekerjaa
 ## 8. Aturan singkat untuk sesi baru
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
-2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 235 passed).
-3. Potong branch baru dari ujung terbaru (`perbaikan-s6-periode-dashboard` setelah commit S6), bukan dari `main`.
+2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 240 passed).
+3. Potong branch baru dari ujung terbaru (`perbaikan-s7-urutan-promo` setelah commit S7), bukan dari `main`.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
 5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata selain keranjang tamu Pelanggan B (F-69). Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
@@ -592,10 +605,10 @@ Lanjutkan proyek Kedai Kopi Varya. Mulai dengan membaca docs/HANDOFF.md,
 lalu AGENTS.md, PRD.md, docs/DECISIONS.md, docs/ROUTES.md, docs/DATABASE.md.
 
 Verifikasi baseline dulu: git log -1 dan php artisan test (harus hijau;
-saat file ini ditulis 235 passed).
+saat file ini ditulis 240 passed).
 Kalau MySQL mati, nyalakan XAMPP dulu sebelum menyimpulkan ada bug kode.
 
-Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.21, dipotong
+Kerjakan slice berikutnya yang tertulis di docs/HANDOFF.md §5.22, dipotong
 dari branch terbaru. Ikuti pola yang sudah ada: FormRequest, Service,
 API Resource, DB::transaction + lockForUpdate, enum, named route.
 
@@ -638,7 +651,8 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 7 Nov 2026 | `perbaikan-s3-katalog-beranda` | `83554b7` | Kategori database lima → tiga baris (Kopi, Bukan Kopi, Makanan & Camilan), migration data + seeder + admin/kasir + test |
 | 7 Nov 2026 | `perbaikan-s4-navbar-beranda` | `76536ca` | S4 navigasi beranda satu halaman dengan anchor + scroll-spy (F-74) |
 | 8 Nov 2026 | `perbaikan-s5-pil-aktif-pelanggan-b` | `3d1a812` | S5 pil aktif Pelanggan B + responsive navbar A mengikuti B |
-| 8 Nov 2026 | `perbaikan-s6-periode-dashboard` | *belum di-commit* | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (F-66) |
+| 8 Nov 2026 | `perbaikan-s6-periode-dashboard` | `9cfe908` | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (F-66) |
+| 8 Nov 2026 | `perbaikan-s7-urutan-promo` | *belum di-commit* | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max+1` (F-63) |
 
 ---
 

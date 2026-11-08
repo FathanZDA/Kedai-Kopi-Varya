@@ -93,6 +93,53 @@ class AdminPromoCrudTest extends TestCase
         $this->assertFileExists(public_path($promo->gambar));
     }
 
+    public function test_urutan_lima_dan_sepuluh_tersimpan_tanpa_normalisasi(): void
+    {
+        $this->actingAs($this->admin)->post(route('admin.promos.store'), [
+            'judul' => 'Promo Urutan Lima',
+            'deskripsi' => 'Uji urutan di atas empat.',
+            'urutan' => 5,
+            'aktif' => '1',
+        ])->assertRedirect(route('admin.promos'));
+
+        $promo = Promo::query()->where('judul', 'Promo Urutan Lima')->firstOrFail();
+
+        $this->assertSame(5, $promo->urutan);
+
+        $this->actingAs($this->admin)->put(route('admin.promos.update', $promo), [
+            'judul' => 'Promo Urutan Sepuluh',
+            'deskripsi' => 'Uji urutan dua digit.',
+            'urutan' => 10,
+            'aktif' => '1',
+        ])->assertRedirect(route('admin.promos'));
+
+        $this->assertSame(10, $promo->refresh()->urutan);
+    }
+
+    public function test_halaman_admin_memuat_lima_promo_sesuai_urutan(): void
+    {
+        foreach ([2, 3, 4, 5] as $urutan) {
+            Promo::create([
+                'judul' => "Promo Urutan {$urutan}",
+                'deskripsi' => null,
+                'gambar' => null,
+                'urutan' => $urutan,
+                'aktif' => true,
+                'mulai' => null,
+                'berakhir' => null,
+            ]);
+        }
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.promos'))
+            ->assertOk();
+
+        $config = $response->viewData('config');
+
+        $this->assertCount(5, $config['promos']);
+        $this->assertSame([1, 2, 3, 4, 5], array_column($config['promos'], 'order'));
+    }
+
     public function test_tambah_promosi_tanpa_gambar_tetap_tersimpan(): void
     {
         $this->actingAs($this->admin)->post(route('admin.promos.store'), [
@@ -121,6 +168,46 @@ class AdminPromoCrudTest extends TestCase
 
         $response->assertSessionHasErrors(['judul', 'deskripsi', 'urutan', 'berakhir', 'gambar']);
         $this->assertSame(1, Promo::query()->count());
+    }
+
+    public function test_urutan_promosi_harus_unik(): void
+    {
+        $this->actingAs($this->admin)->post(route('admin.promos.store'), [
+            'judul' => 'Promo Duplikat',
+            'urutan' => 1,
+            'aktif' => '1',
+        ])->assertSessionHasErrors(['urutan']);
+
+        $this->assertDatabaseMissing('promos', ['judul' => 'Promo Duplikat']);
+
+        $this->actingAs($this->admin)->put(route('admin.promos.update', $this->promo), [
+            'judul' => 'Ngopi Sore Varya',
+            'urutan' => 1,
+            'aktif' => '1',
+        ])->assertRedirect(route('admin.promos'))
+            ->assertSessionHasNoErrors();
+    }
+
+    public function test_form_default_urutan_memakai_nomor_terbesar_plus_satu(): void
+    {
+        Promo::create([
+            'judul' => 'Promo Urutan Empat',
+            'deskripsi' => null,
+            'gambar' => null,
+            'urutan' => 4,
+            'aktif' => true,
+            'mulai' => null,
+            'berakhir' => null,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.promos'))
+            ->assertOk();
+
+        $this->assertMatchesRegularExpression(
+            '/id="promo-order".*?value="5"/s',
+            $response->getContent()
+        );
     }
 
     public function test_admin_dapat_mengubah_promosi_dan_mengganti_gambar(): void

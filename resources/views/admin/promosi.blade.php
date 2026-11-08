@@ -4,6 +4,7 @@
     $editPromoId = old('promo_id');
     $formAction = $editPromoId ? route('admin.promos.update', $editPromoId) : route('admin.promos.store');
     $previewPromoImage = $promos[0]['image'] ?? asset('images/menus/varya-signature.jpg');
+    $urutanBerikutnya = ((int) collect($promos)->max('order')) + 1;
 @endphp
 
 <x-layouts.admin title="Iklan & Promosi"
@@ -57,7 +58,7 @@
                         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line-strong pb-3">
                             <div>
                                 <p class="font-display text-[16px] leading-tight font-extrabold">Kelola Slide Foto Banner Utama</p>
-                                <p class="mt-1 font-serif text-[10px] text-muted">Urutan tampil mengikuti nomor slide. Promosi nonaktif tidak tampil di landing page.</p>
+                                <p class="mt-1 font-serif text-[10px] text-muted">Nomor urut menentukan posisi slide; angka lebih besar tampil belakangan. Nomor tidak harus 1-4 dan tidak boleh sama dengan promosi lain. Promosi nonaktif tidak tampil di landing page.</p>
                             </div>
 
                             <button type="button" data-promo-new
@@ -220,8 +221,10 @@
                                        name="urutan"
                                        data-promo-field="order"
                                        min="1"
-                                       value="{{ old('urutan', count($promos) + 1) }}"
+                                       max="999"
+                                       value="{{ old('urutan', $urutanBerikutnya) }}"
                                        class="admin-input mt-2">
+                                <p class="mt-1 font-serif text-[9px] leading-relaxed text-muted">Contoh: urutan 5 tampil setelah urutan 4. Nomor tidak boleh dipakai promosi lain.</p>
                                 <p data-promo-error="order" @if (! $errors->has('urutan')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('urutan') }}</p>
                             </div>
 

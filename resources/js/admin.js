@@ -1338,7 +1338,7 @@ function initPromotions() {
         <article data-promo-card data-promo-id="${escapeHtml(promo.id)}"
                  class="overflow-hidden rounded-md border-2 border-ink bg-admin-panel">
             <div class="flex flex-wrap items-center justify-between gap-2 bg-[#303031] px-3 py-2 text-white">
-                <span class="tag text-[8px] font-bold tracking-[0.08em]">Slide ${String(index + 1).padStart(2, '0')}</span>
+                <span class="tag text-[8px] font-bold tracking-[0.08em]">Posisi ${String(index + 1).padStart(2, '0')}</span>
                 <button type="button" data-promo-toggle
                         class="tag inline-flex items-center gap-1.5 rounded border px-2 py-1 text-[7px] font-bold transition-colors ${
                             promo.active
@@ -1346,7 +1346,7 @@ function initPromotions() {
                                 : 'border-white/20 bg-white/5 text-white/60 hover:bg-white/10'
                         }">
                     <span class="h-1.5 w-1.5 rounded-full ${promo.active ? 'bg-[#7fc08d]' : 'bg-white/40'}"></span>
-                    ${promo.active ? 'Status: Tampil (Slide Aktif)' : 'Status: Nonaktif'}
+                    ${promo.active ? 'Status: Tampil' : 'Status: Nonaktif'}
                 </button>
             </div>
 
@@ -1429,6 +1429,15 @@ function initPromotions() {
         if (idField) idField.value = promo?.id ?? '';
     };
 
+    const urutanBerikutnya = () => {
+        const urutanTerbesar = daftarPromo.reduce(
+            (terbesar, item) => Math.max(terbesar, Number(item.order) || 0),
+            0
+        );
+
+        return urutanTerbesar + 1;
+    };
+
     const fillEditor = (promo) => {
         state.editingId = promo?.id ?? null;
         setEditorImage(promo?.image ?? defaultPromoImage());
@@ -1436,7 +1445,7 @@ function initPromotions() {
 
         if (fields.title) fields.title.value = promo?.title ?? '';
         if (fields.description) fields.description.value = promo?.description ?? '';
-        if (fields.order) fields.order.value = promo?.order ?? (daftarPromo.length + 1);
+        if (fields.order) fields.order.value = promo?.order ?? urutanBerikutnya();
         if (fields.active) fields.active.checked = promo?.active ?? true;
         if (fields.periodStart) fields.periodStart.value = promo?.period_start ?? '';
         if (fields.periodEnd) fields.periodEnd.value = promo?.period_end ?? '';
@@ -1511,6 +1520,12 @@ function initPromotions() {
 
         if (!Number.isFinite(order) || order <= 0 || !Number.isInteger(order)) {
             setError('order', 'Urutan harus berupa angka bulat positif.');
+            valid = false;
+        } else if (daftarPromo.some((item) => (
+            Number(item.id) !== Number(state.editingId)
+            && Number(item.order) === order
+        ))) {
+            setError('order', 'Urutan tampil sudah dipakai promosi lain. Pilih nomor lain.');
             valid = false;
         }
 

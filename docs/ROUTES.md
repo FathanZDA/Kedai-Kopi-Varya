@@ -746,7 +746,7 @@ Halaman Iklan & Promosi memakai form biasa (multipart) untuk tambah dan ubah, pl
 |---|---|
 | `judul` | wajib, string, maks. 80 karakter |
 | `deskripsi` | opsional, string, maks. 220 karakter |
-| `urutan` | wajib, integer, 1–999 |
+| `urutan` | wajib, integer, 1-999, unik terhadap promosi lain (kecuali dirinya saat diubah) |
 | `aktif` | wajib, boolean (`1`/`0`) |
 | `mulai` | opsional, tanggal |
 | `berakhir` | opsional, tanggal, tidak boleh lebih awal dari `mulai` |
