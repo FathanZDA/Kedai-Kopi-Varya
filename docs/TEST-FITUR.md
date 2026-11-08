@@ -26,16 +26,6 @@ Admin :
 4. iklan & promosi = pertama untuk slide banner utama, setelah saya coba sepertinya urutan tampil tidak bisa lebih dari 4 slide (jadi jika memasukkan urutan slide lebih dari 4 akan berubah menjadi 1),  kedua untuk foto tentang kami, fitur masih belum berjalan dengan baik, jadi setelah saya coba untuk memasukkan foto lalu ketika saya klik simpan foto malah muncul notifikasi disuruh memilih foto terlebih dahulu meskipun saya sudah menambahkan foto
 5. informasi toko = untuk jam operasional, bagiamana cara saya mengubah jam operasional? apakah harus diubah dari database?
 
-
-Tampilan Front end yang saya inginkan :
-Pelanggan A :
-
-Pelanggan B :
-
-Kasir :
-
-Admin :
-
 ---
 
 ## Status tindak lanjut — 8 Nov 2026
