@@ -38,6 +38,7 @@
         'resources/js/app.js',
         'resources/js/pelanggan-a.js',
         'resources/js/pelanggan-b.js',
+        'resources/js/landing-animations.js',
     ])
 </head>
 <body class="min-h-screen bg-canvas font-serif text-ink antialiased">

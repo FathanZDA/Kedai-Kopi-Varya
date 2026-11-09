@@ -15,11 +15,11 @@
 @endphp
 
 <section id="lokasi" class="mx-auto max-w-[1280px] px-5 pt-16 sm:px-8 sm:pt-20">
-    <x-section-heading title="Lokasi" />
+    <x-section-heading title="Lokasi" data-reveal />
 
     <div class="mt-8 grid gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-8">
         {{-- Peta --}}
-        <div class="brut flex flex-col overflow-hidden bg-surface">
+        <div class="brut flex flex-col overflow-hidden bg-surface" data-reveal data-reveal-delay="80">
             <div class="flex items-center justify-between gap-3 bg-ink px-4 py-2.5 text-white">
                 <p class="tag flex items-center gap-2 text-[10px]">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -39,7 +39,7 @@
         </div>
 
         {{-- Informasi lokasi --}}
-        <div class="brut flex flex-col gap-6 bg-surface p-6 sm:p-8">
+        <div class="brut flex flex-col gap-6 bg-surface p-6 sm:p-8" data-reveal data-reveal-delay="160">
             <div>
                 <h3 class="flex items-center gap-2.5 font-display text-lg font-bold">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"

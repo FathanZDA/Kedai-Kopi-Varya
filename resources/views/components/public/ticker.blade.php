@@ -8,7 +8,7 @@
 @endphp
 
 <div class="mx-auto max-w-[1280px] px-5 pt-5 sm:px-8">
-    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-full bg-varya-dark px-5 py-2.5 text-white">
+    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-full bg-varya-dark px-5 py-2.5 text-white" data-reveal>
         <p class="tag flex flex-wrap items-center gap-x-3 text-[10px] sm:text-[11px]">
             @foreach ($items as $item)
                 <span>{{ $item }}</span>

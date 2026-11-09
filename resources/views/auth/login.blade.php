@@ -21,10 +21,12 @@
     <div class="flex min-h-screen flex-col px-4 py-7 sm:px-6 sm:py-10">
         {{-- Identitas kedai, mengikuti desain di design/auth. --}}
         <header class="mx-auto flex w-full max-w-6xl items-center gap-3">
-            <span class="grid h-12 w-12 shrink-0 place-items-center border-2 border-ink bg-white shadow-[3px_3px_0_0_#1b1c1d]">
+            <span class="grid h-12 w-12 shrink-0 place-items-center">
                 <img src="{{ asset('images/brand/varya-mark.png') }}"
-                     alt="Logo Kedai Kopi Varya"
-                     class="h-9 w-9 object-contain">
+                     alt=""
+                     width="228"
+                     height="240"
+                     class="h-12 w-auto object-contain">
             </span>
 
             <span class="font-display text-[17px] leading-none font-black tracking-[0.12em] text-ink uppercase sm:text-[20px]">

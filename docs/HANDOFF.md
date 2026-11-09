@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 8 Nov 2026, setelah S1–S8 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`); S3 di `dec88cf` + penyesuaian kategori `83554b7`; S4 di `76536ca`; S5 di `3d1a812`; S6 di `9cfe908`; S7 di `483770c`; S8 dikerjakan di branch `perbaikan-s8-regression-dokumen` dan **belum di-commit**. Dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
+**Terakhir diperbarui:** 9 Nov 2026, setelah S1–S8 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan dan slice logo + animasi beranda (F-75) masuk ke working tree. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`); S3 di `dec88cf` + penyesuaian kategori `83554b7`; S4 di `76536ca`; S5 di `3d1a812`; S6 di `9cfe908`; S7 di `483770c`; S8 dikerjakan di branch `perbaikan-s8-regression-dokumen` dan **belum di-commit**. Dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
 
 ---
 
@@ -666,6 +666,7 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 8 Nov 2026 | `perbaikan-s6-periode-dashboard` | `9cfe908` | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (F-66) |
 | 8 Nov 2026 | `perbaikan-s7-urutan-promo` | `483770c` | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max+1` (F-63) |
 | 8 Nov 2026 | `perbaikan-s8-regression-dokumen` | *belum di-commit* | S8 regression final, status temuan, dan dokumentasi rilis |
+| 9 Nov 2026 | `perbaikan-s8-regression-dokumen` (working tree) | *belum di-commit* | Logo mark kanonik untuk semua role + animasi editorial halus beranda Pelanggan A/B (F-75) |
 
 ---
 

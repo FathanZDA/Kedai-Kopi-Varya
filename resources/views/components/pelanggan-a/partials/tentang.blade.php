@@ -11,11 +11,11 @@
 @endphp
 
 <section id="tentang" class="mx-auto max-w-[1280px] px-5 pt-16 sm:px-8 sm:pt-20">
-    <x-section-heading title="Tentang Kami" />
+    <x-section-heading title="Tentang Kami" data-reveal />
 
     <div class="mt-8 grid gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-8">
         {{-- Kolom teks --}}
-        <div class="brut flex flex-col justify-between gap-8 bg-surface p-6 sm:p-8">
+        <div class="brut flex flex-col justify-between gap-8 bg-surface p-6 sm:p-8" data-reveal data-reveal-delay="80">
             <div>
                 <p class="font-display text-sm font-bold tracking-wide text-varya-dark uppercase">
                     Sejak. 2024 <span class="mx-1 opacity-50">•</span> Kedai Varya
@@ -39,7 +39,7 @@
         </div>
 
         {{-- Kolom foto --}}
-        <div class="brut relative min-h-[280px] overflow-hidden bg-surface p-2 lg:min-h-0">
+        <div class="brut relative min-h-[280px] overflow-hidden bg-surface p-2 lg:min-h-0" data-reveal data-reveal-delay="160">
             <span class="tag absolute top-6 left-6 z-10 bg-ink/70 px-4 py-1.5 text-[10px] text-white">
                 <span class="opacity-50">//</span> Kedai Varya
             </span>

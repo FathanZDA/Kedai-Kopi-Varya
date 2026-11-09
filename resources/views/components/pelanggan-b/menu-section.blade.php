@@ -5,9 +5,9 @@
 ])
 
 <section id="menu" class="mx-auto max-w-[1280px] px-5 pt-16 sm:px-8 sm:pt-20">
-    <x-section-heading title="Menu" align="center" />
+    <x-section-heading title="Menu" align="center" data-reveal />
 
-    <p class="mx-auto mt-3 max-w-xl text-center font-serif text-sm text-ink-soft">
+    <p class="mx-auto mt-3 max-w-xl text-center font-serif text-sm text-ink-soft" data-reveal data-reveal-delay="40">
         Pilih menu favoritmu, atur jumlahnya, lalu lanjutkan ke pembayaran QRIS.
     </p>
 
@@ -15,7 +15,9 @@
     <form data-menu-search
           class="mx-auto mt-7 flex max-w-2xl items-center gap-2 rounded-full border-[3px] border-ink bg-surface p-1.5 pl-5 shadow-[4px_4px_0_0_#1b1c1d]"
           role="search"
-          onsubmit="return false">
+          onsubmit="return false"
+          data-reveal
+          data-reveal-delay="80">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2.5" stroke-linecap="round" class="shrink-0 text-ink" aria-hidden="true">
             <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
@@ -33,7 +35,7 @@
     </form>
 
     {{-- Filter kategori --}}
-    <div data-menu-filters class="mt-6 flex flex-wrap justify-center gap-2.5">
+    <div data-menu-filters class="mt-6 flex flex-wrap justify-center gap-2.5" data-reveal data-reveal-delay="120">
         <button type="button"
                 data-filter="all"
                 class="brut-sm tag bg-varya-dark px-5 py-2.5 text-[10px] font-bold text-white transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-[11px]">
@@ -59,6 +61,8 @@
                  data-menu-index="{{ $loop->index }}"
                  data-category="{{ \App\Support\MenuGroup::forSlug($menu->category?->slug) }}"
                  data-name="{{ \Illuminate\Support\Str::lower($menu->nama.' '.$menu->deskripsi) }}"
+                 data-reveal
+                 data-reveal-delay="{{ ($loop->index % 4) * 70 }}"
                  class="w-[calc(50%_-_0.5rem)] sm:w-[calc(50%_-_0.625rem)] lg:w-[calc(25%_-_1.125rem)]">
                 <x-menu-card
                     :menu="$menu"
