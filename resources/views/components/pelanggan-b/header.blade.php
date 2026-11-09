@@ -90,6 +90,5 @@
     </div>
 
     {{-- Garis aksen hijau di bawah header --}}
-    <div class="h-1.5 bg-varya-dark"></div>
-    <div class="h-2.5 bg-varya-light"></div>
+    <div class="admin-stripes h-3 border-b-[3px] border-ink" aria-hidden="true"></div>
 </header>
