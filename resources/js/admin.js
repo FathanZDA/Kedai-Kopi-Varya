@@ -188,7 +188,7 @@ function renderPagination(container, totalPages, currentPage, onSelect, { compac
         button.disabled = disabled;
 
         button.className = [
-            'tag inline-flex h-8 min-w-8 items-center justify-center rounded border-2 border-ink px-2 text-[8px] font-bold shadow-[1px_1px_0_0_#1b1c1d] transition-colors',
+            'tag inline-flex h-8 min-w-8 items-center justify-center rounded border-2 border-ink px-2 text-[11px] font-bold shadow-[1px_1px_0_0_#1b1c1d] transition-colors',
             active
                 ? 'bg-varya-dark text-white'
                 : 'bg-admin-panel text-ink hover:bg-varya-light',
@@ -368,31 +368,31 @@ function initDashboard() {
         return `
             <tr class="align-top transition-colors hover:bg-varya-light/15">
                 <td class="px-4 py-6">
-                    <p class="font-mono text-[9px] leading-tight font-bold text-ink">#${escapeHtml(order.code)}</p>
-                    <p class="mt-1 flex items-center gap-1 font-serif text-[9px] text-muted">
+                    <p class="font-mono text-[11px] leading-tight font-bold text-ink">#${escapeHtml(order.code)}</p>
+                    <p class="mt-1 flex items-center gap-1 font-serif text-[11px] text-muted">
                         <span class="h-1.5 w-1.5 rounded-full bg-varya"></span>
                         ${escapeHtml(order.time)}
                     </p>
                 </td>
                 <td class="px-3 py-6">
                     <p class="font-display text-[13px] leading-tight font-extrabold">${escapeHtml(order.customer)}</p>
-                    <p class="tag mt-1 text-[7px] text-muted">Pelanggan</p>
+                    <p class="tag mt-1 text-[11px] text-muted">Pelanggan</p>
                 </td>
                 <td class="px-3 py-6">
-                    <span class="tag inline-block rounded border-2 border-ink px-2 py-1 text-[7px] font-bold ${typeClass}">
+                    <span class="tag inline-block rounded border-2 border-ink px-2 py-1 text-[11px] font-bold ${typeClass}">
                         ${escapeHtml(order.type_label)}
                     </span>
                 </td>
                 <td class="px-3 py-6">
                     <p class="font-serif text-[11px] font-semibold text-ink">${escapeHtml(order.items)} Menu</p>
-                    <p class="tag mt-0.5 text-[7px] text-muted">(${escapeHtml(order.portions)} porsi)</p>
+                    <p class="tag mt-0.5 text-[11px] text-muted">(${escapeHtml(order.portions)} porsi)</p>
                 </td>
                 <td class="px-3 py-6">
                     <p class="font-display text-[13px] leading-tight font-bold">${rupiah(order.total)}</p>
-                    <p class="tag mt-1 text-[7px] text-muted">${escapeHtml(order.payment_status_label ?? '')} &bull; ${escapeHtml(order.payment ?? 'QRIS')}</p>
+                    <p class="tag mt-1 text-[11px] text-muted">${escapeHtml(order.payment_status_label ?? '')} &bull; ${escapeHtml(order.payment ?? 'QRIS')}</p>
                 </td>
                 <td class="px-4 py-6">
-                    <span class="tag inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[7px] font-bold ${status.pill}">
+                    <span class="tag inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[11px] font-bold ${status.pill}">
                         <span class="h-1.5 w-1.5 rounded-full ${status.dot}"></span>
                         ${escapeHtml(order.status_label ?? status.label)}
                     </span>
@@ -547,13 +547,14 @@ function initMenuList() {
             <td class="px-3 py-3">
                 <div class="flex flex-wrap items-center gap-2">
                     <p class="font-display text-[14px] leading-tight font-extrabold">${escapeHtml(menu.name)}</p>
-                    ${!menu.available ? '<span class="tag rounded bg-brown px-1.5 py-0.5 text-[7px] font-bold text-white">Habis</span>' : ''}
+                    ${!menu.available ? '<span class="tag rounded bg-brown px-1.5 py-0.5 text-[11px] font-bold text-white">Habis</span>' : ''}
+                    ${menu.best_seller ? '<span class="tag rounded border border-[#c8a03a] bg-[#f6c445] px-1.5 py-0.5 text-[11px] font-bold text-ink">★ Terlaris</span>' : ''}
                 </div>
                 <p class="mt-1 line-clamp-2 max-w-[390px] font-serif text-[11px] leading-relaxed text-ink-soft">${escapeHtml(menu.description)}</p>
-                <p class="tag mt-1 text-[7px] text-muted">${escapeHtml(menu.sku)}</p>
+                <p class="tag mt-1 text-[11px] text-muted">${escapeHtml(menu.sku)}</p>
             </td>
             <td class="px-3 py-3">
-                <span class="tag inline-block rounded border-2 border-line-strong bg-[#f0eee3] px-2.5 py-1 text-[8px] font-bold text-ink-soft">
+                <span class="tag inline-block rounded border-2 border-line-strong bg-[#f0eee3] px-2.5 py-1 text-[11px] font-bold text-ink-soft">
                     ${escapeHtml(menu.category_label)}
                 </span>
             </td>
@@ -564,7 +565,7 @@ function initMenuList() {
                 <button type="button"
                         data-admin-menu-toggle
                         title="Klik untuk mengubah ketersediaan"
-                        class="tag inline-flex items-center gap-1.5 rounded border-2 px-2.5 py-1 text-[8px] font-bold transition-colors ${
+                        class="tag inline-flex items-center gap-1.5 rounded border-2 px-2.5 py-1 text-[11px] font-bold transition-colors ${
                             menu.available
                                 ? 'border-varya/30 bg-varya-light text-varya-dark hover:bg-[#c9dfbf]'
                                 : 'border-rust/30 bg-[#fbe1de] text-rust hover:bg-[#f7cfc9]'
@@ -573,15 +574,32 @@ function initMenuList() {
                     ${menu.available ? 'Tersedia' : 'Habis'}
                 </button>
             </td>
+            <td class="px-3 py-3">
+                <button type="button"
+                        data-admin-menu-terlaris
+                        title="${menu.best_seller ? 'Lepas penanda terlaris' : 'Tandai menu ini terlaris'}"
+                        aria-pressed="${menu.best_seller ? 'true' : 'false'}"
+                        class="tag inline-flex items-center gap-1.5 rounded border-2 px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                            menu.best_seller
+                                ? 'border-[#c8a03a] bg-[#f6c445] text-ink hover:bg-[#f0b830]'
+                                : 'border-line-strong bg-admin-panel text-ink-soft hover:bg-varya-light'
+                        }">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="${menu.best_seller ? 'currentColor' : 'none'}"
+                         stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m12 3.6 2.6 5.3 5.8.9-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.8l5.8-.9Z"/>
+                    </svg>
+                    ${menu.best_seller ? 'Terlaris' : 'Tandai'}
+                </button>
+            </td>
             <td class="px-4 py-3">
                 <div class="flex items-center justify-end gap-1.5">
                     <a href="${ROUTES.menuEditBase}/${menu.id}/edit"
-                       class="tag rounded border-2 border-ink bg-admin-panel px-2.5 py-1.5 text-[8px] font-bold transition-colors hover:bg-varya-light">
+                       class="tag rounded border-2 border-ink bg-admin-panel px-2.5 py-1.5 text-[11px] font-bold transition-colors hover:bg-varya-light">
                         Ubah
                     </a>
                     <button type="button"
                             data-admin-menu-delete
-                            class="tag rounded border-2 border-ink bg-[#fbe1de] px-2.5 py-1.5 text-[8px] font-bold text-rust transition-colors hover:bg-[#f7cfc9]">
+                            class="tag rounded border-2 border-ink bg-[#fbe1de] px-2.5 py-1.5 text-[11px] font-bold text-rust transition-colors hover:bg-[#f7cfc9]">
                         Hapus
                     </button>
                 </div>
@@ -605,7 +623,7 @@ function initMenuList() {
         if (tbody) {
             tbody.innerHTML = visible.length > 0
                 ? visible.map(menuRow).join('')
-                : '<tr><td colspan="6" class="px-4 py-10 text-center font-serif text-sm text-muted">Tidak ada menu yang sesuai dengan filter.</td></tr>';
+                : '<tr><td colspan="7" class="px-4 py-10 text-center font-serif text-sm text-muted">Tidak ada menu yang sesuai dengan filter.</td></tr>';
         }
 
         if (record) {
@@ -649,6 +667,7 @@ function initMenuList() {
 
     tbody?.addEventListener('click', async (event) => {
         const toggle = event.target.closest('[data-admin-menu-toggle]');
+        const star = event.target.closest('[data-admin-menu-terlaris]');
         const remove = event.target.closest('[data-admin-menu-delete]');
 
         if (toggle) {
@@ -676,6 +695,33 @@ function initMenuList() {
             menu.available = Boolean(hasil.data?.data?.tersedia ?? tersedia);
             render();
             showToast(hasil.data?.message ?? `${menu.name} ditandai ${menu.available ? 'tersedia' : 'habis'}.`);
+        }
+
+        if (star) {
+            const row = star.closest('[data-admin-menu-row]');
+            const id = Number(row?.dataset.menuId);
+            const menu = daftarMenu.find((item) => item.id === id);
+            if (!menu || star.disabled) return;
+
+            const terlaris = !menu.best_seller;
+            star.disabled = true;
+
+            const hasil = await kirimJson(
+                `${ROUTES.menuTerlarisBase}/${menu.id}/terlaris`,
+                'PATCH',
+                { terlaris },
+            );
+
+            star.disabled = false;
+
+            if (!hasil.ok) {
+                showToast(pesanKesalahan(hasil));
+                return;
+            }
+
+            menu.best_seller = Boolean(hasil.data?.data?.terlaris ?? terlaris);
+            render();
+            showToast(hasil.data?.message ?? `${menu.name} ${menu.best_seller ? 'ditandai terlaris' : 'tidak lagi terlaris'}.`);
         }
 
         if (remove) {
@@ -986,32 +1032,32 @@ function initReports() {
             <tr data-report-row data-report-id="${escapeHtml(transaction.id)}"
                 class="cursor-pointer align-top transition-colors hover:bg-varya-light/15">
                 <td class="px-4 py-3">
-                    <p class="font-mono text-[9px] leading-tight font-bold text-ink">#${escapeHtml(transaction.code)}</p>
+                    <p class="font-mono text-[11px] leading-tight font-bold text-ink">#${escapeHtml(transaction.code)}</p>
                 </td>
                 <td class="px-3 py-3">
-                    <p class="font-mono text-[9px] leading-tight text-ink-soft">${transaction.queue ? `#${escapeHtml(transaction.queue)}` : '—'}</p>
+                    <p class="font-mono text-[11px] leading-tight text-ink-soft">${transaction.queue ? `#${escapeHtml(transaction.queue)}` : '—'}</p>
                 </td>
                 <td class="px-3 py-3">
                     <p class="font-display text-[12px] leading-tight font-extrabold">${escapeHtml(transaction.customer)}</p>
-                    <p class="tag mt-1 text-[7px] text-muted">${escapeHtml(transaction.source_label)}</p>
+                    <p class="tag mt-1 text-[11px] text-muted">${escapeHtml(transaction.source_label)}</p>
                 </td>
                 <td class="px-3 py-3">
                     <p class="font-display text-[13px] leading-tight font-bold">${rupiah(transaction.total)}</p>
                 </td>
                 <td class="px-3 py-3">
-                    <span class="tag inline-block rounded border-2 px-2 py-1 text-[7px] font-bold ${methodMeta[transaction.method] ?? methodMeta.tunai}">
+                    <span class="tag inline-block rounded border-2 px-2 py-1 text-[11px] font-bold ${methodMeta[transaction.method] ?? methodMeta.tunai}">
                         ${escapeHtml(transaction.method_label)}
                     </span>
                 </td>
                 <td class="px-3 py-3">
-                    <span class="tag inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[7px] font-bold ${status.pill}">
+                    <span class="tag inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[11px] font-bold ${status.pill}">
                         <span class="h-1.5 w-1.5 rounded-full ${status.dot}"></span>
                         ${escapeHtml(status.label)}
                     </span>
                 </td>
                 <td class="px-4 py-3">
                     <div class="flex items-center justify-between gap-2">
-                        <p class="font-serif text-[10px] leading-tight text-ink-soft">${escapeHtml(transaction.datetime)}</p>
+                        <p class="font-serif text-[11px] leading-tight text-ink-soft">${escapeHtml(transaction.datetime)}</p>
                         <button type="button" data-report-open
                                 title="Lihat rincian transaksi"
                                 aria-label="Lihat rincian transaksi ${escapeHtml(transaction.code)}"
@@ -1088,10 +1134,10 @@ function initReports() {
             <tr class="border-b border-line last:border-0">
                 <td class="py-2 pr-3 font-serif text-[11px] font-semibold text-ink">
                     ${escapeHtml(item.name)}
-                    ${item.catatan ? `<p class="mt-0.5 font-serif text-[9px] font-normal text-muted">Catatan: ${escapeHtml(item.catatan)}</p>` : ''}
+                    ${item.catatan ? `<p class="mt-0.5 font-serif text-[11px] font-normal text-muted">Catatan: ${escapeHtml(item.catatan)}</p>` : ''}
                 </td>
-                <td class="px-2 py-2 text-center font-mono text-[10px] text-ink-soft">${escapeHtml(item.qty)}x</td>
-                <td class="px-2 py-2 text-right font-serif text-[10px] text-ink-soft">${rupiah(item.price)}</td>
+                <td class="px-2 py-2 text-center font-mono text-[11px] text-ink-soft">${escapeHtml(item.qty)}x</td>
+                <td class="px-2 py-2 text-right font-serif text-[11px] text-ink-soft">${rupiah(item.price)}</td>
                 <td class="py-2 pl-3 text-right font-display text-[12px] font-bold">${rupiah(item.subtotal)}</td>
             </tr>
         `).join('');
@@ -1099,21 +1145,21 @@ function initReports() {
         const paymentDetail = data.method === 'tunai'
             ? `
                 <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3">
-                    <p class="tag text-[8px] font-bold text-muted">Uang Diterima</p>
+                    <p class="tag text-[11px] font-bold text-muted">Uang Diterima</p>
                     <p class="mt-1 font-display text-[17px] font-bold">${rupiah(data.cash_received)}</p>
                 </div>
                 <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3">
-                    <p class="tag text-[8px] font-bold text-muted">Kembalian</p>
+                    <p class="tag text-[11px] font-bold text-muted">Kembalian</p>
                     <p class="mt-1 font-display text-[17px] font-bold">${rupiah(data.change)}</p>
                 </div>
             `
             : `
                 <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3 sm:col-span-2">
-                    <p class="tag text-[8px] font-bold text-muted">ID Transaksi Midtrans</p>
-                    <p class="mt-1 break-all font-mono text-[9px] leading-relaxed text-ink">${escapeHtml(data.midtrans_transaction_id ?? data.midtrans_order_id ?? '-')}</p>
-                    ${data.midtrans_order_id ? `<p class="mt-1 font-serif text-[9px] text-muted">Order ID: <span class="font-mono">${escapeHtml(data.midtrans_order_id)}</span></p>` : ''}
-                    ${data.payment_type ? `<p class="mt-1 font-serif text-[9px] text-muted">Tipe pembayaran: ${escapeHtml(data.payment_type)}</p>` : ''}
-                    <p class="mt-1 font-serif text-[9px] text-muted">Status pembayaran tidak dapat diubah manual dari aplikasi.</p>
+                    <p class="tag text-[11px] font-bold text-muted">ID Transaksi Midtrans</p>
+                    <p class="mt-1 break-all font-mono text-[11px] leading-relaxed text-ink">${escapeHtml(data.midtrans_transaction_id ?? data.midtrans_order_id ?? '-')}</p>
+                    ${data.midtrans_order_id ? `<p class="mt-1 font-serif text-[11px] text-muted">Order ID: <span class="font-mono">${escapeHtml(data.midtrans_order_id)}</span></p>` : ''}
+                    ${data.payment_type ? `<p class="mt-1 font-serif text-[11px] text-muted">Tipe pembayaran: ${escapeHtml(data.payment_type)}</p>` : ''}
+                    <p class="mt-1 font-serif text-[11px] text-muted">Status pembayaran tidak dapat diubah manual dari aplikasi.</p>
                 </div>
             `;
 
@@ -1122,32 +1168,32 @@ function initReports() {
         detail.innerHTML = `
             <div class="grid gap-3 sm:grid-cols-2">
                 <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3">
-                    <p class="tag text-[8px] font-bold text-muted">Pelanggan</p>
+                    <p class="tag text-[11px] font-bold text-muted">Pelanggan</p>
                     <p class="mt-1 font-display text-[16px] font-bold">${escapeHtml(data.customer)}</p>
-                    <p class="mt-1 tag text-[8px] text-muted">${escapeHtml(data.source_label)}${data.tipe_pesanan_label ? ` • ${escapeHtml(data.tipe_pesanan_label)}` : ''}</p>
+                    <p class="mt-1 tag text-[11px] text-muted">${escapeHtml(data.source_label)}${data.tipe_pesanan_label ? ` • ${escapeHtml(data.tipe_pesanan_label)}` : ''}</p>
                 </div>
                 <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3">
-                    <p class="tag text-[8px] font-bold text-muted">Status Pembayaran</p>
-                    <span class="tag mt-2 inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[8px] font-bold ${status.pill}">
+                    <p class="tag text-[11px] font-bold text-muted">Status Pembayaran</p>
+                    <span class="tag mt-2 inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[11px] font-bold ${status.pill}">
                         <span class="h-1.5 w-1.5 rounded-full ${status.dot}"></span>
                         ${escapeHtml(data.status_label)}
                     </span>
-                    <p class="mt-1 tag text-[8px] text-muted">${escapeHtml(data.method_label)}</p>
+                    <p class="mt-1 tag text-[11px] text-muted">${escapeHtml(data.method_label)}</p>
                 </div>
             </div>
 
             <div class="mt-4 overflow-hidden rounded-md border-2 border-ink">
                 <div class="flex items-center justify-between gap-2 border-b-2 border-ink bg-admin-head px-3 py-2">
-                    <p class="tag text-[8px] font-bold text-ink">Item Pesanan</p>
-                    <p class="tag text-[8px] text-muted">${data.items?.length ?? 0} jenis</p>
+                    <p class="tag text-[11px] font-bold text-ink">Item Pesanan</p>
+                    <p class="tag text-[11px] text-muted">${data.items?.length ?? 0} jenis</p>
                 </div>
                 <table class="w-full">
                     <thead>
                         <tr class="border-b border-line bg-admin-soft">
-                            <th class="px-3 py-2 text-left font-mono text-[8px] font-bold text-muted uppercase">Menu</th>
-                            <th class="px-2 py-2 text-center font-mono text-[8px] font-bold text-muted uppercase">Qty</th>
-                            <th class="px-2 py-2 text-right font-mono text-[8px] font-bold text-muted uppercase">Harga</th>
-                            <th class="px-3 py-2 text-right font-mono text-[8px] font-bold text-muted uppercase">Subtotal</th>
+                            <th class="px-3 py-2 text-left font-mono text-[11px] font-bold text-muted uppercase">Menu</th>
+                            <th class="px-2 py-2 text-center font-mono text-[11px] font-bold text-muted uppercase">Qty</th>
+                            <th class="px-2 py-2 text-right font-mono text-[11px] font-bold text-muted uppercase">Harga</th>
+                            <th class="px-3 py-2 text-right font-mono text-[11px] font-bold text-muted uppercase">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody class="px-3">
@@ -1161,7 +1207,7 @@ function initReports() {
             </div>
 
             <div class="mt-4 flex items-center justify-between gap-3 rounded-md border-2 border-ink bg-varya-light px-4 py-3">
-                <p class="tag text-[9px] font-bold text-varya-dark">Total Pembayaran</p>
+                <p class="tag text-[11px] font-bold text-varya-dark">Total Pembayaran</p>
                 <p class="font-display text-[24px] leading-none font-black text-varya-dark">${rupiah(data.total)}</p>
             </div>
         `;
@@ -1338,9 +1384,9 @@ function initPromotions() {
         <article data-promo-card data-promo-id="${escapeHtml(promo.id)}"
                  class="overflow-hidden rounded-md border-2 border-ink bg-admin-panel">
             <div class="flex flex-wrap items-center justify-between gap-2 bg-[#303031] px-3 py-2 text-white">
-                <span class="tag text-[8px] font-bold tracking-[0.08em]">Posisi ${String(index + 1).padStart(2, '0')}</span>
+                <span class="tag text-[11px] font-bold tracking-[0.08em]">Posisi ${String(index + 1).padStart(2, '0')}</span>
                 <button type="button" data-promo-toggle
-                        class="tag inline-flex items-center gap-1.5 rounded border px-2 py-1 text-[7px] font-bold transition-colors ${
+                        class="tag inline-flex items-center gap-1.5 rounded border px-2 py-1 text-[11px] font-bold transition-colors ${
                             promo.active
                                 ? 'border-varya-light/30 bg-white/10 text-varya-light hover:bg-white/20'
                                 : 'border-white/20 bg-white/5 text-white/60 hover:bg-white/10'
@@ -1354,18 +1400,18 @@ function initPromotions() {
                 <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
                         <p class="font-display text-[15px] leading-tight font-extrabold">${escapeHtml(promo.title)}</p>
-                        <p class="mt-1 line-clamp-2 font-serif text-[10px] leading-relaxed text-ink-soft">${escapeHtml(promo.description)}</p>
+                        <p class="mt-1 line-clamp-2 font-serif text-[11px] leading-relaxed text-ink-soft">${escapeHtml(promo.description)}</p>
                     </div>
-                    <span class="tag shrink-0 rounded border border-line-strong bg-admin-soft px-2 py-1 text-[7px] font-bold text-ink-soft">Urutan #${escapeHtml(promo.order)}</span>
+                    <span class="tag shrink-0 rounded border border-line-strong bg-admin-soft px-2 py-1 text-[11px] font-bold text-ink-soft">Urutan #${escapeHtml(promo.order)}</span>
                 </div>
 
-                <p class="tag mt-2 text-[7px] text-muted">Periode: ${escapeHtml(formatPeriod(promo.period_start, promo.period_end))}</p>
+                <p class="tag mt-2 text-[11px] text-muted">Periode: ${escapeHtml(formatPeriod(promo.period_start, promo.period_end))}</p>
 
                 <div class="mt-3 grid grid-cols-2 gap-2">
                     <figure>
                         <div class="flex items-center justify-between gap-1 border-2 border-b-0 border-ink bg-[#303031] px-2 py-1 text-white">
-                            <span class="tag text-[6px] font-bold">Desktop</span>
-                            <span class="tag rounded bg-varya-dark px-1 py-0.5 text-[6px] font-bold">16:9</span>
+                            <span class="tag text-[11px] font-bold">Desktop</span>
+                            <span class="tag rounded bg-varya-dark px-1 py-0.5 text-[11px] font-bold">16:9</span>
                         </div>
                         <div class="admin-preview-frame aspect-video rounded-b-md">
                             <img src="${escapeHtml(promo.image)}" alt="Banner desktop ${escapeHtml(promo.title)}" class="h-full w-full object-cover" loading="lazy">
@@ -1374,8 +1420,8 @@ function initPromotions() {
 
                     <figure>
                         <div class="flex items-center justify-between gap-1 border-2 border-b-0 border-ink bg-[#303031] px-2 py-1 text-white">
-                            <span class="tag text-[6px] font-bold">Mobile</span>
-                            <span class="tag rounded bg-varya-light px-1 py-0.5 text-[6px] font-bold text-ink">1:1</span>
+                            <span class="tag text-[11px] font-bold">Mobile</span>
+                            <span class="tag rounded bg-varya-light px-1 py-0.5 text-[11px] font-bold text-ink">1:1</span>
                         </div>
                         <div class="admin-preview-frame aspect-square rounded-b-md">
                             <img src="${escapeHtml(promo.image)}" alt="Banner mobile ${escapeHtml(promo.title)}" class="h-full w-full object-cover" loading="lazy">
@@ -1385,7 +1431,7 @@ function initPromotions() {
 
                 <div class="mt-2 flex flex-wrap items-center gap-1.5">
                     <button type="button" data-promo-edit
-                            class="tag inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-2.5 py-1.5 text-[8px] font-bold transition-colors hover:bg-varya-light">
+                            class="tag inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-2.5 py-1.5 text-[11px] font-bold transition-colors hover:bg-varya-light">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="m4 20 4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20Z"/><path d="m13.5 7.5 3 3"/>
@@ -1394,7 +1440,7 @@ function initPromotions() {
                     </button>
 
                     <button type="button" data-promo-delete
-                            class="tag inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-2.5 py-1.5 text-[8px] font-bold transition-colors hover:bg-[#fbe1de] hover:text-rust">
+                            class="tag inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-2.5 py-1.5 text-[11px] font-bold transition-colors hover:bg-[#fbe1de] hover:text-rust">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v5M14 11v5"/>
@@ -1811,8 +1857,8 @@ function initStore() {
         if (!container) return;
 
         container.innerHTML = facilities.length > 0
-            ? facilities.map((facility) => `<span class="tag rounded border border-line-strong bg-white px-2 py-1 text-[8px] text-ink-soft">${escapeHtml(facility)}</span>`).join('')
-            : '<span class="font-serif text-[9px] text-muted">Belum ada fasilitas.</span>';
+            ? facilities.map((facility) => `<span class="tag rounded border border-line-strong bg-white px-2 py-1 text-[11px] text-ink-soft">${escapeHtml(facility)}</span>`).join('')
+            : '<span class="font-serif text-[11px] text-muted">Belum ada fasilitas.</span>';
     };
 
     const updatePreview = () => {

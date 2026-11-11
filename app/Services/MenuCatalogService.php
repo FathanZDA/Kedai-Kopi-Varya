@@ -36,6 +36,7 @@ class MenuCatalogService
                 'deskripsi' => $data['deskripsi'] ?? null,
                 'foto' => $foto,
                 'tersedia' => (bool) $data['tersedia'],
+                'terlaris' => (bool) ($data['terlaris'] ?? false),
                 'urutan' => ((int) Menu::withTrashed()->max('urutan')) + 1,
             ]);
         }, 3);
@@ -60,6 +61,7 @@ class MenuCatalogService
                 'deskripsi' => $data['deskripsi'] ?? null,
                 'foto' => $fotoBaru ?? $menu->foto,
                 'tersedia' => (bool) $data['tersedia'],
+                'terlaris' => (bool) ($data['terlaris'] ?? false),
             ]);
 
             return $menu;
@@ -76,6 +78,14 @@ class MenuCatalogService
     public function aturKetersediaan(Menu $menu, bool $tersedia): Menu
     {
         $menu->update(['tersedia' => $tersedia]);
+
+        return $menu;
+    }
+
+    /** Penanda "Terlaris" manual dari admin (F-75); tidak mengubah ketersediaan. */
+    public function aturTerlaris(Menu $menu, bool $terlaris): Menu
+    {
+        $menu->update(['terlaris' => $terlaris]);
 
         return $menu;
     }

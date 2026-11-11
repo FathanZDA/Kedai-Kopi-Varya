@@ -1,7 +1,7 @@
 # Kontrak Database — Kedai Kopi Varya
 
 **Status:** FINAL untuk skema inti
-**Terakhir diperbarui:** 1 November 2026
+**Terakhir diperbarui:** 10 November 2026
 **Acuan:** `PRD.md` §10, `docs/DECISIONS.md`
 **Database:** MySQL saja
 
@@ -130,6 +130,7 @@ Kategori final: **Kopi, Bukan Kopi, Makanan & Camilan**. Tidak ada CRUD kategori
 | `deskripsi` | text | yes | null | |
 | `foto` | varchar(255) | yes | null | Path/URL gambar |
 | `tersedia` | boolean | no | true | `false` = Habis |
+| `terlaris` | boolean | no | false | Penanda manual admin untuk badge “Terlaris” (F-75) |
 | `urutan` | unsigned int | no | 0 | Urutan tampil |
 | `deleted_at` | timestamp | yes | null | Soft delete |
 | `created_at` | timestamp | yes | null | |
@@ -137,7 +138,7 @@ Kategori final: **Kopi, Bukan Kopi, Makanan & Camilan**. Tidak ada CRUD kategori
 
 Index: `(category_id, tersedia)`, `slug` unik.
 
-Catatan: `is_featured` tidak dipakai. Menu terlaris dihitung dari `order_items`.
+Catatan: `is_featured` tidak dipakai. `terlaris` adalah penanda manual admin (bukan hitungan penjualan) dan hanya memengaruhi badge di katalog pelanggan serta daftar menu kasir. Angka “Paling Banyak Terjual” di dashboard tetap dihitung dari `order_items` transaksi lunas.
 
 ### 4.4 `orders`
 
@@ -434,6 +435,7 @@ erDiagram
         string slug
         int harga
         bool tersedia
+        bool terlaris
         timestamp deleted_at
     }
 
@@ -494,6 +496,7 @@ erDiagram
 | `menus.deleted_at` | Selesai | Soft delete aktif. |
 | `menus` FK kategori | Selesai | `restrictOnDelete`. |
 | `menus.is_featured` | Selesai | Kolom dihapus. |
+| `menus.terlaris` | Selesai | Kolom baru lewat `2026_11_10_000001_tambah_terlaris_pada_menus`; penanda manual admin (F-75). |
 | `menus.sort_order` | Selesai | Menjadi `urutan`. |
 | `categories.sort_order` | Selesai | Menjadi `urutan`. |
 | Kategori final | Selesai | Tiga baris: `kopi`, `bukan-kopi`, `makanan-camilan`; migration `2026_11_07_000001_sederhanakan_kategori_menu` menggabungkan kategori lama. |

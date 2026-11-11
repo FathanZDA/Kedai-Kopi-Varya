@@ -19,6 +19,7 @@ class Menu extends Model
         'deskripsi',
         'foto',
         'tersedia',
+        'terlaris',
         'urutan',
     ];
 
@@ -27,6 +28,7 @@ class Menu extends Model
         return [
             'harga' => 'integer',
             'tersedia' => 'boolean',
+            'terlaris' => 'boolean',
             'urutan' => 'integer',
         ];
     }

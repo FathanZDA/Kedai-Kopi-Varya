@@ -4,7 +4,7 @@
 **Informasi Dokumen**
 * **Nama Produk:** Website Kedai Kopi Varya (pemesanan, kasir, dan manajemen kedai)
 * **Tanggal:** 21 Oktober 2026
-* **Terakhir diperbarui:** 27 Oktober 2026
+* **Terakhir diperbarui:** 10 November 2026
 * **Penyusun:** Kelompok 6
 * **Konteks:** Tugas Project Based Learning (PJBL)
 * **Status:** FINAL — acuan implementasi utama
@@ -355,10 +355,11 @@ Admin hanya memiliki **lima fitur utama** berikut.
 ##### [AD-02] Kelola Menu *(Prioritas: Must)*
 
 * **[AD-02a] Lihat menu:** Daftar menu dengan pencarian dan filter kategori/ketersediaan.
-* **[AD-02b] Tambah menu:** Nama, kategori, harga, deskripsi, foto, dan status ketersediaan.
-* **[AD-02c] Ubah menu:** Mengubah seluruh data menu, termasuk harga dan ketersediaan.
+* **[AD-02b] Tambah menu:** Nama, kategori, harga, deskripsi, foto, status ketersediaan, dan penanda **Terlaris** (opsional, lihat AD-02f).
+* **[AD-02c] Ubah menu:** Mengubah seluruh data menu, termasuk harga, ketersediaan, dan penanda Terlaris.
 * **[AD-02d] Hapus menu:** Menghapus menu dengan *soft delete* setelah konfirmasi. Menu yang dihapus tidak tampil di halaman pelanggan dan kasir, tetapi riwayat pesanan lama tetap utuh.
 * **[AD-02e] Kategori:** Kategori menggunakan daftar tetap yang sudah di-*seed*: **Kopi, Bukan Kopi, Makanan & Camilan**. Tidak ada CRUD kategori terpisah pada versi ini.
+* **[AD-02f] Tandai terlaris:** Admin dapat menandai atau melepas penanda **Terlaris** pada sebuah menu langsung dari tabel Kelola Menu (tombol bintang) maupun dari form menu. Penanda ini hanya label tampilan: badge bintang “Terlaris” muncul di katalog Pelanggan A/B, halaman detail produk, dan kartu Buat Pesanan kasir, tanpa mengubah harga, stok, urutan katalog, atau nomor antrean. Angka penjualan tetap dihitung dari transaksi lunas (AD-01).
 
 ##### [AD-03] Laporan Transaksi *(Prioritas: Must)*
 

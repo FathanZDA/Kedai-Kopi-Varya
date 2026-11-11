@@ -30,6 +30,7 @@ class MenuRequest extends FormRequest
             'harga' => ['required', 'integer', 'min:1', 'max:100000000'],
             'deskripsi' => ['nullable', 'string', 'max:300'],
             'tersedia' => ['required', 'boolean'],
+            'terlaris' => ['nullable', 'boolean'],
             'foto' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }
@@ -51,6 +52,7 @@ class MenuRequest extends FormRequest
             'deskripsi.max' => 'Deskripsi maksimal 300 karakter.',
             'tersedia.required' => 'Status ketersediaan wajib dipilih.',
             'tersedia.boolean' => 'Status ketersediaan harus bernilai tersedia atau habis.',
+            'terlaris.boolean' => 'Penanda terlaris harus bernilai ya atau tidak.',
             'foto.image' => 'Foto harus berupa gambar.',
             'foto.mimes' => 'Foto harus berformat JPG, PNG, atau WEBP.',
             'foto.max' => 'Ukuran foto maksimal 2 MB.',
@@ -64,6 +66,7 @@ class MenuRequest extends FormRequest
     {
         $data = $this->validated();
         $data['tersedia'] = $this->boolean('tersedia');
+        $data['terlaris'] = $this->boolean('terlaris');
 
         return $data;
     }

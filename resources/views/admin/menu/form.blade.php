@@ -20,17 +20,17 @@
                      stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M19 12H5M11 18l-6-6 6-6"/>
                 </svg>
-                <span class="tag text-[8px] font-bold">Kembali ke Daftar Menu</span>
+                <span class="tag text-[11px] font-bold">Kembali ke Daftar Menu</span>
             </a>
 
-            <p class="tag text-[8px] text-muted">
+            <p class="tag text-[11px] text-muted">
                 {{ $isEdit ? 'Terakhir diperbarui: '.($menu['updated_at'] ?? '—') : 'Menu baru akan tampil di halaman pelanggan' }}
             </p>
         </div>
 
         @if ($errors->any())
             <div class="mt-4 rounded-md border-2 border-rust bg-[#fbe1de] px-4 py-3" role="alert">
-                <p class="tag text-[8px] font-bold text-rust">Periksa kembali data menu:</p>
+                <p class="tag text-[11px] font-bold text-rust">Periksa kembali data menu:</p>
                 <ul class="mt-2 list-disc space-y-0.5 pl-4 font-serif text-[11px] leading-relaxed text-rust">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -40,7 +40,7 @@
         @endif
 
         <div class="mt-4 border-t-2 border-ink pt-5">
-            <p class="tag text-[9px] font-bold text-varya-dark">// {{ $isEdit ? 'Perbarui Katalog' : 'Katalog Baru' }}</p>
+            <p class="tag text-[11px] font-bold text-varya-dark">// {{ $isEdit ? 'Perbarui Katalog' : 'Katalog Baru' }}</p>
             <h1 class="admin-title mt-2 text-[32px] sm:text-[44px] lg:text-[48px]">{{ $pageTitle }}</h1>
         </div>
 
@@ -59,10 +59,10 @@
                 <section class="admin-card overflow-hidden">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink bg-[#f3f1e7] px-4 py-3">
                         <div class="flex items-center gap-2.5">
-                            <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[9px] font-bold text-white">01</span>
+                            <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[11px] font-bold text-white">01</span>
                             <h2 class="font-display text-[18px] leading-tight font-black uppercase">{{ $formTitle }}</h2>
                         </div>
-                        <span class="tag rounded border border-line-strong bg-white px-2.5 py-1 text-[7px] font-bold text-ink-soft">
+                        <span class="tag rounded border border-line-strong bg-white px-2.5 py-1 text-[11px] font-bold text-ink-soft">
                             Wajib diisi (*)
                         </span>
                     </div>
@@ -80,7 +80,7 @@
                                        class="admin-input mt-2"
                                        maxlength="80"
                                        autocomplete="off">
-                                <p data-error-for="name" @if (! $errors->has('nama')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('nama') }}</p>
+                                <p data-error-for="name" @if (! $errors->has('nama')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('nama') }}</p>
                             </div>
 
                             <div>
@@ -97,13 +97,13 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <p data-error-for="category" @if (! $errors->has('category_id')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('category_id') }}</p>
+                                <p data-error-for="category" @if (! $errors->has('category_id')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('category_id') }}</p>
                             </div>
 
                             <div>
                                 <label for="admin-menu-price" class="admin-label">Harga (Rp) <span class="text-rust">*</span></label>
                                 <div class="relative mt-2">
-                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center border-r-2 border-ink px-3 font-mono text-[10px] font-bold text-ink-soft">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center border-r-2 border-ink px-3 font-mono text-[11px] font-bold text-ink-soft">
                                         Rp
                                     </span>
                                     <input id="admin-menu-price"
@@ -117,7 +117,7 @@
                                            class="admin-input !pl-12"
                                            inputmode="numeric">
                                 </div>
-                                <p data-error-for="price" @if (! $errors->has('harga')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('harga') }}</p>
+                                <p data-error-for="price" @if (! $errors->has('harga')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('harga') }}</p>
                             </div>
 
                             <div>
@@ -129,14 +129,14 @@
                                     <option value="1" @selected((string) old('tersedia', ($menu['available'] ?? true) ? '1' : '0') === '1')>Tersedia</option>
                                     <option value="0" @selected((string) old('tersedia', ($menu['available'] ?? true) ? '1' : '0') === '0')>Habis</option>
                                 </select>
-                                <p data-error-for="available" @if (! $errors->has('tersedia')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('tersedia') }}</p>
+                                <p data-error-for="available" @if (! $errors->has('tersedia')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('tersedia') }}</p>
                             </div>
                         </div>
 
                         <div>
                             <div class="flex items-center justify-between gap-2">
                                 <label for="admin-menu-description" class="admin-label">Deskripsi Menu &amp; Profil Rasa</label>
-                                <span class="tag text-[7px] text-muted"><span data-description-count>0</span> / 300 karakter</span>
+                                <span class="tag text-[11px] text-muted"><span data-description-count>0</span> / 300 karakter</span>
                             </div>
                             <textarea id="admin-menu-description"
                                       name="deskripsi"
@@ -145,8 +145,8 @@
                                       maxlength="300"
                                       placeholder="Jelaskan aroma, rasa, biji kopi asal, profil roasting, dan racikan menu ini..."
                                       class="admin-textarea mt-2 resize-y">{{ old('deskripsi', $menu['description'] ?? '') }}</textarea>
-                            <p data-error-for="deskripsi" @if (! $errors->has('deskripsi')) hidden @endif class="mt-1.5 font-mono text-[8px] font-bold text-rust">{{ $errors->first('deskripsi') }}</p>
-                            <p class="mt-1.5 font-serif text-[10px] text-muted">Teks ini tampil sebagai deskripsi singkat di katalog pelanggan.</p>
+                            <p data-error-for="deskripsi" @if (! $errors->has('deskripsi')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('deskripsi') }}</p>
+                            <p class="mt-1.5 font-serif text-[11px] text-muted">Teks ini tampil sebagai deskripsi singkat di katalog pelanggan.</p>
                         </div>
                     </div>
                 </section>
@@ -154,7 +154,7 @@
                 {{-- 02 Media --}}
                 <section class="admin-card mt-4 overflow-hidden">
                     <div class="flex items-center gap-2.5 border-b-2 border-ink bg-[#f3f1e7] px-4 py-3">
-                        <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[9px] font-bold text-white">02</span>
+                        <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[11px] font-bold text-white">02</span>
                         <h2 class="font-display text-[18px] leading-tight font-black uppercase">Media &amp; Foto Visual Menu</h2>
                     </div>
 
@@ -181,10 +181,10 @@
                                 <p class="mt-2 font-display text-[13px] leading-tight font-black uppercase">
                                     Tarik &amp; lepas foto di sini
                                 </p>
-                                <p class="mt-1 font-serif text-[10px] text-muted">Format JPG, PNG, WEBP (Maks. 2 MB)</p>
+                                <p class="mt-1 font-serif text-[11px] text-muted">Format JPG, PNG, WEBP (Maks. 2 MB)</p>
 
                                 <label for="admin-menu-image-input"
-                                       class="mt-3 inline-flex cursor-pointer items-center justify-center rounded border-2 border-ink bg-white px-3 py-1.5 font-mono text-[8px] font-bold tracking-wide uppercase shadow-[2px_2px_0_0_#1b1c1d] transition-colors hover:bg-varya-light">
+                                       class="mt-3 inline-flex cursor-pointer items-center justify-center rounded border-2 border-ink bg-white px-3 py-1.5 font-mono text-[11px] font-bold tracking-wide uppercase shadow-[2px_2px_0_0_#1b1c1d] transition-colors hover:bg-varya-light">
                                     Pilih File
                                 </label>
                                 <input id="admin-menu-image-input"
@@ -193,11 +193,11 @@
                                        data-menu-image-input
                                        accept="image/jpeg,image/png,image/webp"
                                        class="sr-only">
-                                <p data-menu-image-name class="mt-2 max-w-full truncate font-mono text-[8px] text-muted">
+                                <p data-menu-image-name class="mt-2 max-w-full truncate font-mono text-[11px] text-muted">
                                     {{ $isEdit ? 'Foto saat ini digunakan' : 'Belum ada file dipilih' }}
                                 </p>
                             </div>
-                            <p data-menu-image-error @if (! $errors->has('foto')) hidden @endif class="mt-2 font-mono text-[8px] font-bold text-rust">{{ $errors->first('foto') }}</p>
+                            <p data-menu-image-error @if (! $errors->has('foto')) hidden @endif class="mt-2 font-mono text-[11px] font-bold text-rust">{{ $errors->first('foto') }}</p>
                         </div>
                     </div>
                 </section>
@@ -205,15 +205,44 @@
                 {{-- 03 Atribut --}}
                 <section class="admin-card mt-4 overflow-hidden">
                     <div class="flex items-center gap-2.5 border-b-2 border-ink bg-[#f3f1e7] px-4 py-3">
-                        <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[9px] font-bold text-white">03</span>
+                        <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[11px] font-bold text-white">03</span>
                         <h2 class="font-display text-[18px] leading-tight font-black uppercase">Atribut Penjualan</h2>
                     </div>
 
                     <div class="p-4 sm:p-5">
-                        <p class="font-serif text-[12px] leading-relaxed text-ink-soft">
+                        <p class="font-serif text-[13px] leading-relaxed text-ink-soft">
                             Status ketersediaan diatur pada bagian <strong class="text-ink">Informasi Menu</strong>.
-                            Badge “Terlaris” tidak dipakai karena tidak ada kolomnya di kontrak database.
                         </p>
+
+                        <div class="mt-4 rounded-md border-2 border-ink bg-[#f7f5ec] p-3.5">
+                            <input type="hidden" name="terlaris" value="0">
+
+                            <label class="flex cursor-pointer items-start gap-3">
+                                <input type="checkbox"
+                                       name="terlaris"
+                                       value="1"
+                                       data-field="best_seller"
+                                       @checked((string) old('terlaris', ($menu['best_seller'] ?? false) ? '1' : '0') === '1')
+                                       class="mt-0.5 h-5 w-5 shrink-0 accent-varya-dark">
+
+                                <span>
+                                    <span class="flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-[0.08em] text-ink uppercase">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
+                                             stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"
+                                             class="text-[#c8a03a]" aria-hidden="true">
+                                            <path d="m12 3.6 2.6 5.3 5.8.9-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.8l5.8-.9Z"/>
+                                        </svg>
+                                        Tandai sebagai terlaris
+                                    </span>
+
+                                    <span class="mt-1 block font-serif text-[12px] leading-relaxed text-ink-soft">
+                                        Badge bintang “Terlaris” tampil di kartu menu pelanggan dan daftar menu kasir. Penanda ini tidak mengubah harga maupun stok.
+                                    </span>
+                                </span>
+                            </label>
+
+                            <p data-error-for="terlaris" @if (! $errors->has('terlaris')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('terlaris') }}</p>
+                        </div>
                     </div>
                 </section>
 
@@ -263,7 +292,7 @@
                             <span class="h-2.5 w-2.5 rounded-full border border-white/30 bg-[#f2c66d]"></span>
                             <span class="h-2.5 w-2.5 rounded-full border border-white/30 bg-[#7fc08d]"></span>
                         </div>
-                        <p class="tag text-[8px] font-bold tracking-[0.12em] text-white/80">Live Catalog Preview</p>
+                        <p class="tag text-[11px] font-bold tracking-[0.12em] text-white/80">Live Catalog Preview</p>
                     </div>
 
                     <div class="bg-admin-soft p-4 text-ink">
@@ -276,7 +305,7 @@
 
                                 <span data-preview-unavailable
                                       @class([
-                                          'tag absolute inset-x-0 top-1/2 -translate-y-1/2 border-y-2 border-ink bg-brown/95 py-1.5 text-center text-[9px] font-bold tracking-[0.2em] text-white',
+                                          'tag absolute inset-x-0 top-1/2 -translate-y-1/2 border-y-2 border-ink bg-brown/95 py-1.5 text-center text-[11px] font-bold tracking-[0.2em] text-white',
                                           'hidden' => $menu['available'] ?? true,
                                       ])>
                                     Habis
@@ -285,16 +314,16 @@
 
                             <div class="p-3">
                                 <div class="flex items-center justify-between gap-2">
-                                    <p data-preview-category class="tag text-[7px] font-bold text-varya-dark">
+                                    <p data-preview-category class="tag text-[11px] font-bold text-varya-dark">
                                         {{ $menu['category_label'] ?? 'Kategori' }}
                                     </p>
-                                    <p data-preview-sku class="tag text-[7px] text-muted">{{ $menu['sku'] ?? 'SKU-BARU' }}</p>
+                                    <p data-preview-sku class="tag text-[11px] text-muted">{{ $menu['sku'] ?? 'SKU-BARU' }}</p>
                                 </div>
 
                                 <h3 data-preview-name class="mt-1 font-display text-[16px] leading-tight font-extrabold">
                                     {{ $menu['name'] ?? 'Nama Menu Baru' }}
                                 </h3>
-                                <p data-preview-description class="mt-1 line-clamp-3 font-serif text-[10px] leading-relaxed text-ink-soft">
+                                <p data-preview-description class="mt-1 line-clamp-3 font-serif text-[11px] leading-relaxed text-ink-soft">
                                     {{ $menu['description'] ?? 'Deskripsi menu akan tampil di sini.' }}
                                 </p>
 
@@ -307,7 +336,7 @@
                             </div>
                         </div>
 
-                        <p class="mt-3 text-center font-serif text-[9px] leading-relaxed text-muted">
+                        <p class="mt-3 text-center font-serif text-[11px] leading-relaxed text-muted">
                             Pratinjau ini mengikuti data yang kamu isi. Perubahan akan tampil setelah disimpan.
                         </p>
                     </div>

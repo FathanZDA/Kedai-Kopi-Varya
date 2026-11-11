@@ -122,7 +122,7 @@ function renderPagination(container, totalPages, currentPage, onSelect) {
         button.disabled = disabled;
 
         button.className = [
-            'tag inline-flex h-8 min-w-8 items-center justify-center rounded border-2 border-ink px-2 text-[8px] font-bold shadow-[1px_1px_0_0_#1b1c1d] transition-colors',
+            'tag inline-flex h-8 min-w-8 items-center justify-center rounded border-2 border-ink px-2 text-[11px] font-bold shadow-[1px_1px_0_0_#1b1c1d] transition-colors',
             active
                 ? 'bg-varya-dark text-white'
                 : 'bg-kasir-panel text-ink hover:bg-varya-light',
@@ -484,11 +484,11 @@ function initBuatPesanan() {
 
     const cartItemMarkup = (item) => {
         const noteButton = item.note
-            ? `<button type="button" data-cart-note class="mt-2 flex w-full items-start gap-1.5 rounded border border-dashed border-line-strong bg-white px-2 py-1.5 text-left font-serif text-[10px] leading-snug text-ink-soft transition-colors hover:border-ink">
+            ? `<button type="button" data-cart-note class="mt-2 flex w-full items-start gap-1.5 rounded border border-dashed border-line-strong bg-white px-2 py-1.5 text-left font-serif text-[11px] leading-snug text-ink-soft transition-colors hover:border-ink">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0" aria-hidden="true"><path d="M4 4h16v13H9l-5 4V4Z"/><path d="M8 9h8M8 13h5"/></svg>
                     <span>${escapeHtml(item.note)}</span>
                </button>`
-            : `<button type="button" data-cart-note class="mt-2 flex w-full items-center gap-1.5 rounded border border-dashed border-line-strong bg-white px-2 py-1.5 text-left font-serif text-[10px] text-muted transition-colors hover:border-ink hover:text-ink">
+            : `<button type="button" data-cart-note class="mt-2 flex w-full items-center gap-1.5 rounded border border-dashed border-line-strong bg-white px-2 py-1.5 text-left font-serif text-[11px] text-muted transition-colors hover:border-ink hover:text-ink">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v13H9l-5 4V4Z"/><path d="M8 9h8M8 13h5"/></svg>
                     Tambah catatan
                </button>`;
@@ -497,7 +497,7 @@ function initBuatPesanan() {
             <div class="flex items-start justify-between gap-2">
                 <div class="min-w-0">
                     <p class="font-display text-[12px] leading-tight font-extrabold">${escapeHtml(item.name)}</p>
-                    <p class="mt-0.5 font-mono text-[8px] text-varya-dark">${rupiah(item.price)}</p>
+                    <p class="mt-0.5 font-mono text-[11px] text-varya-dark">${rupiah(item.price)}</p>
                 </div>
                 <p class="shrink-0 font-display text-[12px] font-bold">${rupiah(item.price * item.qty)}</p>
             </div>
@@ -505,13 +505,13 @@ function initBuatPesanan() {
             ${noteButton}
 
             <div class="mt-2 flex items-center justify-between gap-2">
-                <button type="button" data-cart-remove class="tag text-[7px] font-bold text-rust underline underline-offset-2 hover:text-ink">
+                <button type="button" data-cart-remove class="tag text-[11px] font-bold text-rust underline underline-offset-2 hover:text-ink">
                     Hapus
                 </button>
 
                 <div class="flex items-stretch overflow-hidden rounded border-2 border-ink bg-white shadow-[1px_1px_0_0_#1b1c1d]">
                     <button type="button" data-cart-minus class="grid w-7 place-items-center text-sm font-bold transition-colors hover:bg-varya-light" aria-label="Kurangi jumlah ${escapeHtml(item.name)}">−</button>
-                    <span class="tag flex w-7 items-center justify-center text-[9px] font-bold">${item.qty}</span>
+                    <span class="tag flex w-7 items-center justify-center text-[11px] font-bold">${item.qty}</span>
                     <button type="button" data-cart-plus class="grid w-7 place-items-center border-l-2 border-ink bg-varya-dark text-sm font-bold text-white transition-colors hover:bg-varya" aria-label="Tambah jumlah ${escapeHtml(item.name)}">+</button>
                 </div>
             </div>
@@ -836,7 +836,7 @@ function initBuatPesanan() {
 
         if (successType) {
             successType.textContent = order.tipe_pesanan_label;
-            successType.className = `tag mt-1 inline-block rounded border-2 px-2.5 py-1 text-[8px] font-bold ${
+            successType.className = `tag mt-1 inline-block rounded border-2 px-2.5 py-1 text-[11px] font-bold ${
                 order.tipe_pesanan === 'take_away'
                     ? 'border-ink bg-kasir-amber-soft text-brown'
                     : 'border-ink bg-ink text-white'
@@ -1063,7 +1063,7 @@ function initPesananMasuk() {
                 'border-rust bg-[#fbe9e2] text-rust shadow-[2px_2px_0_0_#1b1c1d] hover:bg-[#f7d7d3]',
         };
 
-        return `<button type="button" data-order-action="${action}" data-order-id="${escapeHtml(order.id)}" class="tag rounded border-2 px-2.5 py-1.5 text-[7px] font-bold transition-transform hover:-translate-y-0.5 ${styles[style]}">${label}</button>`;
+        return `<button type="button" data-order-action="${action}" data-order-id="${escapeHtml(order.id)}" class="tag rounded border-2 px-2.5 py-1.5 text-[11px] font-bold transition-transform hover:-translate-y-0.5 ${styles[style]}">${label}</button>`;
     };
 
     const rowMarkup = (order) => {
@@ -1082,7 +1082,7 @@ function initPesananMasuk() {
                   ? 'bg-[#fffaf0] border-l-4 border-[#c79225]'
                   : 'bg-kasir-panel border-l-4 border-transparent';
 
-        let actions = `<button type="button" data-order-action="detail" data-order-id="${escapeHtml(order.id)}" class="tag rounded border-2 border-ink bg-kasir-panel px-2.5 py-1.5 text-[7px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 hover:bg-varya-light">Detail</button>`;
+        let actions = `<button type="button" data-order-action="detail" data-order-id="${escapeHtml(order.id)}" class="tag rounded border-2 border-ink bg-kasir-panel px-2.5 py-1.5 text-[11px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 hover:bg-varya-light">Detail</button>`;
 
         if (order.status === 'antre') {
             actions += actionButton('process', 'Mulai Proses', 'primary', order);
@@ -1097,7 +1097,7 @@ function initPesananMasuk() {
                 actions += actionButton('cancel', 'Batalkan', 'danger', order);
             }
         } else if (order.status === 'selesai') {
-            actions += `<span class="tag inline-flex items-center gap-1 rounded border-2 border-line-strong bg-[#e9e7de] px-2 py-1.5 text-[7px] font-bold text-muted">
+            actions += `<span class="tag inline-flex items-center gap-1 rounded border-2 border-line-strong bg-[#e9e7de] px-2 py-1.5 text-[11px] font-bold text-muted">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
                 Selesai
             </span>`;
@@ -1105,40 +1105,40 @@ function initPesananMasuk() {
 
         return `<tr class="${rowTint} align-top transition-colors hover:bg-[#f8f6ee]" data-order-row data-order-id="${escapeHtml(order.id)}">
             <td class="px-4 py-4">
-                <span class="tag inline-flex min-w-10 items-center justify-center rounded border-2 border-ink bg-varya-light px-2 py-1 text-[9px] font-bold text-varya-dark">
+                <span class="tag inline-flex min-w-10 items-center justify-center rounded border-2 border-ink bg-varya-light px-2 py-1 text-[11px] font-bold text-varya-dark">
                     ${order.queue ? `#${escapeHtml(order.queue)}` : '—'}
                 </span>
-                <p class="tag mt-1 text-[7px] text-muted">${escapeHtml(order.queue ? order.code : 'Belum dibayar')}</p>
+                <p class="tag mt-1 text-[11px] text-muted">${escapeHtml(order.queue ? order.code : 'Belum dibayar')}</p>
             </td>
 
             <td class="px-3 py-4">
-                <span class="tag inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[8px] font-bold ${status.pill}">
+                <span class="tag inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[11px] font-bold ${status.pill}">
                     <span class="h-1.5 w-1.5 rounded-full ${status.dot}" aria-hidden="true"></span>
                     ${status.label}
                 </span>
-                <span class="tag mt-1.5 inline-block rounded border-2 px-2 py-0.5 text-[7px] font-bold ${type.pill}">
+                <span class="tag mt-1.5 inline-block rounded border-2 px-2 py-0.5 text-[11px] font-bold ${type.pill}">
                     ${type.label}
                 </span>
             </td>
 
             <td class="px-3 py-4">
                 <p class="font-display text-[13px] leading-tight font-extrabold">${escapeHtml(order.customer)}</p>
-                <p class="tag mt-1 text-[7px] text-muted">${order.source === 'qr' ? 'QR Pelanggan' : 'Kasir'}</p>
+                <p class="tag mt-1 text-[11px] text-muted">${order.source === 'qr' ? 'QR Pelanggan' : 'Kasir'}</p>
             </td>
 
             <td class="max-w-[340px] px-3 py-4">
                 <p class="font-display text-[12px] leading-snug font-bold">${escapeHtml(shownNames)}${escapeHtml(extraNames)}</p>
-                <p class="tag mt-1 text-[7px] leading-relaxed text-muted">
+                <p class="tag mt-1 text-[11px] leading-relaxed text-muted">
                     ${(order.items ?? []).length} Menu (${quantity} Item)${notes}
                 </p>
             </td>
 
             <td class="px-3 py-4">
-                <span class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-[#f0eee3] px-2 py-1 text-[7px] font-bold text-ink">
+                <span class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-[#f0eee3] px-2 py-1 text-[11px] font-bold text-ink">
                     ${paymentIcon(order.payment)}
                     ${escapeHtml(order.payment_label)}
                 </span>
-                <span class="tag mt-1 inline-block rounded border px-1.5 py-0.5 text-[7px] font-bold ${payment.pill}">
+                <span class="tag mt-1 inline-block rounded border px-1.5 py-0.5 text-[11px] font-bold ${payment.pill}">
                     ${payment.label}
                 </span>
             </td>
@@ -1188,10 +1188,10 @@ function initPesananMasuk() {
 
     const detailItemMarkup = (item) => `
         <div class="flex items-start gap-3 rounded-md border-2 border-ink bg-kasir-panel px-3 py-2.5">
-            <span class="tag grid h-7 min-w-7 place-items-center rounded border-2 border-ink bg-varya-dark px-1 text-[8px] font-bold text-white">${item.qty}×</span>
+            <span class="tag grid h-7 min-w-7 place-items-center rounded border-2 border-ink bg-varya-dark px-1 text-[11px] font-bold text-white">${item.qty}×</span>
             <div class="min-w-0 flex-1">
                 <p class="font-display text-[12px] leading-tight font-extrabold">${escapeHtml(item.name)}</p>
-                ${item.note ? `<span class="tag mt-1 inline-block rounded border border-line-strong bg-[#f0eee3] px-1.5 py-0.5 text-[7px] leading-relaxed text-ink-soft">${escapeHtml(item.note)}</span>` : ''}
+                ${item.note ? `<span class="tag mt-1 inline-block rounded border border-line-strong bg-[#f0eee3] px-1.5 py-0.5 text-[11px] leading-relaxed text-ink-soft">${escapeHtml(item.note)}</span>` : ''}
             </div>
             <p class="shrink-0 font-display text-[12px] font-bold">${rupiah(item.subtotal ?? item.price * item.qty)}</p>
         </div>`;
@@ -1227,14 +1227,14 @@ function initPesananMasuk() {
 
         if (detailType) {
             detailType.textContent = type.label;
-            detailType.className = `tag inline-block rounded border-2 px-2.5 py-1 text-[8px] font-bold ${type.pill}`;
+            detailType.className = `tag inline-block rounded border-2 px-2.5 py-1 text-[11px] font-bold ${type.pill}`;
         }
 
         if (detailCustomer) detailCustomer.textContent = order.customer;
 
         if (detailStatus) {
             detailStatus.textContent = status.label;
-            detailStatus.className = `tag ml-auto inline-block rounded border-2 px-2.5 py-1 text-[8px] font-bold ${status.pill}`;
+            detailStatus.className = `tag ml-auto inline-block rounded border-2 px-2.5 py-1 text-[11px] font-bold ${status.pill}`;
         }
 
         if (detailTime) detailTime.textContent = order.created_at;
@@ -1247,12 +1247,12 @@ function initPesananMasuk() {
         if (detailPayment) {
             detailPayment.textContent = order.payment_label;
             detailPayment.className =
-                'tag inline-flex items-center gap-1 rounded border-2 border-ink bg-kasir-panel px-2 py-1 text-[8px] font-bold';
+                'tag inline-flex items-center gap-1 rounded border-2 border-ink bg-kasir-panel px-2 py-1 text-[11px] font-bold';
         }
 
         if (detailPaymentStatus) {
             detailPaymentStatus.textContent = payment.label;
-            detailPaymentStatus.className = `tag rounded border px-2 py-1 text-[7px] font-bold ${payment.pill}`;
+            detailPaymentStatus.className = `tag rounded border px-2 py-1 text-[11px] font-bold ${payment.pill}`;
         }
 
         if (detailTotal) detailTotal.textContent = rupiah(order.total);

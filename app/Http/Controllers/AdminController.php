@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\MenuRequest;
 use App\Http\Requests\Admin\PromoRequest;
 use App\Http\Requests\Admin\StoreSettingsRequest;
 use App\Http\Requests\Admin\UpdateMenuAvailabilityRequest;
+use App\Http\Requests\Admin\UpdateMenuTerlarisRequest;
 use App\Http\Requests\Admin\UpdatePromoStatusRequest;
 use App\Models\Category;
 use App\Models\Menu;
@@ -171,6 +172,24 @@ class AdminController extends Controller
             'data' => [
                 'id' => $menu->id,
                 'tersedia' => $menu->tersedia,
+            ],
+        ]);
+    }
+
+    public function updateMenuBestSeller(
+        UpdateMenuTerlarisRequest $request,
+        Menu $menu,
+        MenuCatalogService $katalog,
+    ): JsonResponse {
+        $katalog->aturTerlaris($menu, $request->terlaris());
+
+        return response()->json([
+            'message' => $menu->terlaris
+                ? "Menu \"{$menu->nama}\" ditandai terlaris."
+                : "Penanda terlaris menu \"{$menu->nama}\" dilepas.",
+            'data' => [
+                'id' => $menu->id,
+                'terlaris' => $menu->terlaris,
             ],
         ]);
     }
@@ -391,6 +410,7 @@ class AdminController extends Controller
                     'description' => $menu->deskripsi,
                     'image' => $menu->foto ? asset($menu->foto) : asset('images/menus/varya-signature.jpg'),
                     'available' => $menu->tersedia,
+                    'best_seller' => $menu->terlaris,
                     'updated_at' => $menu->updated_at?->locale('id')->translatedFormat('j F Y, H:i').' WIB',
                     'deleted' => false,
                 ];

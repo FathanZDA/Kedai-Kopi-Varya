@@ -28,6 +28,7 @@ class MenuResource extends JsonResource
             'harga' => $this->harga,
             'tersedia' => $this->tersedia,
             'tersedia_label' => $this->tersedia ? 'Tersedia' : 'Habis',
+            'terlaris' => $this->terlaris,
         ];
     }
 }
