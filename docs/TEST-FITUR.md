@@ -53,3 +53,33 @@ Semua temuan fungsional di atas sudah ditutup di slice S1–S7. Dokumen ini teta
 - Ekspor laporan PDF/Excel masih Fase 2 (F-19).
 - Kredensial Midtrans produksi dan URL webhook publik masih operasional (O-16).
 - Keranjang server-side hanya relevan bila Pelanggan B kelak punya akun (F-69).
+
+---
+
+## Status tindak lanjut — 10 Nov 2026 (UI & penanda Terlaris)
+
+Temuan dari permintaan user di `docs/HANDOFF.md` §9 (“Prompt saya”), dikerjakan di slice `perbaikan-ui-terlaris` (T1–T4).
+
+| Temuan | Status | Bukti / irisan |
+|---|---|---|
+| Banyak teks sangat kecil (`6px`–`10px`) dan abu-abu samar | **Selesai** | T1; 392 kemunculan dinaikkan ke lantai 11px, `--color-muted` `#63646a` (≈5:1), `--color-varya-muted` `#5f6f5c`, ukuran komponen CSS dinaikkan |
+| Banner promo: label jauh dari judul, deskripsi tanpa latar | **Selesai** | T2; label “Promo” menempel di atas judul, jarak dirapatkan, deskripsi memakai blok hijau `bg-varya-dark` + border |
+| Login: garis hijau diagonal mengganggu, tanpa garis terasa kosong | **Selesai** | T3; gradien radial lembut + watermark logo + panel informasi tiga poin; satu bar `admin-stripes` di kartu |
+| Fitur baru: admin menandai menu “Terlaris”, badge tampil di pelanggan | **Selesai** | T4/F-75; `menus.terlaris`, toggle `PATCH /admin/menu/{menu}/terlaris`, checkbox form, badge di katalog A/B + detail produk + kasir; test `AdminMenuCrudTest` |
+| Istilah “Menu Terlaris” dashboard bentrok dengan penanda manual | **Selesai** | Judul dashboard menjadi “Paling Banyak Terjual” (tetap dihitung dari `order_items`) |
+
+---
+
+## Status tindak lanjut — 11 Nov 2026 (revisi tampilan dari `design/perlu-perbaikan`)
+
+Koreksi atas slice T1–T4 setelah user membandingkan hasil dengan folder `design/perlu-perbaikan` (T5–T8). Semua baris di bawah berstatus **Selesai** dan sudah diverifikasi build + test.
+
+| Temuan | Status | Bukti / irisan |
+|---|---|---|
+| Background banner terlalu samar, foto promo nyaris hilang | **Selesai** | T6; `blur 1.5px`, `saturate 0.95`, selubung `#eef3ea/50` — foto tetap terlihat tanpa mengganggu judul |
+| Label “Promo” tidak sesuai desain | **Selesai** | T5; diganti **“Wajib Coba! 🔥”** di samping chip “Buka // 08.00 - 23.00 WIB”, miring −5° |
+| Jarak label “Wajib Coba” menimpa chip jam | **Selesai** | T7; `-ml-2` → `ml-3` sehingga ada celah nyata antar keduanya |
+| Tentang Kami masih terasa portrait, bukan landscape | **Selesai** | T6; grid `lg:grid-cols-2` + `items-stretch`, foto `object-cover` absolut setinggi panel teks |
+| Ukuran Tentang Kami jadi terlalu kecil | **Selesai** | T7; ukuran semula dikembalikan (`max-w-1280`, `p-8`, paragraf 15–16px/1.9, statistik `py-5`) dengan struktur landscape tetap |
+| Bayangan Tentang Kami kabur seperti halo, desain memakai bayangan tegas | **Selesai** | T6; `.about-shadow` → `8px 8px 0 0 rgb(27 28 29 / 90%)`, tanpa border |
+| Kapsul indikator slide memutih setelah pindah slide | **Selesai** | T8; `pelanggan-a.js` men-toggle `w-7`/`bg-varya-dark` dan `w-2.5`/`bg-white/80`, sama dengan markup Blade |

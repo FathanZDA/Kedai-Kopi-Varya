@@ -64,7 +64,7 @@
             <span class="block font-display text-[16px] leading-none font-black tracking-[0.015em] whitespace-nowrap text-ink uppercase [word-spacing:0.16em] lg:text-[18px]">
                 Kedai Kopi Varya
             </span>
-            <span class="tag mt-1.5 block text-[8px] font-bold tracking-[0.2em] text-muted">Admin</span>
+            <span class="tag mt-1.5 block text-[11px] font-bold tracking-[0.2em] text-muted">Admin</span>
         </span>
 
         <button type="button"
@@ -80,7 +80,7 @@
     <div class="admin-scrollbar flex-1 overflow-y-auto px-4 py-5">
         @foreach ($groups as $group)
             <div class="{{ $loop->first ? '' : 'mt-7' }}">
-                <p class="tag px-2 text-[9px] font-bold text-muted">{{ $group['label'] }}</p>
+                <p class="tag px-2 text-[11px] font-bold text-muted">{{ $group['label'] }}</p>
 
                 <nav class="mt-3 space-y-2.5" aria-label="{{ $group['label'] }}">
                     @foreach ($group['items'] as $item)
@@ -135,7 +135,7 @@
                                 @endswitch
                             </span>
 
-                            <span class="tag text-[10px] font-bold tracking-[0.04em]">{{ $item['label'] }}</span>
+                            <span class="tag text-[11px] font-bold tracking-[0.04em]">{{ $item['label'] }}</span>
                         </a>
                     @endforeach
                 </nav>
@@ -152,7 +152,7 @@
                      stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.2 2.4 3.4 5.4 3.4 9S14.2 18.6 12 21c-2.2-2.4-3.4-5.4-3.4-9S9.8 5.4 12 3Z"/>
                 </svg>
-                <span class="tag text-[9px] font-bold">Kunjungi Situs Web</span>
+                <span class="tag text-[11px] font-bold">Kunjungi Situs Web</span>
             </span>
 
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -162,20 +162,20 @@
         </a>
 
         <div class="flex items-center gap-2 rounded-md border-2 border-ink bg-admin-panel p-2 shadow-[3px_3px_0_0_#c9c8c9]">
-            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-ink bg-varya-dark font-mono text-[10px] font-bold text-white">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-ink bg-varya-dark font-mono text-[11px] font-bold text-white">
                 {{ $admin['initial'] }}
             </span>
 
             <span class="min-w-0 flex-1">
                 <span class="block truncate font-display text-[12px] leading-tight font-extrabold">{{ $admin['name'] }}</span>
-                <span class="tag mt-0.5 block text-[7px] text-muted">{{ $admin['role'] }}</span>
+                <span class="tag mt-0.5 block text-[11px] text-muted">{{ $admin['role'] }}</span>
             </span>
 
             <form method="POST" action="{{ route('logout') }}" class="shrink-0">
                 @csrf
 
                 <button type="submit"
-                        class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-admin-panel px-1.5 py-1.5 text-[8px] font-bold transition-colors hover:bg-varya-light"
+                        class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-admin-panel px-1.5 py-1.5 text-[11px] font-bold transition-colors hover:bg-varya-light"
                         title="Keluar dari akun">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

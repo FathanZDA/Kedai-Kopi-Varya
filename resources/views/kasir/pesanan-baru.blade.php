@@ -31,7 +31,7 @@
                            class="min-w-0 flex-1 bg-transparent font-serif text-[12px] font-semibold text-ink uppercase placeholder:text-muted focus:outline-none">
 
                     <button type="submit"
-                            class="tag shrink-0 rounded-full bg-varya-dark px-6 py-2.5 text-[9px] font-bold text-white transition-colors hover:bg-varya">
+                            class="tag shrink-0 rounded-full bg-varya-dark px-6 py-2.5 text-[11px] font-bold text-white transition-colors hover:bg-varya">
                         Cari
                     </button>
                 </form>
@@ -42,7 +42,7 @@
                         <button type="button"
                                 data-menu-filter="{{ $category['slug'] }}"
                                 @class([
-                                    'tag rounded-full border-2 border-ink px-4 py-2 text-[9px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-all duration-150 hover:-translate-y-0.5 sm:px-5',
+                                    'tag rounded-full border-2 border-ink px-4 py-2 text-[11px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-all duration-150 hover:-translate-y-0.5 sm:px-5',
                                     'bg-varya-dark text-white' => $loop->first,
                                     'bg-kasir-panel text-ink hover:bg-varya-light/60' => ! $loop->first,
                                 ])
@@ -86,7 +86,7 @@
 
                                 <span data-menu-unavailable-badge
                                       @class([
-                                          'tag absolute inset-x-0 top-1/2 -translate-y-1/2 border-y-2 border-ink bg-brown/95 py-1.5 text-center text-[9px] font-bold tracking-[0.2em] text-white',
+                                          'tag absolute inset-x-0 top-1/2 -translate-y-1/2 border-y-2 border-ink bg-brown/95 py-1.5 text-center text-[11px] font-bold tracking-[0.2em] text-white',
                                           'hidden' => $menu['available'],
                                       ])>
                                     Habis
@@ -128,7 +128,7 @@
 
                     <div class="grid grid-cols-2 divide-x-2 divide-line-strong overflow-hidden rounded-md border-2 border-line-strong bg-[#f0eee3]">
                         <label for="customer-name" class="block min-w-0 px-3 py-2.5">
-                            <span class="tag block text-[8px] font-bold text-muted">Nama Pelanggan</span>
+                            <span class="tag block text-[11px] font-bold text-muted">Nama Pelanggan</span>
                             <input id="customer-name"
                                    type="text"
                                    data-customer-name
@@ -140,7 +140,7 @@
                         </label>
 
                         <div class="min-w-0 px-3 py-2.5">
-                            <span class="tag block text-[8px] font-bold text-muted">Kasir</span>
+                            <span class="tag block text-[11px] font-bold text-muted">Kasir</span>
                             <p class="mt-1 truncate font-display text-[13px] font-extrabold text-ink">{{ $kasir['short_name'] }}</p>
                         </div>
                     </div>
@@ -150,14 +150,14 @@
                         <div class="grid grid-cols-2 gap-1 rounded-md border-2 border-ink bg-[#f0eee3] p-1">
                             <label class="cursor-pointer">
                                 <input type="radio" name="tipe-pesanan" value="dine_in" data-order-type checked class="peer sr-only">
-                                <span class="tag block rounded px-3 py-2.5 text-center text-[9px] font-bold text-ink-soft transition-colors peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-varya">
+                                <span class="tag block rounded px-3 py-2.5 text-center text-[11px] font-bold text-ink-soft transition-colors peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-varya">
                                     Dine In
                                 </span>
                             </label>
 
                             <label class="cursor-pointer">
                                 <input type="radio" name="tipe-pesanan" value="take_away" data-order-type class="peer sr-only">
-                                <span class="tag block rounded px-3 py-2.5 text-center text-[9px] font-bold text-ink-soft transition-colors peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-varya">
+                                <span class="tag block rounded px-3 py-2.5 text-center text-[11px] font-bold text-ink-soft transition-colors peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-varya">
                                     Take Away
                                 </span>
                             </label>
@@ -167,9 +167,9 @@
 
                 <div class="p-4">
                     <div class="flex items-center justify-between gap-2">
-                        <p class="tag text-[9px] font-bold text-muted">// Item Pesanan</p>
+                        <p class="tag text-[11px] font-bold text-muted">// Item Pesanan</p>
                         <button type="button" data-clear-cart
-                                class="tag text-[8px] font-bold text-rust underline underline-offset-2 transition-colors hover:text-ink">
+                                class="tag text-[11px] font-bold text-rust underline underline-offset-2 transition-colors hover:text-ink">
                             Kosongkan
                         </button>
                     </div>
@@ -190,19 +190,19 @@
                     </div>
 
                     <div class="mt-4 border-t-2 border-dashed border-line-strong pt-3">
-                        <div class="tag flex items-center justify-between gap-2 text-[9px] text-ink-soft">
+                        <div class="tag flex items-center justify-between gap-2 text-[11px] text-ink-soft">
                             <span>Subtotal (<span data-cart-count>0</span> Item)</span>
                             <span data-cart-subtotal class="font-bold text-ink">Rp 0</span>
                         </div>
 
                         <div class="mt-2 flex items-center justify-between gap-3 rounded-md border-2 border-ink bg-[#f0eee3] px-3 py-2.5">
-                            <span class="tag text-[9px] font-bold">Total Tagihan</span>
+                            <span class="tag text-[11px] font-bold">Total Tagihan</span>
                             <span data-cart-total class="font-display text-[19px] leading-none font-black text-varya-dark">Rp 0</span>
                         </div>
                     </div>
 
                     <div class="mt-4">
-                        <p class="tag text-[9px] font-bold text-muted">// Metode Pembayaran</p>
+                        <p class="tag text-[11px] font-bold text-muted">// Metode Pembayaran</p>
 
                         <div class="mt-2 flex items-center gap-3 rounded-md border-2 border-ink bg-varya-dark px-4 py-3 text-white">
                             <span class="grid h-9 w-9 shrink-0 place-items-center rounded border-2 border-white/70 bg-white/10">
@@ -214,8 +214,8 @@
                             </span>
 
                             <span class="min-w-0 flex-1">
-                                <span class="tag block text-[9px] font-bold">Tunai</span>
-                                <span class="mt-0.5 block font-serif text-[10px] text-white/75">Pembayaran di kasir</span>
+                                <span class="tag block text-[11px] font-bold">Tunai</span>
+                                <span class="mt-0.5 block font-serif text-[11px] text-white/75">Pembayaran di kasir</span>
                             </span>
 
                             <span class="grid h-6 w-6 place-items-center rounded-full border-2 border-white/80 bg-white text-varya-dark">
@@ -224,7 +224,7 @@
                             </span>
                         </div>
 
-                        <p class="mt-2 font-serif text-[10px] leading-relaxed text-muted">
+                        <p class="mt-2 font-serif text-[11px] leading-relaxed text-muted">
                             Pesanan yang dibuat kasir hanya mendukung pembayaran tunai.
                         </p>
                     </div>
@@ -233,7 +233,7 @@
                        class="mt-3 rounded-md border-2 border-rust bg-[#fbe9e2] px-3 py-2 font-serif text-[11px] leading-relaxed text-rust"></p>
 
                     <button type="button" data-open-payment
-                            class="tag mt-4 flex w-full items-center justify-center gap-2 rounded-md border-2 border-ink bg-varya-dark px-4 py-4 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 active:translate-y-0">
+                            class="tag mt-4 flex w-full items-center justify-center gap-2 rounded-md border-2 border-ink bg-varya-dark px-4 py-4 text-[11px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 active:translate-y-0">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.2h4a1.8 1.8 0 0 1 0 3.6h-3a1.8 1.8 0 0 0 0 3.6h4"/>
@@ -259,12 +259,12 @@
                         </span>
 
                         <div class="min-w-0 flex-1">
-                            <p class="tag text-[8px] font-bold text-muted">// Catatan Pesanan</p>
+                            <p class="tag text-[11px] font-bold text-muted">// Catatan Pesanan</p>
                             <div class="mt-1 flex flex-wrap items-center gap-2">
                                 <h2 id="note-dialog-title" data-note-item-name class="font-display text-lg leading-tight font-extrabold uppercase">
                                     Nama Menu
                                 </h2>
-                                <span data-note-item-price class="tag rounded border-2 border-ink bg-[#f8d8a6] px-2 py-1 text-[9px] font-bold">
+                                <span data-note-item-price class="tag rounded border-2 border-ink bg-[#f8d8a6] px-2 py-1 text-[11px] font-bold">
                                     Rp 0
                                 </span>
                             </div>
@@ -282,8 +282,8 @@
                 <form data-note-form>
                     <div class="p-4">
                         <div class="flex flex-wrap items-center justify-between gap-2">
-                            <label for="item-note" class="tag text-[8px] font-bold text-muted">// Catatan Khusus Pelanggan</label>
-                            <span class="tag rounded border-2 border-line-strong bg-[#f0eee3] px-2 py-1 text-[8px] font-bold text-ink-soft">
+                            <label for="item-note" class="tag text-[11px] font-bold text-muted">// Catatan Khusus Pelanggan</label>
+                            <span class="tag rounded border-2 border-line-strong bg-[#f0eee3] px-2 py-1 text-[11px] font-bold text-ink-soft">
                                 [ <span data-note-count>0</span> / 150 Karakter ]
                             </span>
                         </div>
@@ -298,16 +298,16 @@
 
                     <div class="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink p-4">
                         <button type="button" data-note-close
-                                class="tag rounded border-2 border-ink bg-kasir-panel px-4 py-2.5 text-[9px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                                class="tag rounded border-2 border-ink bg-kasir-panel px-4 py-2.5 text-[11px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
                             // Batal
                         </button>
 
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="tag rounded border-2 border-ink bg-[#f8d8a6] px-3 py-2 text-[8px] font-bold">
+                            <span class="tag rounded border-2 border-ink bg-[#f8d8a6] px-3 py-2 text-[11px] font-bold">
                                 // Total: <span data-note-total>Rp 0</span>
                             </span>
                             <button type="submit"
-                                    class="tag flex items-center gap-1.5 rounded border-2 border-ink bg-varya-dark px-4 py-2.5 text-[9px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                                    class="tag flex items-center gap-1.5 rounded border-2 border-ink bg-varya-dark px-4 py-2.5 text-[11px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
                                 Simpan Catatan
@@ -336,7 +336,7 @@
                 <div class="grid gap-4 p-4 sm:grid-cols-[1fr_1.08fr] sm:p-5">
                     <div class="space-y-3">
                         <div class="rounded-md border-2 border-ink bg-kasir-panel px-4 py-3">
-                            <p class="tag text-[8px] font-bold text-muted">Total Tagihan</p>
+                            <p class="tag text-[11px] font-bold text-muted">Total Tagihan</p>
                             <p class="mt-1 font-display text-[25px] leading-none font-black text-ink">
                                 Rp <span data-payment-total>0</span>
                             </p>
@@ -344,9 +344,9 @@
 
                         <div class="rounded-md border-2 border-ink bg-kasir-panel px-4 py-3">
                             <div class="flex items-center justify-between gap-2">
-                                <p class="tag text-[8px] font-bold text-muted">Uang Diterima</p>
+                                <p class="tag text-[11px] font-bold text-muted">Uang Diterima</p>
                                 <button type="button" data-payment-reset
-                                        class="tag text-[8px] font-bold text-rust transition-colors hover:text-ink">
+                                        class="tag text-[11px] font-bold text-rust transition-colors hover:text-ink">
                                     Reset [C]
                                 </button>
                             </div>
@@ -356,7 +356,7 @@
                         </div>
 
                         <div class="rounded-md border-2 border-ink bg-[#e6f0e2] px-4 py-3">
-                            <p class="tag text-[8px] font-bold text-varya-dark">Uang Kembalian</p>
+                            <p class="tag text-[11px] font-bold text-varya-dark">Uang Kembalian</p>
                             <p data-payment-change class="mt-1 font-mono text-[25px] leading-none font-bold text-varya-dark">Rp 0</p>
                         </div>
 
@@ -366,9 +366,9 @@
 
                     <div class="rounded-md border-2 border-ink bg-kasir-panel p-3">
                         <div class="flex items-center justify-between gap-2">
-                            <p class="tag text-[8px] font-bold text-muted">Keypad Tunai</p>
+                            <p class="tag text-[11px] font-bold text-muted">Keypad Tunai</p>
                             <button type="button" data-payment-backspace
-                                    class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-kasir-panel px-2 py-1 text-[8px] font-bold transition-colors hover:bg-varya-light">
+                                    class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-kasir-panel px-2 py-1 text-[11px] font-bold transition-colors hover:bg-varya-light">
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M20 6H9l-6 6 6 6h11V6Z"/><path d="m12 10 4 4M16 10l-4 4"/>
@@ -396,7 +396,7 @@
 
                 <div class="border-t-2 border-ink p-4">
                     <button type="button" data-payment-confirm
-                            class="tag flex w-full items-center justify-center gap-2 rounded-md border-2 border-ink bg-varya-dark px-4 py-3.5 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60">
+                            class="tag flex w-full items-center justify-center gap-2 rounded-md border-2 border-ink bg-varya-dark px-4 py-3.5 text-[11px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
                         <span data-payment-label>Selesai Bayar</span>
@@ -423,12 +423,12 @@
                     <div class="mt-5 rounded-md border-2 border-ink bg-kasir-panel p-4 text-left">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <p class="tag text-[8px] font-bold text-muted">No. Antrian</p>
+                                <p class="tag text-[11px] font-bold text-muted">No. Antrian</p>
                                 <p data-success-queue class="mt-1 font-mono text-[30px] leading-none font-bold text-varya-dark">#000</p>
                             </div>
                             <div class="text-right">
-                                <p class="tag text-[8px] font-bold text-muted">Tipe Layanan</p>
-                                <span data-success-type class="tag mt-1 inline-block rounded border-2 border-ink bg-ink px-2.5 py-1 text-[8px] font-bold text-white">
+                                <p class="tag text-[11px] font-bold text-muted">Tipe Layanan</p>
+                                <span data-success-type class="tag mt-1 inline-block rounded border-2 border-ink bg-ink px-2.5 py-1 text-[11px] font-bold text-white">
                                     Dine In
                                 </span>
                             </div>
@@ -438,39 +438,39 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <div class="min-w-0">
-                                <p class="tag text-[8px] font-bold text-muted">Pelanggan</p>
+                                <p class="tag text-[11px] font-bold text-muted">Pelanggan</p>
                                 <p data-success-customer class="mt-1 truncate font-display text-[13px] font-extrabold">—</p>
                             </div>
                             <div class="min-w-0 text-right">
-                                <p class="tag text-[8px] font-bold text-muted">Kasir Bertugas</p>
+                                <p class="tag text-[11px] font-bold text-muted">Kasir Bertugas</p>
                                 <p class="mt-1 truncate font-display text-[13px] font-extrabold">{{ $kasir['name'] }}</p>
                             </div>
                         </div>
 
                         <div class="mt-3 flex items-center justify-between gap-3 rounded border-2 border-line-strong bg-[#f6f4ea] px-3 py-2.5">
                             <div>
-                                <p class="tag text-[8px] font-bold text-muted">Metode</p>
+                                <p class="tag text-[11px] font-bold text-muted">Metode</p>
                                 <p class="mt-0.5 font-display text-[12px] font-extrabold">Tunai</p>
                             </div>
                             <div class="text-right">
-                                <p class="tag text-[8px] font-bold text-muted">Total Tagihan</p>
+                                <p class="tag text-[11px] font-bold text-muted">Total Tagihan</p>
                                 <p data-success-total class="mt-0.5 font-display text-[17px] leading-none font-black text-varya-dark">Rp 0</p>
                             </div>
                         </div>
 
                         <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-                            <span data-success-items class="tag text-[8px] text-muted">0 Menu</span>
-                            <span data-success-time class="tag text-[8px] text-muted">—</span>
+                            <span data-success-items class="tag text-[11px] text-muted">0 Menu</span>
+                            <span data-success-time class="tag text-[11px] text-muted">—</span>
                         </div>
                     </div>
 
                     <div class="mt-5 grid gap-2 sm:grid-cols-2">
                         <a data-success-orders href="{{ route('kasir.pesanan.index') }}"
-                           class="tag flex items-center justify-center rounded-md border-2 border-ink bg-kasir-panel px-4 py-3 text-[9px] font-bold text-ink shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                           class="tag flex items-center justify-center rounded-md border-2 border-ink bg-kasir-panel px-4 py-3 text-[11px] font-bold text-ink shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
                             Lihat Pesanan Masuk
                         </a>
                         <button type="button" data-success-close
-                                class="tag flex items-center justify-center rounded-md border-2 border-ink bg-varya-dark px-4 py-3 text-[9px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                                class="tag flex items-center justify-center rounded-md border-2 border-ink bg-varya-dark px-4 py-3 text-[11px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
                             Buat Pesanan Baru
                         </button>
                     </div>

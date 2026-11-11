@@ -18,12 +18,13 @@ function initHeroCarousel() {
             slide.classList.toggle('hidden', i !== current);
         });
 
+        // Kelas harus sama persis dengan markup Blade agar kapsul aktif tetap hijau di slide mana pun.
         dots.forEach((dot, i) => {
             const active = i === current;
             dot.classList.toggle('w-7', active);
-            dot.classList.toggle('bg-varya', active);
             dot.classList.toggle('w-2.5', !active);
-            dot.classList.toggle('bg-white/60', !active);
+            dot.classList.toggle('bg-varya-dark', active);
+            dot.classList.toggle('bg-white/80', !active);
         });
     };
 

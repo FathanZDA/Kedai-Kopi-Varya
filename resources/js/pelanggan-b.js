@@ -189,7 +189,7 @@ function summaryRow(item) {
             ${thumbHtml(item, 'h-12 w-12')}
             <div class="min-w-0 flex-1">
                 <p class="product-name truncate text-[11px] leading-tight">${escapeHtml(item.name)}</p>
-                <p class="tag mt-0.5 text-[8px] text-muted">${item.qty} &times; ${rupiah(item.price)}</p>
+                <p class="tag mt-0.5 text-[11px] text-muted">${item.qty} &times; ${rupiah(item.price)}</p>
             </div>
             <p class="font-display text-sm font-bold whitespace-nowrap text-varya-dark">${rupiah(subtotal)}</p>
         </div>
@@ -207,7 +207,7 @@ function cartItemRow(item) {
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
                             <h2 class="product-name text-sm leading-snug sm:text-base">${escapeHtml(item.name)}</h2>
-                            <p class="tag mt-1 text-[9px] text-muted">${rupiah(item.price)} / item</p>
+                            <p class="tag mt-1 text-[11px] text-muted">${rupiah(item.price)} / item</p>
                         </div>
                         <button type="button" data-remove-item
                                 class="grid h-8 w-8 shrink-0 place-items-center rounded-md border-2 border-line-strong bg-surface text-ink transition-colors hover:border-rust hover:text-rust"

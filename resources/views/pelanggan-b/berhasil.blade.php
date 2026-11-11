@@ -115,7 +115,7 @@
                             </svg>
                         </span>
                         <div>
-                            <p class="tag text-[8px] text-white/70">Estimasi Tunggu</p>
+                            <p class="tag text-[11px] text-white/70">Estimasi Tunggu</p>
                             <p class="font-display text-lg leading-tight font-bold">8 - 12 Menit</p>
                         </div>
                     @elseif ($pending && $order->batas_waktu_pembayaran)
@@ -126,12 +126,12 @@
                             </svg>
                         </span>
                         <div>
-                            <p class="tag text-[8px] text-white/70">Sisa Waktu</p>
+                            <p class="tag text-[11px] text-white/70">Sisa Waktu</p>
                             <p data-status-countdown class="font-display text-lg leading-tight font-bold">--:--</p>
                         </div>
                     @else
                         <div>
-                            <p class="tag text-[8px] text-white/70">Kode Pesanan</p>
+                            <p class="tag text-[11px] text-white/70">Kode Pesanan</p>
                             <p class="font-display text-lg leading-tight font-bold">{{ $order->kode_pesanan }}</p>
                         </div>
                     @endif
@@ -154,25 +154,25 @@
                     <div class="p-5 sm:p-6">
                         <div class="flex flex-wrap items-start justify-between gap-5 border-b-2 border-dashed border-line-strong pb-5">
                             <div>
-                                <p class="tag text-[9px] text-muted">Nomor Panggilan</p>
+                                <p class="tag text-[11px] text-muted">Nomor Panggilan</p>
                                 <p class="mt-1 flex flex-wrap items-end gap-2">
                                     <span class="font-display text-5xl leading-none font-black text-varya-dark sm:text-6xl">#{{ $queue }}</span>
-                                    <span class="tag mb-1 text-[9px] font-bold text-ink">/ {{ strtoupper($tipeLabel) }}</span>
+                                    <span class="tag mb-1 text-[11px] font-bold text-ink">/ {{ strtoupper($tipeLabel) }}</span>
                                 </p>
                             </div>
 
                             <div class="text-left sm:text-right">
-                                <p class="tag text-[9px] text-muted">Kode ID Pesanan</p>
-                                <p class="tag mt-1 inline-block border-2 border-ink bg-surface px-3 py-1.5 text-[10px] font-bold text-ink">
+                                <p class="tag text-[11px] text-muted">Kode ID Pesanan</p>
+                                <p class="tag mt-1 inline-block border-2 border-ink bg-surface px-3 py-1.5 text-[11px] font-bold text-ink">
                                     {{ $order->kode_pesanan }}
                                 </p>
-                                <p class="tag mt-1.5 text-[8px] text-muted">{{ $waktu }}</p>
+                                <p class="tag mt-1.5 text-[11px] text-muted">{{ $waktu }}</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-5 border-b-2 border-dashed border-line-strong py-5">
                             <div>
-                                <p class="tag text-[9px] text-muted">Identitas Pemesan</p>
+                                <p class="tag text-[11px] text-muted">Identitas Pemesan</p>
                                 <p class="mt-1 flex items-center gap-2 font-display text-base font-bold">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-varya-dark" aria-hidden="true">
@@ -183,7 +183,7 @@
                             </div>
 
                             <div>
-                                <p class="tag text-[9px] text-muted">Tipe Pesanan</p>
+                                <p class="tag text-[11px] text-muted">Tipe Pesanan</p>
                                 <p class="mt-1 flex items-center gap-2 font-display text-base font-bold">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-varya-dark" aria-hidden="true">
@@ -195,7 +195,7 @@
                         </div>
 
                         <div class="mt-5 rounded-lg border-2 border-varya-muted/40 bg-varya-light px-4 py-3.5">
-                            <p class="tag flex items-center gap-2 text-[9px] font-bold text-varya-dark">
+                            <p class="tag flex items-center gap-2 text-[11px] font-bold text-varya-dark">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>
@@ -215,7 +215,7 @@
 
                         @if (filled($order->catatan))
                             <div class="mt-4 rounded-lg border-2 border-line-strong bg-[#f7f6f7] px-4 py-3.5">
-                                <p class="tag flex items-center gap-2 text-[9px] font-bold text-ink">
+                                <p class="tag flex items-center gap-2 text-[11px] font-bold text-ink">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M4 4h16v12l-4 4H4z"/><path d="M8 9h8M8 13h5"/>
@@ -238,7 +238,7 @@
                             </svg>
                             <h2 id="ticket-summary-title" class="product-name text-sm">Rincian Item Pesanan</h2>
                         </div>
-                        <span class="tag rounded-full bg-varya px-3 py-1 text-[8px] font-bold text-white">
+                        <span class="tag rounded-full bg-varya px-3 py-1 text-[11px] font-bold text-white">
                             {{ $jumlahItem }} Item
                         </span>
                     </div>
@@ -252,7 +252,7 @@
                                     </span>
                                     <div class="min-w-0 flex-1">
                                         <p class="product-name truncate text-[11px] leading-tight">{{ $item->nama_menu }}</p>
-                                        <p class="tag mt-0.5 text-[8px] text-muted">{{ $item->jumlah }} &times; Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</p>
+                                        <p class="tag mt-0.5 text-[11px] text-muted">{{ $item->jumlah }} &times; Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</p>
                                     </div>
                                     <p class="font-display text-sm font-bold whitespace-nowrap text-varya-dark">
                                         Rp {{ number_format($item->subtotal, 0, ',', '.') }}
@@ -262,19 +262,19 @@
                         </div>
 
                         <div class="mt-5 border-t-2 border-dashed border-line-strong pt-4">
-                            <div class="tag flex items-center justify-between text-[9px] text-ink-soft">
+                            <div class="tag flex items-center justify-between text-[11px] text-ink-soft">
                                 <span>Subtotal</span>
                                 <span>Rp {{ number_format($order->items->sum('subtotal'), 0, ',', '.') }}</span>
                             </div>
                             <div class="mt-2 flex items-end justify-between gap-3">
-                                <span class="tag text-[10px] text-ink">Total Pembayaran</span>
+                                <span class="tag text-[11px] text-ink">Total Pembayaran</span>
                                 <span class="font-display text-2xl leading-none font-black text-varya-dark">
                                     Rp {{ number_format($order->total, 0, ',', '.') }}
                                 </span>
                             </div>
                             <div class="mt-3 flex flex-wrap items-center justify-end gap-2">
-                                <span class="tag text-[8px] text-muted">Status</span>
-                                <span class="tag inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[8px] font-bold {{ $statusBadge }}">
+                                <span class="tag text-[11px] text-muted">Status</span>
+                                <span class="tag inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold {{ $statusBadge }}">
                                     @if ($lunas)
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                              stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
@@ -298,7 +298,7 @@
                             <button type="button"
                                     data-buka-pembayaran
                                     data-snap-token="{{ $percobaanAktif->snap_token }}"
-                                    class="tag mt-5 flex w-full items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-varya-dark px-5 py-4 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                                    class="tag mt-5 flex w-full items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-varya-dark px-5 py-4 text-[11px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19"/>
@@ -312,7 +312,7 @@
                                     data-bayar-lagi
                                     data-bayar-lagi-url="{{ route('pesanan.bayar-lagi', ['order' => $order->kode_pesanan]) }}"
                                     @class([
-                                        'tag mt-5 flex w-full items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-varya-dark px-5 py-4 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-60',
+                                        'tag mt-5 flex w-full items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-varya-dark px-5 py-4 text-[11px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-60',
                                         'hidden' => $percobaanAktif?->snap_token !== null,
                                     ])>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -336,7 +336,7 @@
                         @endif
 
                         <a href="{{ route('pelanggan-b.beranda') }}#menu"
-                           class="tag mt-3 flex w-full items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-surface px-5 py-4 text-[10px] font-bold text-ink shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                           class="tag mt-3 flex w-full items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-surface px-5 py-4 text-[11px] font-bold text-ink shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M4 7h16v13H4z"/><path d="M8 7V4h8v3"/><path d="M8 12h8"/>

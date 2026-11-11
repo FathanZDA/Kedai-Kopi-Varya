@@ -279,7 +279,7 @@ class KasirController extends Controller
                 'description' => $menu->deskripsi,
                 'spec' => $menu->category->nama,
                 'image' => $menu->foto,
-                'featured' => false,
+                'featured' => $menu->terlaris,
                 'available' => $menu->tersedia,
             ])
             ->all();

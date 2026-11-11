@@ -21,14 +21,14 @@
         {{-- Peta --}}
         <div class="brut flex flex-col overflow-hidden bg-surface">
             <div class="flex items-center justify-between gap-3 bg-ink px-4 py-2.5 text-white">
-                <p class="tag flex items-center gap-2 text-[10px]">
+                <p class="tag flex items-center gap-2 text-[11px]">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
                     </svg>
                     {{ $store?->nama_toko ?? 'Kedai Kopi Varya' }} <span class="opacity-50">•</span> Lokasi
                 </p>
-                <p class="tag hidden text-[10px] opacity-70 sm:block">Peta Terverifikasi</p>
+                <p class="tag hidden text-[11px] opacity-70 sm:block">Peta Terverifikasi</p>
             </div>
 
             <iframe src="{{ $mapUrl }}"
@@ -82,7 +82,7 @@
                     </h3>
                     <div class="mt-2 flex flex-wrap gap-2">
                         @foreach ($fasilitas as $item)
-                            <span class="tag rounded-full border-2 border-line-strong bg-canvas px-3 py-1.5 text-[9px] font-bold text-ink-soft">
+                            <span class="tag rounded-full border-2 border-line-strong bg-canvas px-3 py-1.5 text-[11px] font-bold text-ink-soft">
                                 {{ $item }}
                             </span>
                         @endforeach
@@ -93,7 +93,7 @@
             <div class="grid gap-3 sm:grid-cols-2">
                 @if ($store?->telepon)
                     <a href="tel:{{ preg_replace('/[^0-9+]/', '', $store->telepon) }}"
-                       class="tag inline-flex items-center gap-2 rounded-md border-2 border-line-strong bg-surface px-3 py-2 text-[10px] font-bold text-ink transition-colors hover:border-ink">
+                       class="tag inline-flex items-center gap-2 rounded-md border-2 border-line-strong bg-surface px-3 py-2 text-[11px] font-bold text-ink transition-colors hover:border-ink">
                         Telepon
                     </a>
                 @endif
@@ -101,7 +101,7 @@
                 @if ($store?->whatsapp)
                     <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $store->whatsapp) }}"
                        target="_blank" rel="noopener noreferrer"
-                       class="tag inline-flex items-center gap-2 rounded-md border-2 border-line-strong bg-surface px-3 py-2 text-[10px] font-bold text-ink transition-colors hover:border-ink">
+                       class="tag inline-flex items-center gap-2 rounded-md border-2 border-line-strong bg-surface px-3 py-2 text-[11px] font-bold text-ink transition-colors hover:border-ink">
                         WhatsApp
                     </a>
                 @endif
@@ -109,7 +109,7 @@
                 @if ($store?->instagram)
                     <a href="https://instagram.com/{{ ltrim($store->instagram, '@') }}"
                        target="_blank" rel="noopener noreferrer"
-                       class="tag inline-flex items-center gap-2 rounded-md border-2 border-line-strong bg-surface px-3 py-2 text-[10px] font-bold text-ink transition-colors hover:border-ink">
+                       class="tag inline-flex items-center gap-2 rounded-md border-2 border-line-strong bg-surface px-3 py-2 text-[11px] font-bold text-ink transition-colors hover:border-ink">
                         {{ $store->instagram }}
                     </a>
                 @endif

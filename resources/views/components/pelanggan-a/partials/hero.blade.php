@@ -17,10 +17,11 @@
                          'block' => $index === 0,
                          'hidden' => $index !== 0,
                      ])>
-                    <div class="relative h-[360px] sm:h-[480px] lg:h-[540px]">
+                    <div class="relative min-h-[360px] overflow-hidden sm:min-h-[480px] lg:min-h-[540px]">
                         @if ($promo->gambar && file_exists(public_path($promo->gambar)))
+                            {{-- Foto hanya latar: sedikit dilembutkan agar teks fokus, tapi tetap terlihat. --}}
                             <img src="{{ asset($promo->gambar) }}" alt="{{ $promo->judul }}"
-                                 class="absolute inset-0 h-full w-full object-cover">
+                                 class="absolute inset-0 h-full w-full scale-105 object-cover blur-[1.5px] saturate-[0.95]">
                         @else
                             {{-- Placeholder sampai admin mengunggah foto promo [AD-04] --}}
                             <div class="absolute inset-0 bg-gradient-to-br from-[#2f4f3f] via-[#1f3b2d] to-[#14261d]"></div>
@@ -28,32 +29,34 @@
                                  style="background-image:repeating-linear-gradient(45deg,#fff 0 2px,transparent 2px 14px)"></div>
                         @endif
 
-                        {{-- Overlay supaya teks tetap terbaca di atas foto --}}
-                        <div class="absolute inset-0 bg-ink/35"></div>
+                        {{-- Selubung terang tipis: foto tetap terbaca, bukan tenggelam (mengikuti desain). --}}
+                        <div class="absolute inset-0 bg-[#eef3ea]/50"></div>
 
-                        <div class="relative flex h-full flex-col items-center justify-center gap-5 px-6 text-center sm:px-16">
+                        <div class="relative flex min-h-[360px] flex-col items-center justify-center gap-2.5 px-6 py-10 text-center sm:min-h-[480px] sm:gap-3.5 sm:px-16 sm:py-14 lg:min-h-[540px]">
                             @if ($index === 0)
-                                <p class="tag flex items-center gap-2 rounded-full bg-varya px-5 py-2 text-[10px] text-white shadow-[3px_3px_0_0_#1b1c1d] sm:text-[11px]">
-                                    <span class="inline-block h-2 w-2 rounded-full bg-varya-light"></span>
-                                    Buka <span class="opacity-60">//</span> 08.00 - 23.00 WIB
-                                </p>
+                                {{-- Label "Wajib Coba" menempel di samping chip jam buka. --}}
+                                <div class="flex flex-wrap items-center justify-center">
+                                    <p class="tag flex items-center gap-2 rounded-full bg-varya-dark px-5 py-2 text-[11px] text-white shadow-[3px_3px_0_0_#1b1c1d]">
+                                        <span class="inline-block h-2 w-2 rounded-full bg-varya-light"></span>
+                                        Buka <span class="text-white/80">//</span> 08.00 - 23.00 WIB
+                                    </p>
+
+                                    <span class="tag ml-3 -rotate-[5deg] translate-y-1 rounded-[6px] bg-gradient-to-b from-[#c25c2c] to-rust px-3 py-1.5 text-[11px] font-bold tracking-wide text-white uppercase shadow-[2px_2px_0_0_#1b1c1d]">
+                                        Wajib Coba! 🔥
+                                    </span>
+                                </div>
                             @endif
 
-                            <h1 class="title-xl text-5xl text-white sm:text-7xl lg:text-8xl">
+                            <h1 class="title-xl text-5xl text-ink drop-shadow-[0_2px_6px_rgba(255,255,255,0.65)] sm:text-7xl lg:text-8xl">
                                 {{ $promo->judul }}
                             </h1>
 
                             @if ($promo->deskripsi)
-                                <p class="max-w-2xl font-serif text-sm text-white/85 sm:text-base">{{ $promo->deskripsi }}</p>
+                                <p class="max-w-2xl rounded-md border-2 border-ink bg-varya-light px-4 py-2 font-serif text-[14px] leading-relaxed font-semibold text-varya-dark shadow-[3px_3px_0_0_#1b1c1d] sm:text-base">
+                                    {{ $promo->deskripsi }}
+                                </p>
                             @endif
                         </div>
-
-                        {{-- Stiker promo --}}
-                        @if ($index === 0)
-                            <span class="tag absolute top-2 right-4 rotate-6 border-2 border-ink bg-rust px-3 py-1.5 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] sm:top-14 sm:right-24">
-                                Promo
-                            </span>
-                        @endif
                     </div>
                 </div>
             @endforeach
@@ -77,9 +80,9 @@
                     @foreach ($slides as $index => $promo)
                         <button type="button" data-hero-dot="{{ $index }}"
                                 @class([
-                                    'h-2.5 rounded-full transition-all',
-                                    'w-7 bg-varya' => $index === 0,
-                                    'w-2.5 bg-white/60 hover:bg-white/90' => $index !== 0,
+                                    'h-2.5 rounded-full border-2 border-ink/25 transition-all',
+                                    'w-7 bg-varya-dark' => $index === 0,
+                                    'w-2.5 bg-white/80 hover:bg-white' => $index !== 0,
                                 ])
                                 aria-label="Ke slide {{ $index + 1 }}"></button>
                     @endforeach

@@ -27,7 +27,7 @@
                data-menu-search-input
                placeholder="Cari produk atau layanan..."
                class="min-w-0 flex-1 bg-transparent font-serif text-sm text-ink uppercase placeholder:text-muted focus:outline-none">
-        <button type="submit" class="tag shrink-0 rounded-full bg-varya-dark px-5 py-2.5 text-[10px] font-bold text-white sm:px-6 sm:text-[11px]">
+        <button type="submit" class="tag shrink-0 rounded-full bg-varya-dark px-5 py-2.5 text-[11px] font-bold text-white sm:px-6 sm:text-[11px]">
             Cari
         </button>
     </form>
@@ -36,14 +36,14 @@
     <div data-menu-filters class="mt-6 flex flex-wrap justify-center gap-2.5">
         <button type="button"
                 data-filter="all"
-                class="brut-sm tag bg-varya-dark px-5 py-2.5 text-[10px] font-bold text-white transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-[11px]">
+                class="brut-sm tag bg-varya-dark px-5 py-2.5 text-[11px] font-bold text-white transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-[11px]">
             Semua
         </button>
 
         @foreach (\App\Support\MenuGroup::all() as $group)
             <button type="button"
                     data-filter="{{ $group['slug'] }}"
-                    class="brut-sm tag bg-surface px-5 py-2.5 text-[10px] font-bold text-ink transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-[11px]">
+                    class="brut-sm tag bg-surface px-5 py-2.5 text-[11px] font-bold text-ink transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-[11px]">
                 {{ $group['label'] }}
             </button>
         @endforeach

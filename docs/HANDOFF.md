@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 8 Nov 2026, setelah S1–S8 `docs/PLAN-PERBAIKAN-TEST-FITUR.md` dikerjakan. S1 dan S2 sudah di-commit (`ce5fa3a`, `c5387f4`); S3 di `dec88cf` + penyesuaian kategori `83554b7`; S4 di `76536ca`; S5 di `3d1a812`; S6 di `9cfe908`; S7 di `483770c`; S8 dikerjakan di branch `perbaikan-s8-regression-dokumen` dan **belum di-commit**. Dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
+**Terakhir diperbarui:** 11 Nov 2026, setelah slice `perbaikan-ui-terlaris` (T1–T8) dikerjakan di atas `main` (PR #1 `perbaikan-s8-regression-dokumen` sudah di-merge). Slice ini **belum di-commit** dan mencakup: keterbacaan tipografi/kontras, banner promo (foto tetap terlihat, label “Wajib Coba! 🔥” berjarak di samping chip jam, judul tinta, indikator slide hijau), latar login tanpa garis diagonal, penanda **Terlaris** manual (`menus.terlaris`, F-75) beserta badge-nya, dan Tentang Kami dua panel **landscape** dengan bayangan keras kanan-bawah. S1–S8 tetap seperti sebelumnya; dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
 
 ---
 
@@ -10,11 +10,11 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `perbaikan-s8-regression-dokumen` (dari `483770c`); perubahan S8 di working tree dan **belum di-commit** |
-| Baseline test | `php artisan test` → **240 passed** (1299 assertions) setelah S8 8 Nov 2026 |
+| Branch aktif | `main` (`162f6a3`, sama dengan `origin/main` setelah PR #1); perubahan `perbaikan-ui-terlaris` T1–T8 ada di working tree dan **belum di-commit** |
+| Baseline test | `php artisan test` → **245 passed** (1325 assertions) setelah `perbaikan-ui-terlaris` 10 Nov 2026 |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
-| Database aplikasi | `kedai_varya` (MySQL, berisi data uji user); migration kategori tiga baris sudah dijalankan 7 Nov 2026 |
+| Database aplikasi | `kedai_varya` (MySQL, berisi data uji user); migration kategori tiga baris (7 Nov 2026) dan `menus.terlaris` (10 Nov 2026) sudah dijalankan |
 | Database test | `kedai_varya_test` (MySQL, bukan SQLite) |
 
 Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terbaru, bukan dari `main`:
@@ -48,7 +48,8 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `perbaikan-s5-pil-aktif-pelanggan-b` | `3d1a812` | S5 pil aktif Pelanggan B + responsive navbar A mengikuti B (sudah di-commit) |
 | `perbaikan-s6-periode-dashboard` | `9cfe908` | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (sudah di-commit) |
 | `perbaikan-s7-urutan-promo` | `483770c` | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max(urutan)+1` (sudah di-commit) |
-| `perbaikan-s8-regression-dokumen` | *working tree* | S8 regression final, penutupan status temuan, dan dokumentasi rilis (belum di-commit) |
+| `perbaikan-s8-regression-dokumen` | `ad1e377` | S8 regression final, penutupan status temuan, dan dokumentasi rilis (sudah di-merge ke `main` lewat PR #1) |
+| `perbaikan-ui-terlaris` (working tree `main`) | *working tree* | T1 tipografi/kontras, T2 banner promo, T3 latar login, T4 penanda Terlaris manual (F-75), T5–T8 revisi tampilan dari `design/perlu-perbaikan` (banner, Tentang Kami landscape, bayangan, jarak label, indikator slide) — belum di-commit |
 
 ---
 
@@ -59,8 +60,9 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | Publik Pelanggan A | **Selesai** | Semua data dari database |
 | Pelanggan B | **Selesai** | Menu/toko dari DB; keranjang browser sesuai F-69; checkout → order QRIS + Snap dengan konflik harga `409`; webhook menandai lunas; halaman status, tiket antrean, polling, dan bayar lagi sudah ada |
 | Kasir | **Selesai** | Buat Pesanan, Pesanan Masuk, detail pesanan dari DB, pembatalan QRIS, Cek Status, dan Kelola Menu |
-| Admin | **Selesai** | CRUD menu, CRUD promosi, Informasi Toko, foto Tentang Kami, Laporan Transaksi, dan Dashboard sudah dari DB |
-| Login/role | **Selesai** | `/login`, redirect per role, `role` middleware, rate limit |
+| Admin | **Selesai** | CRUD menu (+ penanda Terlaris), CRUD promosi, Informasi Toko, foto Tentang Kami, Laporan Transaksi, dan Dashboard sudah dari DB |
+| Login/role | **Selesai** | `/login` dengan latar gradien lembut + panel informasi, redirect per role, `role` middleware, rate limit |
+| Keterbacaan UI | **Selesai** | Lantai ukuran teks 11px, token abu-abu digelapkan (≥4.5:1), banner promo dan badge Terlaris (T1–T4) |
 | Database transaksi | **Selesai** | `orders`, `order_items`, `payments`, `payment_notifications`, `queue_counters` |
 | Pembayaran Midtrans | **Selesai** | Snap create + webhook + nomor antrean + popup + halaman status/bayar lagi + pembatalan + cek status + rekonsiliasi terjadwal + penutupan otomatis 24 jam + pembatalan sesi Snap |
 
@@ -556,13 +558,29 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 - `AGENTS.md` dan file ini diperbarui ke status S8.
 - Langkah berikutnya: smoke test manual §5, lalu merge branch ini ke `main` (`main` masih di `e6527c4` dan branch S8 dapat fast-forward 36 commit) dan deploy sesuai README.
 
-## 5.23 Kandidat berikutnya
+## 5.23 `perbaikan-ui-terlaris` (T1–T8)
+
+**Status:** selesai dikerjakan 10–11 Nov 2026 di working tree `main`, **belum di-commit**. Delapan irisan: empat permintaan user pada §9 (T1–T4) dan empat koreksi tampilan dari `design/perlu-perbaikan` (T5–T8).
+
+- **T1 Tipografi & kontras.** Semua `text-[6px]`–`text-[10px]` (392 kemunculan di Blade + `admin.js`/`kasir.js`/`pelanggan-b.js`) dinaikkan ke lantai **11px**; teks isi pelanggan 12–13px menjadi 13–14px. `app.css`: `--color-muted` `#8d8d8e` → `#63646a` (≈5,0:1), `--color-varya-muted` `#869582` → `#5f6f5c`; `.admin-label`/`.admin-btn-*`/`.auth-label` 9px → 11px, `.admin-input` 12→13px, `.auth-submit` 10→12px. `min-w` tabel admin/kasir dinaikkan agar teks tidak terpotong.
+- **T2 Banner promo** (`components/pelanggan-a/partials/hero.blade.php`, dipakai Pelanggan A dan B): label “Promo” dipindah dari pojok kanan atas ke kolom konten tepat di atas judul, jarak antar elemen `gap-5` → `gap-2.5/3.5`, deskripsi mendapat blok `bg-varya-dark` + border + bayangan, overlay foto `bg-ink/35` → `bg-ink/45`, dan slide memakai `min-h` + padding agar tidak terpotong di mobile (revisi tampilan 11 Nov 2026 ada di T5).
+- **T5 Penyesuaian visual dari `design/perlu-perbaikan`** (11 Nov 2026): label “Promo” diganti **“Wajib Coba! 🔥”** dan dipindah ke samping kanan chip “Buka // 08.00 - 23.00 WIB” (satu baris, menumpuk sedikit, miring −5°); judul promo memakai tinta gelap; deskripsi memakai `bg-varya-light` + `text-varya-dark`; indikator slide gelap di atas latar terang.
+- **T6 Koreksi T5** (11 Nov 2026, permintaan user: “sesuai dan persis” dengan `Screenshot 2026-11-11 200157.png`): (a) foto banner tidak lagi nyaris hilang — `blur-[3px]`→`blur-[1.5px]`, `scale-110`→`scale-105`, `saturate-[0.85]`→`saturate-[0.95]`, selubung terang `#eef3ea/65`→`/50`; (b) Tentang Kami benar-benar **landscape**: grid `lg:grid-cols-2` dengan `lg:items-stretch`, teks 13–13.5px/1.75, padding `p-5 sm:p-6`, jarak `gap-4`, statistik `py-3`/`px-2`, tinggi foto mobile dipatok `h-[230px] sm:h-[280px]` dan `object-cover` absolut di desktop sehingga kedua panel setinggi ±380px pada lebar 1180 (rasio ≈1,44:1, desain 1,42:1); (c) `.about-shadow` jadi bayangan **keras** `8px 8px 0 0 rgb(27 28 29 / 90%)` — sebelumnya `12px` blur dengan spread −6px sehingga terlihat kabur seperti halo, sedangkan desain tegas ke kanan-bawah saja.
+- **T7 Koreksi T6** (11 Nov 2026): ukuran section Tentang Kami **dikembalikan ke ukuran semula** – `max-w-[1280px]`, `pt-16 sm:pt-20`, `mt-8`, `gap-6 lg:gap-8`, panel `p-6 sm:p-8`, heading `text-sm`, paragraf `15px/1.9` → `sm:text-base`, statistik `py-5` dan nilai `text-xl sm:text-2xl`, tinggi foto mobile `h-[280px] sm:h-[340px]`, `lg:min-h-[380px]` – sementara struktur landscape T6 (grid `lg:grid-cols-2` `items-stretch`, tanpa border, `.about-shadow`, foto `object-cover` absolut) dipertahankan. Tag “Wajib Coba! 🔥” tidak lagi menimpa chip jam: `-ml-2` → **`ml-3`**.
+- **T8 Indikator slide hero** (11 Nov 2026): kapsul aktif kini tetap hijau di slide mana pun. Penyebabnya `pelanggan-a.js` men-toggle kelas `bg-varya`/`bg-white/60` sementara markup Blade memakai `bg-varya-dark`/`bg-white/80`, sehingga kelas lama tertinggal dan warna putih menang. JS sekarang men-toggle pasangan kelas yang sama persis dengan Blade (`w-7` + `bg-varya-dark` aktif, `w-2.5` + `bg-white/80` nonaktif).
+- Verifikasi T6/T7: `npm.cmd run build` berhasil; `php artisan test` → 245 passed (1325 assertions); dicek visual lewat Chrome headless (`/` dan `/tentang`, 1280–1400px) dan `--dump-dom` untuk memastikan kelas titik indikator pada slide ke-2; server lokal sementara dimatikan lagi.
+- **T3 Login** (`auth/login.blade.php` + `.auth-shell`): garis diagonal dihapus, diganti gradien radial hijau lembut; ditambah watermark logo dan panel informasi tiga poin di desktop. Bar `admin-stripes` di kartu tetap sebagai identitas.
+- **T4 Terlaris (F-75).** Migration `2026_11_10_000001_tambah_terlaris_pada_menus`, `Menu::terlaris`, `MenuRequest`, `MenuCatalogService::aturTerlaris`, `PATCH /admin/menu/{menu}/terlaris`, checkbox di form menu, toggle bintang + kolom baru di tabel Kelola Menu, badge bintang di `components/menu-card`, detail produk Pelanggan B, dan bintang kartu Buat Pesanan kasir (`featured` kini dari database). Judul dashboard bagian penjualan diganti menjadi **Paling Banyak Terjual**. Data awal dibiarkan kosong (admin menandai sendiri).
+- Verifikasi: `php artisan test` → 245 passed (1325 assertions); `php vendor/bin/pint --test` → passed; `npm.cmd run build` → berhasil (dijalankan ulang setelah T5).
+- Langkah berikutnya: smoke test visual di 360/768/1280px (terutama tabel admin/kasir yang ukuran teksnya naik), lalu commit slice ini bersama S8.
+
+## 5.24 Kandidat berikutnya
 
 Slice S1–S8 sudah selesai. Pekerjaan operasional lain:
 
 | # | Topik | Catatan | Acuan |
 |---|---|---|---|
-| 0 | Merge ke `main` + deploy | Lakukan setelah smoke test manual §5; `main` masih di `e6527c4` dan bisa fast-forward ke ujung S8 | README; `docs/HANDOFF.md` §5.22 |
+| 0 | Commit + merge ke `main` + deploy | S1–S8 sudah masuk `main` lewat PR #1; yang belum di-commit hanya slice `perbaikan-ui-terlaris` (T1–T8) di working tree | README; `docs/HANDOFF.md` §5.22–5.23 |
 | 1 | Ekspor laporan PDF/Excel | Fase 2, belum masuk scope | F-19; PRD AD-03 |
 | 2 | Akun/kredensial Midtrans produksi | Operasional, butuh akun dan URL publik | O-16; `docs/MIDTRANS-SETUP.md` |
 | 3 | Keranjang server-side | Hanya relevan bila Pelanggan B kelak punya akun | F-69 |
@@ -580,6 +598,7 @@ Slice S1–S8 sudah selesai. Pekerjaan operasional lain:
 | `409 "menu berubah"` pada checkout/order | **Selesai** (F-71) | Harga acuan wajib di checkout publik; kasir tunai tidak berubah |
 | Keranjang Pelanggan B | **Selesai** (F-69) | Tetap di browser sebagai pengecualian resmi F-29 |
 | `callbacks.finish` Snap | **Selesai** | Dikirim ke halaman status sebagai fallback |
+| Penanda “Terlaris” manual | **Selesai** (F-75) | Kolom `menus.terlaris` + toggle admin; badge di katalog A/B, detail produk, dan kasir. Dashboard tetap menghitung penjualan (judul: “Paling Banyak Terjual”) |
 
 ---
 
@@ -603,7 +622,7 @@ Slice S1–S8 sudah selesai. Pekerjaan operasional lain:
 
 1. Baca `AGENTS.md`, `PRD.md`, `docs/DECISIONS.md`, `docs/ROUTES.md`, `docs/DATABASE.md`.
 2. Verifikasi baseline: `git log -1` dan `php artisan test` harus hijau sebelum menulis kode (saat file ini ditulis 240 passed).
-3. Potong branch baru dari ujung terbaru (`perbaikan-s8-regression-dokumen` setelah commit S8), bukan dari `main`.
+3. Potong branch baru dari ujung terbaru (`main`), bukan dari branch lama.
 4. Kerjakan satu slice kecil; jangan mengerjakan seluruh backend sekaligus.
 5. Tanpa dependency baru tanpa persetujuan user. Tanpa `localStorage` untuk data nyata selain keranjang tamu Pelanggan B (F-69). Tanpa simulasi pembayaran.
 6. Setelah selesai: `php artisan test`, `php vendor/bin/pint --test`, `npm.cmd run build`, lalu perbarui `AGENTS.md`, `docs/ROUTES.md`, `docs/DECISIONS.md`, `docs/DATABASE.md` bila perlu, dan **file ini**.
@@ -629,7 +648,8 @@ Jangan commit/push — saya yang commit. Berhenti dan tanya jika perlu
 mengubah skema, menambah package, atau ada keputusan OPEN.
 Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 ```
-
+Prompt saya :
+Mulai dengan membaca docs/HANDOFF.md, AGENTS.md, PRD.md, docs/DECISIONS.md, docs/ROUTES.md, docs/DATABASE.md, docs/PLAN-PERBAIKAN-TEST-FITUR, docs/TEST-FITUR. Dengan mempertimbangkan kenyaman user dalam menggunakan website saya, saya menemukan beberapa hal yang perlu diperbaiki dalam tampilan front end. Pertama dalam hal ukuran dan warna untuk font, ada beberapa yang ukuran font sangat kecil sehingga mempersulit user dalam membaca fitur atau informasi tersebut, dan juga banyak font yang berwarna abu-abu dan sangat samar sehingga hal tersebut juga sangat menyebabkan pengalaman kurang baik bagi user. Kedua banner pada halaman pelanggan, pada desain ui saya label promo pada slide pertama jaraknya terlalu jauh dari judul, kemudian pada deskripsi seharusnya bukan hanya tulisan saja, seharusnya ada background berwarna hijau pada deskripsi tersebut. Ketiga login, background pada halaman login ada garis garis berwarna hijau yang dapat mengganggu kenyamanan user, namun disisi lain jika tidak ada garis berwarna hijau tersebut maka tampilan untuk halaman login akan sangat sepi dan simpel. Keempat rencana penambahan fitur, saya baru menyadari bahwa di website saya belum ada fitur untuk menu terlaris, saya ingin menambah fitur tersebut yang bisa di isi pada halaman admin dan akan muncul pada halaman pelanggan, jadi ketika admin klik "Terlaris" pada menu tertentu maka akan ada icon bintang atau tulisan "Terlaris"(seperti saat menu habis) yang muncul pada halaman pelanggan. Sekarang saya ingin kamu memberikan sebuah planning atau rencana perbaikan dari hal hal yang perlu diperbaiki berdasarkan yang sudah saya katakan diatas, setelah saya menyetujui rencana perbaikan yang kamu buat maka akan saya berikan arahan selanjutnya dari saya.
 ---
 
 ## 10. Riwayat slice
@@ -666,6 +686,8 @@ Perbarui dokumen dan docs/HANDOFF.md di akhir pekerjaan.
 | 8 Nov 2026 | `perbaikan-s6-periode-dashboard` | `9cfe908` | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (F-66) |
 | 8 Nov 2026 | `perbaikan-s7-urutan-promo` | `483770c` | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max+1` (F-63) |
 | 8 Nov 2026 | `perbaikan-s8-regression-dokumen` | *belum di-commit* | S8 regression final, status temuan, dan dokumentasi rilis |
+| 10 Nov 2026 | `perbaikan-ui-terlaris` (working tree `main`) | *belum di-commit* | T1 tipografi/kontras, T2 banner promo, T3 latar login, T4 penanda Terlaris manual + badge (F-75) |
+| 11 Nov 2026 | `perbaikan-ui-terlaris` (working tree `main`) | *belum di-commit* | T5–T8 revisi tampilan: banner tidak samar, label “Wajib Coba! 🔥” berjarak, Tentang Kami landscape ukuran semula, `.about-shadow` keras kanan-bawah, indikator slide selalu hijau |
 
 ---
 

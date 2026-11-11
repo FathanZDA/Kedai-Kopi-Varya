@@ -20,9 +20,9 @@
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="flex items-center gap-2">
                         <span class="h-2.5 w-2.5 rounded-full bg-varya-dark"></span>
-                        <h2 id="report-revenue-title" class="tag text-[9px] font-bold text-ink">Total Pemasukan Berhasil</h2>
+                        <h2 id="report-revenue-title" class="tag text-[11px] font-bold text-ink">Total Pemasukan Berhasil</h2>
                     </div>
-                    <span data-report-period-badge class="tag rounded border-2 border-line-strong bg-[#f1eee4] px-2.5 py-1 text-[8px] font-bold text-ink-soft">
+                    <span data-report-period-badge class="tag rounded border-2 border-line-strong bg-[#f1eee4] px-2.5 py-1 text-[11px] font-bold text-ink-soft">
                         Periode: {{ $summary['month_label'] }}
                     </span>
                 </div>
@@ -31,7 +31,7 @@
                     <p data-report-revenue class="font-display text-[46px] leading-none font-black text-ink sm:text-[54px]">
                         {{ $formatRupiah($summary['revenue']) }}
                     </p>
-                    <span class="tag mb-1 rounded border-2 border-varya/30 bg-varya-light px-2.5 py-1.5 text-[8px] font-bold text-varya-dark">
+                    <span class="tag mb-1 rounded border-2 border-varya/30 bg-varya-light px-2.5 py-1.5 text-[11px] font-bold text-varya-dark">
                         / Pendapatan Bersih Kasir
                     </span>
                 </div>
@@ -60,7 +60,7 @@
                 </div>
 
                 <div class="mt-5 border-t border-line-strong/70 pt-3">
-                    <p class="font-serif text-[10px] leading-relaxed text-ink-soft">
+                    <p class="font-serif text-[11px] leading-relaxed text-ink-soft">
                         Hanya transaksi berstatus <strong class="text-ink">lunas</strong> yang dihitung sebagai pendapatan.
                         Rata-rata nilai transaksi:
                         <strong data-report-average class="text-ink">{{ $formatRupiah($summary['average']) }}</strong>
@@ -72,8 +72,8 @@
 
             <section class="admin-card p-4 sm:p-5" aria-labelledby="report-method-title">
                 <div class="flex flex-wrap items-start justify-between gap-2">
-                    <h2 id="report-method-title" class="tag text-[9px] font-bold text-ink">Rincian Metode Pembayaran</h2>
-                    <span class="tag text-[8px] font-bold text-varya-dark">2 Metode Aktif</span>
+                    <h2 id="report-method-title" class="tag text-[11px] font-bold text-ink">Rincian Metode Pembayaran</h2>
+                    <span class="tag text-[11px] font-bold text-varya-dark">2 Metode Aktif</span>
                 </div>
 
                 <div class="mt-4 flex h-3 overflow-hidden rounded-full border-2 border-ink bg-[#f4e1d5]">
@@ -82,8 +82,8 @@
                 </div>
 
                 <div class="mt-2 flex items-center justify-between gap-2">
-                    <p class="tag text-[7px] font-bold text-varya-dark">QRIS <span data-report-qris-percent>{{ number_format($summary['qris_percent'], 1, ',', '.') }}%</span></p>
-                    <p class="tag text-[7px] font-bold text-[#8a3b1d]">Tunai <span data-report-cash-percent>{{ number_format($summary['cash_percent'], 1, ',', '.') }}%</span></p>
+                    <p class="tag text-[11px] font-bold text-varya-dark">QRIS <span data-report-qris-percent>{{ number_format($summary['qris_percent'], 1, ',', '.') }}%</span></p>
+                    <p class="tag text-[11px] font-bold text-[#8a3b1d]">Tunai <span data-report-cash-percent>{{ number_format($summary['cash_percent'], 1, ',', '.') }}%</span></p>
                 </div>
 
                 <div class="mt-4 space-y-2.5">
@@ -91,11 +91,11 @@
                         <span class="grid h-8 w-8 shrink-0 place-items-center rounded border-2 border-ink bg-varya-dark font-display text-[14px] font-black text-white">Q</span>
                         <div class="min-w-0 flex-1">
                             <p class="font-display text-[13px] leading-tight font-extrabold">QRIS Digital</p>
-                            <p class="mt-0.5 font-serif text-[9px] text-muted">Transaksi via GoPay / OVO / BCA</p>
+                            <p class="mt-0.5 font-serif text-[11px] text-muted">Transaksi via GoPay / OVO / BCA</p>
                         </div>
                         <div class="text-right">
                             <p data-report-qris class="font-display text-[15px] leading-tight font-bold text-ink">{{ $formatRupiah($summary['qris']) }}</p>
-                            <p class="tag mt-0.5 text-[7px] text-muted"><span data-report-qris-percent-small>{{ number_format($summary['qris_percent'], 1, ',', '.') }}%</span></p>
+                            <p class="tag mt-0.5 text-[11px] text-muted"><span data-report-qris-percent-small>{{ number_format($summary['qris_percent'], 1, ',', '.') }}%</span></p>
                         </div>
                     </div>
 
@@ -103,11 +103,11 @@
                         <span class="grid h-8 w-8 shrink-0 place-items-center rounded border-2 border-ink bg-[#b9562f] font-display text-[14px] font-black text-white">C</span>
                         <div class="min-w-0 flex-1">
                             <p class="font-display text-[13px] leading-tight font-extrabold">Tunai / Kasir</p>
-                            <p class="mt-0.5 font-serif text-[9px] text-muted">Pembayaran tunai meja / kasir</p>
+                            <p class="mt-0.5 font-serif text-[11px] text-muted">Pembayaran tunai meja / kasir</p>
                         </div>
                         <div class="text-right">
                             <p data-report-cash class="font-display text-[15px] leading-tight font-bold text-ink">{{ $formatRupiah($summary['cash']) }}</p>
-                            <p class="tag mt-0.5 text-[7px] text-muted"><span data-report-cash-percent-small>{{ number_format($summary['cash_percent'], 1, ',', '.') }}%</span></p>
+                            <p class="tag mt-0.5 text-[11px] text-muted"><span data-report-cash-percent-small>{{ number_format($summary['cash_percent'], 1, ',', '.') }}%</span></p>
                         </div>
                     </div>
                 </div>
@@ -184,24 +184,24 @@
             <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-ink bg-[#f3f1e7] px-4 py-3">
                 <div class="flex items-center gap-2">
                     <span class="h-2.5 w-2.5 rounded-full bg-varya-dark"></span>
-                    <h2 class="tag text-[9px] font-bold text-ink">
+                    <h2 class="tag text-[11px] font-bold text-ink">
                         Audit Buku Kas: <span data-report-filtered-count>0</span> Transaksi Terfilter
                     </h2>
                 </div>
-                <p class="tag text-[8px] text-muted">Diurutkan: Tanggal Terbaru</p>
+                <p class="tag text-[11px] text-muted">Diurutkan: Tanggal Terbaru</p>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[920px] border-collapse text-left">
+                <table class="w-full min-w-[1040px] border-collapse text-left">
                     <thead class="bg-admin-head">
                         <tr class="border-b-2 border-ink">
-                            <th scope="col" class="tag px-4 py-3 text-[8px] font-bold text-ink-soft">Kode Pesanan</th>
-                            <th scope="col" class="tag px-3 py-3 text-[8px] font-bold text-ink-soft">Antrean</th>
-                            <th scope="col" class="tag px-3 py-3 text-[8px] font-bold text-ink-soft">Pelanggan</th>
-                            <th scope="col" class="tag px-3 py-3 text-[8px] font-bold text-ink-soft">Total</th>
-                            <th scope="col" class="tag px-3 py-3 text-[8px] font-bold text-ink-soft">Metode</th>
-                            <th scope="col" class="tag px-3 py-3 text-[8px] font-bold text-ink-soft">Status Bayar</th>
-                            <th scope="col" class="tag px-4 py-3 text-[8px] font-bold text-ink-soft">Tanggal &amp; Waktu</th>
+                            <th scope="col" class="tag px-4 py-3 text-[11px] font-bold text-ink-soft">Kode Pesanan</th>
+                            <th scope="col" class="tag px-3 py-3 text-[11px] font-bold text-ink-soft">Antrean</th>
+                            <th scope="col" class="tag px-3 py-3 text-[11px] font-bold text-ink-soft">Pelanggan</th>
+                            <th scope="col" class="tag px-3 py-3 text-[11px] font-bold text-ink-soft">Total</th>
+                            <th scope="col" class="tag px-3 py-3 text-[11px] font-bold text-ink-soft">Metode</th>
+                            <th scope="col" class="tag px-3 py-3 text-[11px] font-bold text-ink-soft">Status Bayar</th>
+                            <th scope="col" class="tag px-4 py-3 text-[11px] font-bold text-ink-soft">Tanggal &amp; Waktu</th>
                         </tr>
                     </thead>
                     <tbody data-report-rows class="divide-y-2 divide-line">
@@ -213,7 +213,7 @@
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink bg-[#f7f5ec] px-4 py-3">
-                <p data-report-record class="tag text-[8px] font-bold text-muted">// Menampilkan 0 dari 0 transaksi</p>
+                <p data-report-record class="tag text-[11px] font-bold text-muted">// Menampilkan 0 dari 0 transaksi</p>
                 <div data-report-pagination class="flex flex-wrap items-center gap-1.5"></div>
             </div>
         </div>
@@ -228,11 +228,11 @@
         <div class="admin-dialog-card">
             <div class="flex items-start justify-between gap-4 border-b-2 border-ink bg-[#f3f1e7] px-5 py-4">
                 <div>
-                    <p class="tag text-[8px] font-bold text-varya-dark">// Rincian Transaksi</p>
+                    <p class="tag text-[11px] font-bold text-varya-dark">// Rincian Transaksi</p>
                     <h2 data-report-detail-title class="mt-1 font-display text-xl leading-tight font-black uppercase">
                         Detail Transaksi
                     </h2>
-                    <p data-report-detail-subtitle class="mt-1 font-serif text-[10px] text-muted"></p>
+                    <p data-report-detail-subtitle class="mt-1 font-serif text-[11px] text-muted"></p>
                 </div>
 
                 <button type="button" data-report-close

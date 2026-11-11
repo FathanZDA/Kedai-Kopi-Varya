@@ -48,9 +48,9 @@
                          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/>
                     </svg>
-                    <span class="tag hidden text-[10px] font-bold sm:inline">Keranjang</span>
+                    <span class="tag hidden text-[11px] font-bold sm:inline">Keranjang</span>
                     <span data-cart-count
-                          class="tag inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rust px-1.5 text-[10px] font-bold text-white">0</span>
+                          class="tag inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rust px-1.5 text-[11px] font-bold text-white">0</span>
                 </a>
 
                 {{-- Tombol menu untuk layar kecil --}}

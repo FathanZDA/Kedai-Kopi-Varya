@@ -14,7 +14,7 @@
     {{-- Logo mark. Ganti dengan <img> bila file logo asli sudah tersedia. --}}
     <span class="flex h-12 w-12 flex-col items-center justify-center rounded-md border-2 {{ $markClasses }}">
         <span class="font-display text-xl leading-none font-black">V</span>
-        <span class="tag text-[6px] leading-tight opacity-70">Varya</span>
+        <span class="tag text-[11px] leading-tight opacity-70">Varya</span>
     </span>
 
     <span class="font-display text-xl font-black tracking-tight uppercase {{ $nameClasses }}">

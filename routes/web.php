@@ -173,6 +173,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::patch('/menu/{menu}/availability', [AdminController::class, 'updateMenuAvailability'])
             ->name('menu.availability');
 
+        Route::patch('/menu/{menu}/terlaris', [AdminController::class, 'updateMenuBestSeller'])
+            ->name('menu.terlaris');
+
         Route::get('/laporan', [AdminController::class, 'reports'])->name('reports');
 
         Route::get('/laporan/{order}', [AdminController::class, 'showReportOrder'])->name('reports.show');

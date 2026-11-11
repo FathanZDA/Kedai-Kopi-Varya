@@ -22,7 +22,7 @@
                     </svg>
                 </span>
 
-                <p class="tag truncate text-[10px] font-bold tracking-[0.04em] text-ink">
+                <p class="tag truncate text-[11px] font-bold tracking-[0.04em] text-ink">
                     Kasir: <span class="text-varya-dark">{{ $kasir['name'] }}</span>
                 </p>
             </div>
@@ -30,8 +30,8 @@
 
         <div class="flex shrink-0 items-center gap-3">
             <div class="hidden text-right sm:block">
-                <p data-kasir-clock class="tag text-[9px] font-bold text-ink">—</p>
-                <p class="tag mt-0.5 text-[7px] text-muted">Asia/Jakarta</p>
+                <p data-kasir-clock class="tag text-[11px] font-bold text-ink">—</p>
+                <p class="tag mt-0.5 text-[11px] text-muted">Asia/Jakarta</p>
             </div>
 
             <span class="hidden h-8 w-px bg-line-strong/70 sm:block" aria-hidden="true"></span>
@@ -39,7 +39,7 @@
             <div class="flex items-center gap-2">
                 <span class="hidden text-right md:block">
                     <span class="block font-display text-[12px] leading-tight font-extrabold">{{ $kasir['name'] }}</span>
-                    <span class="tag mt-0.5 block text-[7px] text-muted">{{ $kasir['role'] }}</span>
+                    <span class="tag mt-0.5 block text-[11px] text-muted">{{ $kasir['role'] }}</span>
                 </span>
 
                 <span class="grid h-10 w-10 place-items-center rounded-full border-2 border-ink bg-varya-dark font-mono text-[11px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d]"

@@ -16,8 +16,8 @@
         {{-- Hero ringkasan --}}
         <section class="admin-card overflow-hidden">
             <div class="flex flex-col gap-1 border-b-2 border-ink px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <p class="tag text-[9px] font-bold text-varya-dark">// Ringkasan Aktivitas Toko</p>
-                <p class="tag flex items-center gap-1.5 text-[8px] text-muted">
+                <p class="tag text-[11px] font-bold text-varya-dark">// Ringkasan Aktivitas Toko</p>
+                <p class="tag flex items-center gap-1.5 text-[11px] text-muted">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>
@@ -47,9 +47,9 @@
                            data-periode="{{ $periode }}"
                            @if ($aktif) aria-current="page" @endif
                            class="flex min-w-[78px] flex-col justify-center px-3 py-3 text-center transition-colors {{ $loop->first ? '' : 'border-l border-ink' }} {{ $aktif ? 'bg-ink text-white' : 'bg-admin-soft text-ink hover:bg-varya-light' }}">
-                            <p class="tag text-[7px] leading-tight font-bold {{ $aktif ? 'text-white/70' : 'text-muted' }}">{{ $ringkasanKotak['label'] }}</p>
+                            <p class="tag text-[11px] leading-tight font-bold {{ $aktif ? 'text-white/70' : 'text-muted' }}">{{ $ringkasanKotak['label'] }}</p>
                             <p class="font-display text-[24px] leading-none font-black">{{ $ringkasanKotak['orders'] }}</p>
-                            <p class="tag mt-1 text-[7px] font-bold {{ $aktif ? 'text-white/70' : 'text-muted' }}">Pesanan</p>
+                            <p class="tag mt-1 text-[11px] font-bold {{ $aktif ? 'text-white/70' : 'text-muted' }}">Pesanan</p>
                         </a>
                     @endforeach
                 </nav>
@@ -61,7 +61,7 @@
             <article class="admin-card flex flex-col p-4 sm:p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="tag text-[9px] font-bold text-ink">Total Pesanan</p>
+                        <p class="tag text-[11px] font-bold text-ink">Total Pesanan</p>
                         <p class="mt-1 font-serif text-[11px] text-muted">Semua saluran transaksi &bull; {{ $ringkasan['label'] }}</p>
                     </div>
                     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-md border-2 border-ink bg-admin-panel">
@@ -87,12 +87,12 @@
                                 <path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/>
                             @endif
                         </svg>
-                        <p class="font-mono text-[8px] leading-relaxed font-bold text-ink-soft">
+                        <p class="font-mono text-[11px] leading-relaxed font-bold text-ink-soft">
                             <strong class="{{ $ringkasan['change_percent'] >= 0 ? 'text-varya-dark' : 'text-rust' }}">{{ $ringkasan['change_percent'] >= 0 ? '+' : '-' }}{{ number_format(abs($ringkasan['change_percent']), 1, ',', '.') }}%</strong>
                             dibanding {{ $ringkasan['pembanding_label'] }} ({{ $ringkasan['pembanding'] }} pesanan)
                         </p>
                     @else
-                        <p class="font-mono text-[8px] leading-relaxed font-bold text-muted">
+                        <p class="font-mono text-[11px] leading-relaxed font-bold text-muted">
                             Belum ada pesanan {{ $ringkasan['pembanding_label'] }} sebagai pembanding
                         </p>
                     @endif
@@ -102,7 +102,7 @@
             <article class="admin-card flex flex-col p-4 sm:p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="tag text-[9px] font-bold text-ink">Total Pendapatan</p>
+                        <p class="tag text-[11px] font-bold text-ink">Total Pendapatan</p>
                         <p class="mt-1 font-serif text-[11px] text-muted">Hanya transaksi lunas &bull; {{ $ringkasan['label'] }}</p>
                     </div>
                     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-md border-2 border-ink bg-varya-dark text-white">
@@ -121,7 +121,7 @@
                 </div>
 
                 <div class="mt-4 border-t border-line-strong/70 pt-3">
-                    <p class="font-mono text-[8px] leading-relaxed font-bold text-ink-soft">
+                    <p class="font-mono text-[11px] leading-relaxed font-bold text-ink-soft">
                         {{ $ringkasan['count'] }} transaksi lunas &bull; QRIS {{ number_format($ringkasan['qris_percent'], 1, ',', '.') }}% &bull; Tunai {{ number_format($ringkasan['cash_percent'], 1, ',', '.') }}%
                     </p>
                 </div>
@@ -130,7 +130,7 @@
             <article class="admin-card flex flex-col p-4 sm:p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="tag text-[9px] font-bold text-ink">Daftar Menu Aktif</p>
+                        <p class="tag text-[11px] font-bold text-ink">Daftar Menu Aktif</p>
                         <p class="mt-1 font-serif text-[11px] text-muted">Katalog kasir &amp; pesanan web</p>
                     </div>
                     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-md border-2 border-ink bg-admin-panel">
@@ -148,7 +148,7 @@
                 </div>
 
                 <div class="mt-4 border-t border-line-strong/70 pt-3">
-                    <p class="font-mono text-[8px] leading-relaxed font-bold text-ink-soft">
+                    <p class="font-mono text-[11px] leading-relaxed font-bold text-ink-soft">
                         @foreach ($activeByCategory as $category => $total)
                             {{ $total }} {{ $category }}@if (! $loop->last) &bull; @endif
                         @endforeach
@@ -175,7 +175,7 @@
                             <p class="mt-1 font-serif text-[11px] leading-relaxed text-ink-soft">
                                 Pencatatan otomatis sinkron dari QR Meja &amp; Kasir Depan
                             </p>
-                            <p class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[8px] font-bold">
+                            <p class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] font-bold">
                                 <span class="text-rust">&#9679; {{ $pendingPayments }} menunggu bayar hari ini</span>
                                 <span class="text-[#8a6415]">&#9679; {{ $processingCount }} diproses hari ini</span>
                             </p>
@@ -184,34 +184,34 @@
 
                     <div class="mt-4 flex flex-wrap items-center gap-1.5" data-dashboard-order-tabs role="tablist" aria-label="Filter tipe pesanan">
                         <button type="button" data-order-tab="all" role="tab" aria-selected="true"
-                                class="tag rounded border-2 border-ink bg-varya-dark px-3 py-1.5 text-[8px] font-bold text-white">
+                                class="tag rounded border-2 border-ink bg-varya-dark px-3 py-1.5 text-[11px] font-bold text-white">
                             Semua (<span data-order-count="all">{{ count($orders) }}</span>)
                         </button>
                         <button type="button" data-order-tab="dine_in" role="tab" aria-selected="false"
-                                class="tag rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[8px] font-bold text-ink hover:bg-varya-light">
+                                class="tag rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[11px] font-bold text-ink hover:bg-varya-light">
                             Makan di Tempat (<span data-order-count="dine_in">{{ collect($orders)->where('type', 'dine_in')->count() }}</span>)
                         </button>
                         <button type="button" data-order-tab="take_away" role="tab" aria-selected="false"
-                                class="tag rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[8px] font-bold text-ink hover:bg-varya-light">
+                                class="tag rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[11px] font-bold text-ink hover:bg-varya-light">
                             Bawa Pulang (<span data-order-count="take_away">{{ collect($orders)->where('type', 'take_away')->count() }}</span>)
                         </button>
                         <a href="{{ route('admin.reports') }}"
-                           class="tag ml-auto rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[8px] font-bold text-ink transition-colors hover:bg-varya-light">
+                           class="tag ml-auto rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[11px] font-bold text-ink transition-colors hover:bg-varya-light">
                             Lihat Semua
                         </a>
                     </div>
                 </div>
 
                 <div class="overflow-x-auto xl:flex-1">
-                    <table class="w-full min-w-[620px] border-collapse text-left xl:h-full">
+                    <table class="w-full min-w-[680px] border-collapse text-left xl:h-full">
                         <thead class="bg-admin-head">
                             <tr class="border-b-2 border-ink">
-                                <th scope="col" class="tag px-4 py-2.5 text-[8px] font-bold text-ink-soft">Kode &amp; Waktu</th>
-                                <th scope="col" class="tag px-3 py-2.5 text-[8px] font-bold text-ink-soft">Pemesan / Lokasi</th>
-                                <th scope="col" class="tag px-3 py-2.5 text-[8px] font-bold text-ink-soft">Tipe</th>
-                                <th scope="col" class="tag px-3 py-2.5 text-[8px] font-bold text-ink-soft">Item</th>
-                                <th scope="col" class="tag px-3 py-2.5 text-[8px] font-bold text-ink-soft">Total Harga</th>
-                                <th scope="col" class="tag px-4 py-2.5 text-[8px] font-bold text-ink-soft">Status</th>
+                                <th scope="col" class="tag px-4 py-2.5 text-[11px] font-bold text-ink-soft">Kode &amp; Waktu</th>
+                                <th scope="col" class="tag px-3 py-2.5 text-[11px] font-bold text-ink-soft">Pemesan / Lokasi</th>
+                                <th scope="col" class="tag px-3 py-2.5 text-[11px] font-bold text-ink-soft">Tipe</th>
+                                <th scope="col" class="tag px-3 py-2.5 text-[11px] font-bold text-ink-soft">Item</th>
+                                <th scope="col" class="tag px-3 py-2.5 text-[11px] font-bold text-ink-soft">Total Harga</th>
+                                <th scope="col" class="tag px-4 py-2.5 text-[11px] font-bold text-ink-soft">Status</th>
                             </tr>
                         </thead>
                         <tbody data-dashboard-orders class="divide-y-2 divide-line"></tbody>
@@ -219,7 +219,7 @@
                 </div>
 
                 <div class="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink bg-[#f7f5ec] px-4 py-3">
-                    <p data-dashboard-orders-record class="tag text-[8px] font-bold text-muted">Menampilkan 0 dari 0 transaksi terbaru</p>
+                    <p data-dashboard-orders-record class="tag text-[11px] font-bold text-muted">Menampilkan 0 dari 0 transaksi terbaru</p>
                     <div data-dashboard-orders-pagination class="flex flex-wrap items-center gap-1.5"></div>
                 </div>
             </section>
@@ -235,8 +235,10 @@
                             </svg>
                         </span>
                         <h2 id="popular-menus-title" class="font-display text-[17px] leading-tight font-black uppercase">
-                            Menu Terlaris Bulan Ini
+                            Paling Banyak Terjual
                         </h2>
+
+                        <span class="tag ml-auto text-[11px] text-ink-soft">Bulan ini</span>
                     </div>
 
                     <div class="divide-y-2 divide-line">
@@ -249,7 +251,7 @@
 
                                 <div class="min-w-0 flex-1">
                                     <p class="font-display text-[12px] leading-tight font-extrabold">{{ $menu['name'] }}</p>
-                                    <p class="mt-0.5 font-serif text-[9px] leading-snug text-ink-soft">
+                                    <p class="mt-0.5 font-serif text-[11px] leading-snug text-ink-soft">
                                         {{ $formatRupiah($menu['price']) }} &bull; {{ $menu['note'] }}
                                     </p>
                                     <p class="tag mt-0.5 text-[6.5px] text-muted">{{ $menu['tag'] }}</p>

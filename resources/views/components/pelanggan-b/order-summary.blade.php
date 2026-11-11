@@ -13,7 +13,7 @@
 <aside data-order-summary data-summary-source="{{ $source }}" class="brut bg-surface">
     <div class="flex items-center justify-between gap-3 border-b-[3px] border-ink bg-[#f1f0f1] px-5 py-3.5">
         <h2 class="product-name text-lg">{{ $title }}</h2>
-        <span class="tag shrink-0 rounded-full bg-rust px-3 py-1 text-[9px] font-bold text-white">
+        <span class="tag shrink-0 rounded-full bg-rust px-3 py-1 text-[11px] font-bold text-white">
             <span data-summary-count>0</span> {{ $badgeLabel }}
         </span>
     </div>
@@ -27,13 +27,13 @@
         </p>
 
         <div class="mt-5 border-t-2 border-dashed border-line-strong pt-4">
-            <div class="tag flex items-center justify-between text-[10px] text-ink-soft">
+            <div class="tag flex items-center justify-between text-[11px] text-ink-soft">
                 <span>Subtotal</span>
                 <span data-summary-subtotal>Rp 0</span>
             </div>
 
             <div class="mt-2 flex items-end justify-between gap-3">
-                <span class="tag text-[10px] text-ink">Total Pembayaran</span>
+                <span class="tag text-[11px] text-ink">Total Pembayaran</span>
                 <span data-summary-total class="font-display text-2xl leading-none font-black text-varya-dark">Rp 0</span>
             </div>
         </div>

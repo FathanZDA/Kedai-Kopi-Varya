@@ -28,7 +28,7 @@
     /* Teks */
     --color-ink: #1b1c1d; /* teks utama + border   */
     --color-ink-soft: #545555; /* teks paragraf         */
-    --color-muted: #8d8d8e; /* teks sekunder         */
+    --color-muted: #63646a; /* teks sekunder (≥4.5:1) */
 
     /* Garis */
     --color-line: #e5e7eb; /* garis tipis           */
@@ -38,7 +38,7 @@
     --color-varya: #2e6b47; /* hijau aksi / tombol   */
     --color-varya-dark: #115231; /* hijau tua / ticker   */
     --color-varya-light: #d4e4ce; /* hijau muda / stripe   */
-    --color-varya-muted: #869582; /* hijau keabu-abuan     */
+    --color-varya-muted: #5f6f5c; /* hijau keabu-abuan     */
 
     /* Aksen */
     --color-rust: #a53f18; /* stiker promo          */
@@ -104,6 +104,15 @@
         border: 2px solid var(--color-ink);
         border-radius: 999px;
         box-shadow: 3px 3px 0 0 var(--color-ink);
+    }
+
+    /*
+    | Kartu Tentang Kami: tanpa border, hanya bayangan keras ke kanan-bawah
+    | (desain: bayangan pekat dan tegas, bukan gradien lembut).
+    */
+    .about-shadow {
+        border-radius: 12px;
+        box-shadow: 8px 8px 0 0 rgb(27 28 29 / 90%);
     }
 
     /* Judul besar section */
@@ -306,7 +315,7 @@
         background-color: #ffffff;
         padding: 0.65rem 0.75rem;
         font-family: var(--font-serif);
-        font-size: 12px;
+        font-size: 13px;
         line-height: 1.45;
         color: var(--color-ink);
         transition: border-color 120ms ease, box-shadow 120ms ease;
@@ -341,7 +350,7 @@
     .admin-label {
         display: block;
         font-family: var(--font-mono);
-        font-size: 9px;
+        font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.08em;
         line-height: 1.35;
@@ -360,7 +369,7 @@
         border-radius: 6px;
         padding: 0.7rem 1rem;
         font-family: var(--font-mono);
-        font-size: 9px;
+        font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.06em;
         line-height: 1.1;
@@ -529,17 +538,17 @@
     |--------------------------------------------------------------------------
     | Halaman autentikasi
     |--------------------------------------------------------------------------
-    | Latar bergaris diagonal, kartu putih ber-border tebal, dan tombol hijau
-    | mengikuti desain pada design/auth.
+    | Latar hijau lembut tanpa garis diagonal, kartu putih ber-border tebal, dan
+    | tombol hijau mengikuti desain pada design/auth. Identitas garis tetap ada
+    | lewat satu bar .admin-stripes di kepala kartu dan panel informasi di kiri.
     */
 
     .auth-shell {
         background-color: #eef3ea;
-        background-image: repeating-linear-gradient(
-            45deg,
-            rgb(17 82 49 / 7%) 0 6px,
-            transparent 6px 30px
-        );
+        background-image:
+            radial-gradient(ellipse 70% 60% at 8% -10%, rgb(212 228 206 / 90%) 0%, transparent 62%),
+            radial-gradient(ellipse 65% 55% at 96% 108%, rgb(212 228 206 / 75%) 0%, transparent 60%),
+            linear-gradient(180deg, #f2f6ee 0%, #eaf1e6 100%);
     }
 
     .auth-card {
@@ -552,7 +561,7 @@
     .auth-label {
         display: block;
         font-family: var(--font-mono);
-        font-size: 9px;
+        font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.1em;
         line-height: 1.35;
@@ -619,7 +628,7 @@
         background-color: var(--color-varya-dark);
         padding: 0.95rem 1.25rem;
         font-family: var(--font-mono);
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.12em;
         line-height: 1.1;

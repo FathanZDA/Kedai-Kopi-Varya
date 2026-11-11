@@ -63,7 +63,7 @@
          hidden
          role="status"
          aria-live="polite"
-         class="fixed bottom-5 left-1/2 z-[80] w-[calc(100%-2.5rem)] max-w-md -translate-x-1/2 rounded-lg border-[3px] border-ink bg-varya-dark px-5 py-3.5 text-center font-mono text-[10px] font-bold tracking-wide text-white uppercase shadow-[5px_5px_0_0_#1b1c1d]"></div>
+         class="fixed bottom-5 left-1/2 z-[80] w-[calc(100%-2.5rem)] max-w-md -translate-x-1/2 rounded-lg border-[3px] border-ink bg-varya-dark px-5 py-3.5 text-center font-mono text-[11px] font-bold tracking-wide text-white uppercase shadow-[5px_5px_0_0_#1b1c1d]"></div>
 
     @stack('scripts')
 </body>

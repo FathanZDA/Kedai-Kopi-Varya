@@ -34,8 +34,8 @@
 
         <div class="ml-auto flex shrink-0 items-center gap-3">
             <div class="hidden text-right xl:block">
-                <p data-admin-clock class="tag text-[9px] font-bold text-ink">—</p>
-                <p class="tag mt-0.5 text-[7px] text-muted">Asia/Jakarta</p>
+                <p data-admin-clock class="tag text-[11px] font-bold text-ink">—</p>
+                <p class="tag mt-0.5 text-[11px] text-muted">Asia/Jakarta</p>
             </div>
 
             <span class="hidden h-8 w-px bg-line-strong/70 xl:block" aria-hidden="true"></span>
@@ -46,7 +46,7 @@
                      stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="12" cy="8" r="3.5"/><path d="M5 21c.7-4 3-6 7-6s6.3 2 7 6"/>
                 </svg>
-                <span class="tag text-[9px] font-bold">Admin</span>
+                <span class="tag text-[11px] font-bold">Admin</span>
             </a>
         </div>
     </div>

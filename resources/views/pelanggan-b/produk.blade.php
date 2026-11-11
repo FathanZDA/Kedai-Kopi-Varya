@@ -16,13 +16,13 @@
     <div class="mx-auto max-w-[1280px] px-5 pt-6 sm:px-8">
         <nav class="flex flex-wrap items-center gap-2" aria-label="Breadcrumb">
             <a href="{{ route('pelanggan-b.beranda') }}#menu"
-               class="tag inline-flex items-center gap-2 border-2 border-line-strong bg-surface px-4 py-2 text-[9px] font-bold text-ink transition-colors hover:border-ink">
+               class="tag inline-flex items-center gap-2 border-2 border-line-strong bg-surface px-4 py-2 text-[11px] font-bold text-ink transition-colors hover:border-ink">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6"/></svg>
                 Katalog Menu
             </a>
-            <span class="tag text-[9px] text-muted">//</span>
-            <span class="tag text-[9px] text-muted">Detail Produk</span>
+            <span class="tag text-[11px] text-muted">//</span>
+            <span class="tag text-[11px] text-muted">Detail Produk</span>
         </nav>
     </div>
 
@@ -51,8 +51,19 @@
                         </a>
 
                         @if (! $menu->tersedia)
-                            <span class="tag absolute top-3 right-3 -rotate-6 rounded-full bg-brown px-3 py-1 text-[10px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d]">
+                            <span class="tag absolute top-3 right-3 -rotate-6 rounded-full bg-brown px-3 py-1 text-[11px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d]">
                                 Habis
+                            </span>
+                        @endif
+
+                        {{-- Penanda menu unggulan dari admin (F-75) --}}
+                        @if ($menu->terlaris)
+                            <span class="tag absolute bottom-3 left-3 inline-flex rotate-2 items-center gap-1 rounded-full border-2 border-ink bg-[#f6c445] px-3 py-1 text-[11px] font-bold text-ink shadow-[2px_2px_0_0_#1b1c1d]">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
+                                     stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="m12 3.6 2.6 5.3 5.8.9-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.8l5.8-.9Z"/>
+                                </svg>
+                                Terlaris
                             </span>
                         @endif
                     </div>
@@ -61,7 +72,7 @@
                 <div class="px-5 pb-6 sm:px-6">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <p class="tag text-[10px] text-varya">{{ $menu->category->nama }}</p>
+                            <p class="tag text-[11px] text-varya">{{ $menu->category->nama }}</p>
                             <h1 class="product-name mt-1 text-3xl leading-tight sm:text-4xl">{{ $menu->nama }}</h1>
                         </div>
 
@@ -104,7 +115,7 @@
                                 </button>
                             </div>
 
-                            <p data-product-cart-note class="tag mt-3 text-[9px] text-muted"></p>
+                            <p data-product-cart-note class="tag mt-3 text-[11px] text-muted"></p>
                         @else
                             <div class="rounded-md border-2 border-line-strong bg-[#efedee] px-5 py-4 text-center">
                                 <p class="tag text-[11px] font-bold text-brown">Stok Habis</p>
@@ -119,7 +130,7 @@
             <x-pelanggan-b.order-summary source="cart" title="Ringkasan Pesanan" :store="$store">
                 <x-slot:cta>
                     <a data-summary-cta href="{{ route('pelanggan-b.keranjang') }}"
-                       class="tag flex w-full items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-ink px-5 py-4 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#115231] transition-transform hover:-translate-y-0.5">
+                       class="tag flex w-full items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-ink px-5 py-4 text-[11px] font-bold text-white shadow-[3px_3px_0_0_#115231] transition-transform hover:-translate-y-0.5">
                         Lihat Keranjang
                         <span class="rounded-full bg-white/15 px-2 py-0.5"><span data-summary-count>0</span></span>
                     </a>

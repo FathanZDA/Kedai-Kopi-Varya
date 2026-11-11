@@ -57,8 +57,19 @@ data-menu-initial="{{ $initial }}">
 
         {{-- Badge status --}}
         @if (! $menu->tersedia)
-            <span class="tag absolute top-3 left-3 rounded-full bg-brown px-3 py-1 text-[10px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] -rotate-6">
+            <span class="tag absolute top-3 left-3 rounded-full bg-brown px-3 py-1 text-[11px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] -rotate-6">
                 Stok Habis
+            </span>
+        @endif
+
+        {{-- Badge menu unggulan dari admin (F-75) --}}
+        @if ($menu->terlaris)
+            <span class="tag absolute top-3 right-3 inline-flex rotate-3 items-center gap-1 rounded-full border-2 border-ink bg-[#f6c445] px-2.5 py-1 text-[11px] font-bold text-ink shadow-[2px_2px_0_0_#1b1c1d]">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
+                     stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m12 3.6 2.6 5.3 5.8.9-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.6 9.8l5.8-.9Z"/>
+                </svg>
+                Terlaris
             </span>
         @endif
     @if ($detailUrl)
@@ -82,7 +93,7 @@ data-menu-initial="{{ $initial }}">
         </p>
 
         @if ($menu->deskripsi)
-            <p class="font-serif text-[13px] leading-relaxed text-ink-soft">{{ $menu->deskripsi }}</p>
+            <p class="font-serif text-[14px] leading-relaxed text-ink-soft">{{ $menu->deskripsi }}</p>
         @endif
 
         @if ($orderable)
@@ -90,7 +101,7 @@ data-menu-initial="{{ $initial }}">
                 @if ($menu->tersedia)
                     <button type="button"
                             data-add-to-cart
-                            class="tag flex w-full items-center justify-center gap-1.5 rounded-md border-2 border-ink bg-varya-dark px-3 py-2.5 text-[10px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                            class="tag flex w-full items-center justify-center gap-1.5 rounded-md border-2 border-ink bg-varya-dark px-3 py-2.5 text-[11px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
                         <span class="text-sm leading-none" aria-hidden="true">+</span>
                         Pesan
                     </button>
@@ -109,7 +120,7 @@ data-menu-initial="{{ $initial }}">
                 @else
                     <button type="button"
                             disabled
-                            class="tag flex w-full items-center justify-center rounded-md border-2 border-line-strong bg-[#efedee] px-3 py-2.5 text-[10px] font-bold text-muted">
+                            class="tag flex w-full items-center justify-center rounded-md border-2 border-line-strong bg-[#efedee] px-3 py-2.5 text-[11px] font-bold text-muted">
                         Habis Terjual
                     </button>
                 @endif

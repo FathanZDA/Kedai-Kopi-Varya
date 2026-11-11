@@ -4,13 +4,13 @@
         <div class="mx-auto max-w-[1280px] px-5 pt-6 sm:px-8">
             <nav class="flex flex-wrap items-center gap-2" aria-label="Breadcrumb">
                 <a href="{{ route('pelanggan-b.beranda') }}#menu"
-                   class="tag inline-flex items-center gap-2 border-2 border-line-strong bg-surface px-4 py-2 text-[9px] font-bold text-ink transition-colors hover:border-ink">
+                   class="tag inline-flex items-center gap-2 border-2 border-line-strong bg-surface px-4 py-2 text-[11px] font-bold text-ink transition-colors hover:border-ink">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6"/></svg>
                     Katalog Menu
                 </a>
-                <span class="tag text-[9px] text-muted">//</span>
-                <span class="tag text-[9px] text-muted">
+                <span class="tag text-[11px] text-muted">//</span>
+                <span class="tag text-[11px] text-muted">
                     Keranjang Belanja (<span data-cart-breadcrumb-count>0</span> Item)
                 </span>
             </nav>
@@ -21,12 +21,12 @@
                 <section aria-labelledby="cart-title">
                     <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
                         <div>
-                            <p class="tag text-[10px] text-varya">Pesananmu</p>
+                            <p class="tag text-[11px] text-varya">Pesananmu</p>
                             <h1 id="cart-title" class="title-xl mt-1 text-3xl sm:text-4xl">Keranjang</h1>
                         </div>
 
                         <button type="button" data-clear-cart
-                                class="tag text-[9px] font-bold text-rust underline underline-offset-4 transition-colors hover:text-ink">
+                                class="tag text-[11px] font-bold text-rust underline underline-offset-4 transition-colors hover:text-ink">
                             Kosongkan Keranjang
                         </button>
                     </div>
@@ -47,7 +47,7 @@
                             Pilih menu favoritmu dulu, lalu atur jumlahnya di sini.
                         </p>
                         <a href="{{ route('pelanggan-b.beranda') }}#menu"
-                           class="tag mt-6 inline-flex items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-varya-dark px-6 py-3.5 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                           class="tag mt-6 inline-flex items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-varya-dark px-6 py-3.5 text-[11px] font-bold text-white shadow-[3px_3px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
                             Lihat Menu
                         </a>
                     </div>
@@ -56,7 +56,7 @@
                 <x-pelanggan-b.order-summary source="cart" title="Ringkasan Pesanan" :store="$store">
                     <x-slot:cta>
                         <a data-summary-cta href="{{ route('pelanggan-b.checkout') }}"
-                           class="tag flex w-full items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-ink px-5 py-4 text-[10px] font-bold text-white shadow-[3px_3px_0_0_#115231] transition-transform hover:-translate-y-0.5">
+                           class="tag flex w-full items-center justify-center gap-2 rounded-md border-[3px] border-ink bg-ink px-5 py-4 text-[11px] font-bold text-white shadow-[3px_3px_0_0_#115231] transition-transform hover:-translate-y-0.5">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M3 6h18v12H3z"/><path d="M3 10h18"/>

@@ -42,7 +42,7 @@
             <span class="block font-display text-[17px] leading-none font-black tracking-[0.02em] whitespace-nowrap text-ink uppercase [word-spacing:0.22em] lg:text-[19px]">
                 Kedai Varya
             </span>
-            <span class="tag mt-1 block text-[7px] tracking-[0.18em] text-muted">Coffee &amp; Eatery</span>
+            <span class="tag mt-1 block text-[11px] tracking-[0.18em] text-muted">Coffee &amp; Eatery</span>
         </span>
 
         <button type="button"
@@ -56,7 +56,7 @@
 
     {{-- Navigasi --}}
     <div class="kasir-scrollbar flex-1 overflow-y-auto px-4 py-5">
-        <p class="tag px-2 text-[9px] font-bold text-muted">// Menu Utama</p>
+        <p class="tag px-2 text-[11px] font-bold text-muted">// Menu Utama</p>
 
         <nav class="mt-3 space-y-2.5" aria-label="Menu kasir">
             @foreach ($items as $item)
@@ -96,13 +96,13 @@
                         @endswitch
                     </span>
 
-                    <span class="tag text-[10px] font-bold tracking-[0.06em]">{{ $item['label'] }}</span>
+                    <span class="tag text-[11px] font-bold tracking-[0.06em]">{{ $item['label'] }}</span>
                 </a>
             @endforeach
         </nav>
 
         <div class="mt-7 rounded-md border border-dashed border-line-strong bg-[#f4f2e8] p-3.5">
-            <p class="tag text-[8px] font-bold text-varya-dark">// Catatan Kasir</p>
+            <p class="tag text-[11px] font-bold text-varya-dark">// Catatan Kasir</p>
             <p class="mt-1.5 font-serif text-[11px] leading-relaxed text-ink-soft">
                 Pesanan kasir hanya menggunakan pembayaran tunai. Status QRIS pelanggan diperbarui otomatis oleh Midtrans.
             </p>
@@ -113,7 +113,7 @@
     <div class="shrink-0 space-y-3 border-t-2 border-ink p-4">
         <a href="{{ route('pelanggan-a.beranda') }}"
            class="flex items-center justify-between gap-2 rounded-md border-2 border-ink bg-kasir-panel px-4 py-3 shadow-[3px_3px_0_0_#c9c8c9] transition-transform hover:-translate-y-0.5">
-            <span class="tag text-[9px] font-bold">Kunjungi Situs Web</span>
+            <span class="tag text-[11px] font-bold">Kunjungi Situs Web</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M14 3h7v7M21 3l-9 9"/><path d="M19 14v6H4V5h6"/>
@@ -121,20 +121,20 @@
         </a>
 
         <div class="flex items-center gap-2 rounded-md border-2 border-ink bg-kasir-panel p-2 shadow-[3px_3px_0_0_#c9c8c9]">
-            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-ink bg-varya-dark font-mono text-[10px] font-bold text-white">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-ink bg-varya-dark font-mono text-[11px] font-bold text-white">
                 {{ $kasir['initial'] }}
             </span>
 
             <span class="min-w-0 flex-1">
                 <span class="block truncate font-display text-[12px] leading-tight font-extrabold">{{ $kasir['name'] }}</span>
-                <span class="tag mt-0.5 block text-[7px] text-muted">{{ $kasir['role'] }}</span>
+                <span class="tag mt-0.5 block text-[11px] text-muted">{{ $kasir['role'] }}</span>
             </span>
 
             <form method="POST" action="{{ route('logout') }}" class="shrink-0">
                 @csrf
 
                 <button type="submit"
-                        class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-kasir-panel px-1.5 py-1.5 text-[8px] font-bold transition-colors hover:bg-varya-light"
+                        class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-kasir-panel px-1.5 py-1.5 text-[11px] font-bold transition-colors hover:bg-varya-light"
                         title="Keluar dari akun">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

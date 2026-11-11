@@ -9,7 +9,7 @@
 
     {{-- Bar tengah --}}
     <div class="bg-footer-bar">
-        <p class="tag mx-auto max-w-[1280px] px-5 py-3 text-center text-[10px] tracking-[0.2em] text-ink sm:text-[11px]">
+        <p class="tag mx-auto max-w-[1280px] px-5 py-3 text-center text-[11px] tracking-[0.2em] text-ink sm:text-[11px]">
             Kedai Kopi Varya <span class="mx-1 opacity-50">//</span> Sejak. 2024
         </p>
     </div>
