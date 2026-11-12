@@ -22,8 +22,8 @@ Halaman ini mengikuti desain kasir pada folder `design/kasir`.
 * **Header:** menampilkan nama kasir yang sedang login, misalnya `Kasir: Dimas Pratama`.
 * **Panel menu:**
   * Kolom pencarian produk/layanan dan tombol **Cari**.
-  * Filter kategori: **Semua**, **Kopi**, **Teh**, **Autentik**, **Makanan**, dan **Cemilan**.
-  * Grid kartu menu berisi foto, nama, deskripsi singkat, harga, dan tombol **+** untuk menambah ke pesanan.
+  * Filter kategori dari database: **Kopi**, **Bukan Kopi**, dan **Makanan & Camilan** (tiga baris tetap, sama dengan admin; F-73). Tidak ada pil **Semua** — pil pertama aktif saat halaman dibuka.
+  * Grid kartu menu berisi foto, nama, deskripsi singkat, harga, dan tombol **+** untuk menambah ke pesanan. Menu yang ditandai admin sebagai **Terlaris** menampilkan badge bintang emas di pojok foto.
   * Menu berstatus **Habis** tetap tampil dengan label **Habis**, tetapi tombol **+** tidak aktif.
 * **Panel pesanan (kanan):**
   * **Nama Pelanggan** (wajib diisi).

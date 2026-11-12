@@ -87,7 +87,7 @@ Koreksi atas slice T1–T4 setelah user membandingkan hasil dengan folder `desig
 
 ## Status tindak lanjut — 12 Nov 2026 (revisi dashboard, kasir, admin)
 
-Rencana lengkap R1–R7 ada di `docs/HANDOFF.md` §5.25. R5, R4, R6, R3, R1, dan R2 sudah selesai; R5–R3 dan R1 sudah di-commit, R2 menunggu commit di branch `perbaikan-r2-kartu-terlaris`. Tersisa R7 (regression + dokumen).
+Rencana lengkap R1–R7 ada di `docs/HANDOFF.md` §5.25. **R1–R6 sudah di-commit** di tumpukan branch `perbaikan-*` (tiga commit terakhir: R1 grafik penjualan `c59c566`, R2 kartu terlaris `a646e37`, revisi R1 grafik garis `b398806`); **R7 selesai** dan hasilnya menunggu commit dokumen di branch yang sama. Regression akhir R7 pada 12 Nov 2026: `php artisan test` → **247 passed** (1385 assertions), `php vendor/bin/pint --test` → 114 file bersih, `npm.cmd run build` → berhasil, QA grafik dashboard 360/768/1280 dan klik titik lolos.
 
 | Temuan | Status | Bukti / irisan |
 |---|---|---|
@@ -99,3 +99,4 @@ Rencana lengkap R1–R7 ada di `docs/HANDOFF.md` §5.25. R5, R4, R6, R3, R1, dan
 | Grafik batang terlihat kecil dan kurang terbaca | **Selesai** | Revisi R1 (§5.25.6); batang diganti grafik garis (area `<polygon>` + `<polyline>`) dengan area plot 300px/360px, titik tetap bisa diklik dan dipilih lewat keyboard |
 | Panel “Paling Banyak Terjual” masih berupa daftar lima baris yang statis | **Selesai** | R2 + revisi Prompt 3; menjadi kartu keempat ringkasan (tanpa gambar) berisi nama menu dan jumlah terjual yang bergilir tiap 2 detik, tombol Jeda, `prefers-reduced-motion` + `aria-live="polite"` dihormati, grafik penjualan lebar penuh; `AdminDashboardTest` 16 passed |
 | Kapsul indikator slide memutih setelah pindah slide | **Selesai** | T8; `pelanggan-a.js` men-toggle `w-7`/`bg-varya-dark` dan `w-2.5`/`bg-white/80`, sama dengan markup Blade |
+| Regression akhir setelah R1–R7 | **Selesai** | R7; `php artisan test` 247 passed (1385 assertions), `pint --test` 114 file bersih, `npm.cmd run build` berhasil, QA grafik 360/768/1280 lolos |

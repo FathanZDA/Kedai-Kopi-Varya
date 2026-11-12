@@ -83,7 +83,7 @@ Admin tidak memiliki fitur rekonsiliasi pembayaran, refund, atau manajemen akun 
 
 3. Admin memilih aksi:
    * **Tambah menu:** mengisi nama, kategori, harga, deskripsi, foto, dan status ketersediaan.
-   * **Ubah menu:** mengubah data menu yang sudah ada.
+   * **Ubah menu:** mengubah data menu yang sudah ada, termasuk penanda **Terlaris** lewat bagian **03 Atribut Penjualan**. Tabel Kelola Menu hanya menampilkan badge ★ sebagai informasi; penanda ini label tampilan dan tidak mengubah harga, ketersediaan, urutan, atau nomor antrean (AD-02f).
    * **Hapus menu:** menghapus menu setelah konfirmasi.
    * **Atur ketersediaan:** mengubah status tersedia/habis.
 
