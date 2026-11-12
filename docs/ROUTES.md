@@ -67,7 +67,7 @@ Belum ada:
 - Route `POST`/`PATCH`/`DELETE` untuk transaksi dan CRUD selain `POST /kasir/pesanan`, `PATCH /kasir/pesanan/{order}/status`, `POST /kasir/pesanan/{order}/cancel`, `POST /kasir/pesanan/{order}/check-status`, `PATCH /kasir/menu/{menu}/availability`, `POST /pesan/checkout`, `POST /pesanan/{kode_pesanan}/bayar-lagi`, `POST/PUT/PATCH/DELETE /admin/menu`, `PATCH /admin/menu/{menu}/availability`, `POST/PUT/PATCH/DELETE /admin/promosi` + `PATCH /admin/promosi/{promo}/status`, `PUT /admin/toko`, serta `POST`/`DELETE /admin/toko/foto-tentang`.
 - Rekonsiliasi berjalan sebagai command terjadwal `qris:reconcile` (bukan route HTTP), lihat §4.11.
 - Laporan: ekspor PDF/Excel (Fase 2) dan ringkasan lintas tahun selain daftar bulan pada filter.
-- Dashboard: filter `?periode=hari|minggu|bulan` (default `hari`); angka ringkasan mengikuti periode aktif, sedangkan menu terlaris, pesanan menunggu/diproses, dan transaksi terbaru tetap seperti aturan F-66.
+- Dashboard: filter `?periode=hari|minggu|bulan` (default `hari`); angka ringkasan dan grafik mengikuti periode aktif, sedangkan menu terlaris dan pesanan menunggu/diproses tetap seperti aturan F-66. Daftar transaksi terbaru tidak lagi dirender di dashboard.
 - Rate limiting untuk endpoint lain di luar login, polling kasir, pembatalan/Cek Status, checkout, dan status pesanan.
 
 
@@ -893,19 +893,20 @@ Data yang dikirim ke halaman:
 | Pesanan diproses | order hari ini dengan `status_pesanan = diproses` |
 | Perbandingan QRIS:tunai | persentase dari pendapatan lunas periode aktif |
 | Menu terlaris | 5 menu dengan `SUM(order_items.jumlah)` terbesar dari transaksi `lunas` bulan berjalan, grup per `nama_menu` |
-| Transaksi terbaru | 10 order terbaru (semua status, tidak difilter periode), diurutkan `created_at` lalu `id` menurun |
+| Grafik penjualan | 24 batang jam (`hari`), 7 batang Senin-Minggu (`minggu`), atau satu batang per tanggal (`bulan`); pendapatan per batang hanya `lunas`, jumlah pesanan semua status; tinggi relatif terhadap batang tertinggi |
 
 Aturan:
 
-- Hanya transaksi `lunas` yang masuk pendapatan (PRD §8.8.1); pesanan belum lunas tetap muncul di tabel transaksi terbaru sebagai informasi beserta status pembayarannya.
+- Hanya transaksi `lunas` yang masuk pendapatan (PRD §8.8.1), termasuk pendapatan per batang grafik; pesanan belum lunas hanya menambah jumlah pesanan pada batangnya, bukan pendapatan.
 - Perbandingan jumlah pesanan memakai periode sebelumnya (`created_at` kemarin, minggu lalu, atau bulan lalu; semua status); bila periode sebelumnya tidak punya pesanan, persentase ditampilkan sebagai teks tanpa pembanding.
 - Rentang periode: `hari` = hari berjalan, `minggu` = Senin 00:00 sampai sekarang, `bulan` = awal sampai akhir bulan berjalan. Nilai `periode` selain tiga itu jatuh ke `hari`.
 - Menu terlaris memakai snapshot `order_items.nama_menu`; harga, kategori, dan foto diambil dari baris `menus` terbaru (termasuk yang sudah di-soft-delete). Menu yang sudah hilang permanen tetap tampil dengan foto bawaan.
-- Tabel transaksi terbaru menampilkan kode pesanan, pelanggan, tipe, jumlah item/porsi, total, metode, dan status pesanan/pembayaran. Filter tab Dine In/Take Away berjalan client-side dari 10 baris itu.
+- Grafik dirender server sebagai deretan `<button data-grafik-bar>` dengan tinggi batang relatif; `admin.js` hanya menangani klik batang (menampilkan rincian `data-label`/`data-revenue`/`data-orders`, klik ulang mengembalikan total periode). Tidak ada library chart, tidak ada request data tambahan. Daftar transaksi terbaru dan filter tab Dine In/Take Away di dashboard dihapus; rincian transaksi ada di Laporan Transaksi.
 - Tidak ada route JSON baru; filter periode memakai query string pada route `GET` yang sama.
 - Error penting: `401` tamu (redirect `/login`), `403` bukan admin.
 - Status 3 Nov 2026: **sudah diimplementasikan** di `AdminController@dashboard` + `App\Services\DashboardService`; seluruh data contoh dashboard (`recentOrders()`, `popularMenus()`, `transactions()`, `makeTransaction()`, `summarizeMonth()`, `kodePesanan()`, `menuKanonik()`) dihapus dari `AdminController`.
 - Status 8 Nov 2026: pemilih periode **Hari Ini/Minggu Ini/Bulan Ini** aktif lewat `?periode`; default `hari`, minggu Senin-Minggu.
+- Status 12 Nov 2026: tabel **Pesanan Masuk Terbaru** diganti grafik penjualan server-rendered (`DashboardService::grafik()`); `AdminController@dashboard` tidak lagi mengirim `orders` maupun `config.orders`.
 
 ### 4.17 Detail pesanan kasir
 

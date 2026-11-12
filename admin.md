@@ -8,7 +8,7 @@
 
 | No | Fitur Utama | Cakupan |
 |---|---|---|
-| 1 | **Dashboard** | Ringkasan penjualan, transaksi, pesanan, menu terlaris, dan transaksi terbaru |
+| 1 | **Dashboard** | Ringkasan penjualan, transaksi, pesanan, menu terlaris, dan grafik penjualan |
 | 2 | **Kelola Menu** | Tambah, lihat, ubah, hapus (soft delete), dan atur ketersediaan menu |
 | 3 | **Laporan Transaksi** | Laporan per bulan yang terhubung dengan transaksi kasir dan pesanan QR |
 | 4 | **Iklan & Promosi** | Tambah, ubah, aktif/nonaktif, dan hapus konten promosi |
@@ -70,8 +70,8 @@ Admin tidak memiliki fitur rekonsiliasi pembayaran, refund, atau manajemen akun 
    * Jumlah pesanan sedang diproses.
    * Perbandingan pendapatan QRIS dan tunai (hanya transaksi lunas).
    * Lima menu terlaris.
-   * Sepuluh transaksi terbaru.
-   * Pilihan periode **Hari Ini** (default), **Minggu Ini** (Senin–Minggu), dan **Bulan Ini** untuk ringkasan pendapatan/pesanan; menu terlaris, pesanan menunggu/diproses, dan transaksi terbaru tidak ikut berubah.
+   * Grafik penjualan: batang pendapatan lunas dan jumlah pesanan per jam (Hari Ini), per hari (Minggu Ini), atau per tanggal (Bulan Ini). Total periode tampil di atas grafik; klik satu batang menampilkan rincian batang itu, klik lagi untuk kembali ke total.
+   * Pilihan periode **Hari Ini** (default), **Minggu Ini** (Senin–Minggu), dan **Bulan Ini** untuk ringkasan pendapatan/pesanan dan grafik; menu terlaris serta pesanan menunggu/diproses tidak ikut berubah. Tidak ada daftar transaksi terbaru di dashboard; gunakan Laporan Transaksi.
 
 4. Admin memilih salah satu fitur lain pada menu: Kelola Menu, Laporan Transaksi, Iklan & Promosi, atau Informasi Toko.
 
@@ -161,7 +161,7 @@ Admin tidak memiliki fitur rekonsiliasi pembayaran, refund, atau manajemen akun 
 **Detail Penting:**
 
 * **Dashboard hanya menghitung transaksi lunas sebagai pendapatan.** Pesanan menunggu, gagal, kedaluwarsa, dibatalkan, atau perlu diperiksa tidak dihitung.
-* **Periode dashboard:** default **Hari Ini**; pilihan **Minggu Ini** memakai Senin–Minggu, dan **Bulan Ini** memakai bulan berjalan. Pilihan periode hanya mengubah ringkasan pendapatan/pesanan; menu terlaris tetap bulan berjalan, sedangkan pesanan menunggu/diproses dan transaksi terbaru tetap memakai aturan harian/terbaru.
+* **Periode dashboard:** default **Hari Ini**; pilihan **Minggu Ini** memakai Senin–Minggu, dan **Bulan Ini** memakai bulan berjalan. Pilihan periode mengubah ringkasan pendapatan/pesanan dan grafik penjualan; menu terlaris tetap bulan berjalan, sedangkan pesanan menunggu/diproses tetap memakai aturan harian. Daftar transaksi terbaru sudah tidak ada di dashboard.
 * **Laporan terhubung dengan kasir.** Semua transaksi tunai yang dibuat kasir dan pesanan QRIS yang lunas otomatis muncul di laporan.
 * **Laporan menampilkan QRIS dan tunai**, termasuk perbandingan total keduanya.
 * **Menu yang dihapus menggunakan *soft delete*.** Menu tidak tampil untuk penjualan baru, tetapi data pesanan lama tetap utuh karena `order_items` menyimpan snapshot nama dan harga.

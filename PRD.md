@@ -349,8 +349,8 @@ Admin hanya memiliki **lima fitur utama** berikut.
 * Jumlah transaksi lunas, jumlah pesanan menunggu pembayaran, dan jumlah pesanan yang sedang diproses.
 * Perbandingan pendapatan QRIS dan tunai.
 * Daftar 5 menu terlaris berdasarkan jumlah item terjual.
-* Daftar 10 transaksi terbaru.
-* Catatan UI: dashboard dapat memilih periode **Hari Ini** (default), **Minggu Ini** (Senin–Minggu), dan **Bulan Ini**. Pilihan ini hanya mengubah rentang ringkasan pendapatan/pesanan; aturan pendapatan tetap hanya transaksi lunas, sedangkan menu terlaris (bulan berjalan), pesanan menunggu/diproses (hari ini), dan 10 transaksi terbaru tidak berubah.
+* Grafik penjualan periode aktif: pendapatan transaksi lunas dan jumlah pesanan per batang (per jam untuk **Hari Ini**, per hari Senin–Minggu untuk **Minggu Ini**, per tanggal untuk **Bulan Ini**). Total periode selalu terlihat di atas grafik; mengklik satu batang menampilkan rincian batang itu.
+* Catatan UI: dashboard dapat memilih periode **Hari Ini** (default), **Minggu Ini** (Senin–Minggu), dan **Bulan Ini**. Pilihan ini mengubah rentang ringkasan pendapatan/pesanan dan grafik; aturan pendapatan tetap hanya transaksi lunas, sedangkan menu terlaris (bulan berjalan) dan pesanan menunggu/diproses (hari ini) tidak berubah. Dashboard tidak lagi menampilkan daftar transaksi terbaru; rincian transaksi tersedia di Laporan Transaksi.
 
 ##### [AD-02] Kelola Menu *(Prioritas: Must)*
 

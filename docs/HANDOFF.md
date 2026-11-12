@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 12 Nov 2026, rencana revisi dashboard/kasir/admin (R1–R7) disetujui user dan sudah ditulis di §5.25; slice R5, R4, dan R6 sedang dikerjakan di branch `perbaikan-pelanggan-dan-fitur-terlaris`. Sebelumnya: slice `perbaikan-ui-terlaris` (T1–T8) dikerjakan di atas `main` (PR #1 `perbaikan-s8-regression-dokumen` sudah di-merge). Slice ini **belum di-commit** dan mencakup: keterbacaan tipografi/kontras, banner promo (foto tetap terlihat, label “Wajib Coba! 🔥” berjarak di samping chip jam, judul tinta, indikator slide hijau), latar login tanpa garis diagonal, penanda **Terlaris** manual (`menus.terlaris`, F-75) beserta badge-nya, dan Tentang Kami dua panel **landscape** dengan bayangan keras kanan-bawah. S1–S8 tetap seperti sebelumnya; dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
+**Terakhir diperbarui:** 12 Nov 2026, rencana revisi dashboard/kasir/admin (R1–R7) disetujui user dan dicatat di §5.25. R5, R4, R6, dan R3 sudah di-commit di branch `perbaikan-revisi-ui-r3-r6` (dua commit: kode + dokumen); **R1 grafik penjualan** sedang dikerjakan di branch `perbaikan-r1-grafik-penjualan`. Sebelumnya: slice `perbaikan-ui-terlaris` (T1–T8) dikerjakan di atas `main` (PR #1 `perbaikan-s8-regression-dokumen` sudah di-merge). Slice ini **belum di-commit** dan mencakup: keterbacaan tipografi/kontras, banner promo (foto tetap terlihat, label “Wajib Coba! 🔥” berjarak di samping chip jam, judul tinta, indikator slide hijau), latar login tanpa garis diagonal, penanda **Terlaris** manual (`menus.terlaris`, F-75) beserta badge-nya, dan Tentang Kami dua panel **landscape** dengan bayangan keras kanan-bawah. S1–S8 tetap seperti sebelumnya; dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
 
 ---
 
@@ -589,7 +589,7 @@ Slice S1–S8 sudah selesai. Pekerjaan operasional lain:
 
 **Status:** rencana disetujui user 12 Nov 2026. Dikerjakan bertahap, satu slice per langkah, di branch `perbaikan-pelanggan-dan-fitur-terlaris`. Baseline sebelum slice: `php artisan test` → **245 passed** (1325 assertions), Pint bersih, build berhasil.
 
-**Progres 12 Nov 2026:** R5, R4, R6, dan **R3 selesai** dan sudah diverifikasi (`php artisan test` → 243 passed / 1317 assertions, `pint --test` → passed, `npm.cmd run build` → berhasil). Berikutnya: **R1** (grafik penjualan), lalu R2, R7.
+**Progres 12 Nov 2026:** R5, R4, R6, dan **R3 selesai** dan sudah di-commit (`perbaikan-revisi-ui-r3-r6`). **R1 grafik penjualan** dikerjakan di branch `perbaikan-r1-grafik-penjualan`; berikutnya R2 lalu R7.
 
 Sumber permintaan: §9 “Prompt saya 2”. Tujuh revisi user diringkas menjadi R1–R7. Aturan tetap: tanpa dependency chart baru (grafik digambar CSS/SVG), tanpa `localStorage` baru, tanpa simulasi pembayaran, dokumentasi diperbarui dalam commit yang sama.
 
@@ -624,12 +624,13 @@ Urutan kerja yang disetujui: **R5 → R4 → R6 → R3 → R1 → R2 → R7**.
 - R2 dan R1 berbagi wilayah dashboard, jadi R2 dikerjakan setelah R1 selesai agar tata letak tidak dibangun dua kali.
 - R3 menyentuh ±388 kemunculan `text-[11px]`; kerjakan per kategori (label 12px, isi 13px) dan periksa tabel yang paling padat (Kelola Menu admin, Pesanan Masuk kasir).
 
-### 5.25.4 Catatan hasil R5, R4, R6, R3
+### 5.25.4 Catatan hasil R5, R4, R6, R3, R1
 
 - **R5 selesai.** `kasir/pesanan-baru.blade.php` mendapat `<dialog data-clear-cart-dialog>` (judul “Kosongkan Pesanan?”, jumlah jenis menu, tombol Batal / Ya, Kosongkan). `kasir.js` hanya membuka dialog dari tombol `data-clear-cart`; `cart.clear()` + toast dijalankan tombol konfirmasi; backdrop/Esc/Batal membatalkan. Test baru: `KasirOrderTest::test_halaman_buat_pesanan_meminta_konfirmasi_sebelum_mengosongkan_keranjang`.
 - **R4 selesai.** Dihapus: kolom Terlaris + teks bantuan di `admin/menu/index.blade.php` (colspan 7→6), tombol `data-admin-menu-terlaris` dan handlernya di `admin.js`, `menuTerlarisBase` di config layout admin, route `admin.menu.terlaris`, `AdminController@updateMenuBestSeller`, `MenuCatalogService::aturTerlaris`, dan `UpdateMenuTerlarisRequest.php`. Badge ★ di samping nama menu (sudah ada sebelumnya) tetap sebagai indikator baca-saja. Tiga test toggle di `AdminMenuCrudTest` dihapus; test simpan lewat form dan badge tetap ada. Dokumen diperbarui: PRD AD-02f, F-75 + riwayat keputusan, ROUTES §4.12, AGENTS §2, `TEST-FITUR.md`, `DOKUMENTASI-FITUR.md`.
 - **R6 selesai.** `app.css` `@layer base` memberi `cursor: pointer` pada `button:not(:disabled)`, `[role='button']`, `summary`, `select`, `label[for]`, label yang membungkus checkbox/radio, dan checkbox/radio; `:disabled`/`aria-disabled` tetap `not-allowed`. Kartu promosi admin (`data-promo-card` di `admin.js`) yang bisa diklik untuk mengedit diberi `cursor-pointer`. Dropzone unggah dan baris laporan sudah memilikinya. Verifikasi visual masih manual.
 - **R3 selesai.** Seluruh `text-[11px]` di `resources/views/admin`, `resources/views/kasir`, layout admin/kasir, `admin.js`, dan `kasir.js` (388 kemunculan) dinaikkan: paragraf `font-serif` (62) menjadi **13px**, sisanya (label, badge, header tabel, teks tabel) menjadi **12px**. Sisa `text-[6.5px]` di daftar “Paling Banyak Terjual” dashboard (2) dinaikkan ke 12px. `app.css`: `.admin-label` dan `.admin-btn-*` 11 → 12px, `.admin-checkbox` 12 → 13px; `.auth-label` dibiarkan 11px karena di luar area kasir/admin. Tidak ada lagi teks di bawah 12px di area kasir/admin (dicek dengan grep). Tabel dengan `min-w` tetap memakai gulir horizontal; pemeriksaan visual 360/768/1280 belum dilakukan.
+- **R1 selesai (kode + test).** `DashboardService::grafik($periode)` mengembalikan `periode`, `label`, `satuan`, `maks`, dan `batang`: 24 jam (`HOUR(created_at)`), 7 hari Senin-Minggu (`DATE(created_at)`), atau satu batang per tanggal (`DAY(created_at)`). Pendapatan per batang hanya `status_pembayaran = lunas`; jumlah pesanan semua status. Tinggi batang relatif (0–100, minimal 4 untuk nilai bukan nol). `data()` tidak lagi mengirim `recent_orders`; `AdminController@dashboard` mengirim `grafik` dan menghapus `orders` + `config.orders`. `admin/dashboard.blade.php` mengganti tabel “Pesanan Masuk Terbaru” dengan kartu grafik bar `<button data-grafik-bar>` + panel rincian (`data-grafik-caption`/`-revenue`/`-orders`), total periode di kepala kartu, dan tautan Laporan Transaksi; `admin.js` `initDashboard()` hanya menangani pilih/batal pilih batang (klik lagi = total periode), tanpa library chart. Test: 3 test grafik baru + penyesuaian test ringkasan di `AdminDashboardTest` (14 passed). Dokumen: PRD AD-01, `admin.md` §A, F-66, `ROUTES.md` §4.16, `AGENTS.md` §2, `TEST-FITUR.md`.
 
 ## 6. Keputusan yang masih menunggu user
 
@@ -745,7 +746,8 @@ setelah kamu membaca revisi saya, saya ingin kamu membuat rencana pengerjaan yan
 | 8 Nov 2026 | `perbaikan-s8-regression-dokumen` | *belum di-commit* | S8 regression final, status temuan, dan dokumentasi rilis |
 | 10 Nov 2026 | `perbaikan-ui-terlaris` (working tree `main`) | *belum di-commit* | T1 tipografi/kontras, T2 banner promo, T3 latar login, T4 penanda Terlaris manual + badge (F-75) |
 | 11 Nov 2026 | `perbaikan-ui-terlaris` (working tree `main`) | *belum di-commit* | T5–T8 revisi tampilan: banner tidak samar, label “Wajib Coba! 🔥” berjarak, Tentang Kami landscape ukuran semula, `.about-shadow` keras kanan-bawah, indikator slide selalu hijau |
-| 12 Nov 2026 | `perbaikan-pelanggan-dan-fitur-terlaris` | *belum di-commit* | R5 konfirmasi kosongkan keranjang kasir, R4 penanda Terlaris hanya lewat form (kolom/tombol/endpoint dihapus), R6 cursor pointer global, R3 font kasir/admin naik ke lantai 12px |
+| 12 Nov 2026 | `perbaikan-revisi-ui-r3-r6` | `18b21c6` | R5 konfirmasi kosongkan keranjang kasir, R4 penanda Terlaris hanya lewat form (kolom/tombol/endpoint dihapus), R6 cursor pointer global, R3 font kasir/admin naik ke lantai 12px |
+| 12 Nov 2026 | `perbaikan-r1-grafik-penjualan` | *belum di-commit* | R1 grafik penjualan menggantikan tabel Pesanan Masuk Terbaru |
 
 ---
 
