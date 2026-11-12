@@ -81,6 +81,30 @@
         -webkit-font-smoothing: antialiased;
     }
 
+    /*
+    | Kursor sebagai penanda interaktif:
+    | elemen yang bisa diklik memakai pointer, elemen nonaktif memakai not-allowed.
+    */
+    a[href],
+    area[href],
+    button:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    summary,
+    label[for],
+    select:not(:disabled),
+    input[type='checkbox']:not(:disabled),
+    input[type='radio']:not(:disabled) {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    input:disabled,
+    select:disabled,
+    textarea:disabled,
+    [aria-disabled='true'] {
+        cursor: not-allowed;
+    }
+
     /* Judul section memakai display font */
     h1,
     h2,
