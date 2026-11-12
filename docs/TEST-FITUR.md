@@ -87,7 +87,7 @@ Koreksi atas slice T1–T4 setelah user membandingkan hasil dengan folder `desig
 
 ## Status tindak lanjut — 12 Nov 2026 (revisi dashboard, kasir, admin)
 
-Rencana lengkap R1–R7 ada di `docs/HANDOFF.md` §5.25. R5, R4, R6, R3, dan R1 sudah selesai; R5–R3 sudah di-commit, R1 sedang diselesaikan di branch `perbaikan-r1-grafik-penjualan`.
+Rencana lengkap R1–R7 ada di `docs/HANDOFF.md` §5.25. R5, R4, R6, R3, R1, dan R2 sudah selesai; R5–R3 dan R1 sudah di-commit, R2 menunggu commit di branch `perbaikan-r2-kartu-terlaris`. Tersisa R7 (regression + dokumen).
 
 | Temuan | Status | Bukti / irisan |
 |---|---|---|
@@ -96,4 +96,5 @@ Rencana lengkap R1–R7 ada di `docs/HANDOFF.md` §5.25. R5, R4, R6, R3, dan R1 
 | Elemen yang bisa diklik tidak selalu memakai kursor tangan | **Selesai** | R6; aturan dasar `cursor: pointer` di `app.css` + `cursor-pointer` pada kartu promosi; nonaktif tetap `not-allowed` |
 | Font kasir/admin masih 11px dan sulit dibaca | **Selesai** | R3; 388 `text-[11px]` → 12px, paragraf isi → 13px, `.admin-label`/`.admin-btn-*` → 12px, `.admin-checkbox` → 13px |
 | Dashboard menampilkan tabel “Pesanan Masuk Terbaru” yang menduplikasi Laporan Transaksi | **Selesai** | R1; grafik bar server-rendered per jam/hari/tanggal (`DashboardService::grafik()`), rincian per batang lewat JS kecil, tanpa library chart; `AdminDashboardTest` 14 passed |
+| Panel “Paling Banyak Terjual” masih berupa daftar lima baris yang statis | **Selesai** | R2 + revisi Prompt 3; menjadi kartu keempat ringkasan (tanpa gambar) berisi nama menu dan jumlah terjual yang bergilir tiap 2 detik, tombol Jeda, `prefers-reduced-motion` + `aria-live="polite"` dihormati, grafik penjualan lebar penuh; `AdminDashboardTest` 16 passed |
 | Kapsul indikator slide memutih setelah pindah slide | **Selesai** | T8; `pelanggan-a.js` men-toggle `w-7`/`bg-varya-dark` dan `w-2.5`/`bg-white/80`, sama dengan markup Blade |
