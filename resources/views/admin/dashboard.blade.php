@@ -157,70 +157,99 @@
             </article>
         </div>
 
-        {{-- Pesanan terbaru + kolom kanan --}}
+        {{-- Grafik penjualan + kolom kanan --}}
         <div class="mt-5 grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_300px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
-            <section class="admin-card overflow-hidden xl:flex xl:flex-col" aria-labelledby="recent-orders-title">
+            <section class="admin-card overflow-hidden xl:flex xl:flex-col"
+                     aria-labelledby="grafik-title"
+                     data-grafik
+                     data-grafik-total-label="Total {{ $ringkasan['label'] }}"
+                     data-grafik-total-revenue="{{ $ringkasan['revenue'] }}"
+                     data-grafik-total-orders="{{ $ringkasan['orders'] }}">
                 <div class="border-b-2 border-ink bg-[#f3f1e7] px-4 py-5">
-                    <div class="flex items-start gap-3">
+                    <div class="flex flex-wrap items-start gap-3">
                         <span class="grid h-8 w-8 shrink-0 place-items-center rounded-sm bg-varya-dark text-white">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6M9 16h3"/>
+                                <path d="M4 20h16"/><path d="M7 20v-6M12 20V9M17 20V4"/>
                             </svg>
                         </span>
-                        <div>
-                            <h2 id="recent-orders-title" class="font-display text-[20px] leading-tight font-black uppercase">
-                                Pesanan Masuk Terbaru
+                        <div class="min-w-0 flex-1">
+                            <h2 id="grafik-title" class="font-display text-[20px] leading-tight font-black uppercase">
+                                Grafik Penjualan
                             </h2>
                             <p class="mt-1 font-serif text-[13px] leading-relaxed text-ink-soft">
-                                Pencatatan otomatis sinkron dari QR Meja &amp; Kasir Depan
+                                Pendapatan transaksi lunas {{ $grafik['satuan'] }} &bull; {{ $ringkasan['label'] }}
                             </p>
                             <p class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[12px] font-bold">
                                 <span class="text-rust">&#9679; {{ $pendingPayments }} menunggu bayar hari ini</span>
                                 <span class="text-[#8a6415]">&#9679; {{ $processingCount }} diproses hari ini</span>
                             </p>
                         </div>
+
+                        <div class="shrink-0 border-l-2 border-ink pl-3 sm:pl-4">
+                            <p class="tag text-[12px] font-bold text-muted">Total Pendapatan</p>
+                            <p class="font-display text-[24px] leading-none font-black text-varya-dark">
+                                Rp {{ number_format($ringkasan['revenue'], 0, ',', '.') }}
+                            </p>
+                            <p class="tag mt-1 text-[12px] font-bold text-ink-soft">
+                                {{ $ringkasan['orders'] }} pesanan &bull; {{ $ringkasan['label'] }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-3 pt-4 pb-2 sm:px-4">
+                    @if ($grafik['maks'] === 0)
+                        <p class="mb-2 rounded border border-line-strong bg-admin-soft px-3 py-2 font-serif text-[13px] text-ink-soft">
+                            Belum ada transaksi lunas {{ mb_strtolower($grafik['label']) }}. Grafik akan terisi setelah pembayaran pertama.
+                        </p>
+                    @endif
+
+                    <div class="overflow-x-auto pb-1">
+                        <div class="flex items-stretch gap-[3px]"
+                             style="min-width: {{ max(260, count($grafik['batang']) * 26) }}px;">
+                            @foreach ($grafik['batang'] as $batang)
+                                <button type="button"
+                                        data-grafik-bar
+                                        aria-pressed="false"
+                                        aria-label="{{ $batang['judul'] }}: Rp {{ number_format($batang['pendapatan'], 0, ',', '.') }}, {{ $batang['pesanan'] }} pesanan"
+                                        data-label="{{ $batang['judul'] }}"
+                                        data-revenue="{{ $batang['pendapatan'] }}"
+                                        data-orders="{{ $batang['pesanan'] }}"
+                                        class="group flex h-[200px] min-w-0 flex-1 flex-col justify-end rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-varya-dark">
+                                    <span class="relative flex-1">
+                                        <span class="grafik-bar absolute inset-x-0 bottom-0 rounded-t-[3px] border border-ink bg-varya/60 transition-colors group-hover:bg-varya-dark"
+                                              style="height: {{ $batang['tinggi'] }}%"></span>
+                                    </span>
+                                    <span class="mt-1 h-4 shrink-0 text-center font-mono text-[12px] leading-none font-bold text-muted">
+                                        {{ $batang['label'] }}
+                                    </span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto flex flex-wrap items-end justify-between gap-3 border-t-2 border-ink bg-[#f7f5ec] px-4 py-3">
+                    <div class="min-w-0" aria-live="polite">
+                        <p class="tag text-[12px] font-bold text-muted" data-grafik-caption>Total {{ $ringkasan['label'] }}</p>
+                        <p class="font-display text-[22px] leading-none font-black text-varya-dark" data-grafik-revenue>
+                            Rp {{ number_format($ringkasan['revenue'], 0, ',', '.') }}
+                        </p>
                     </div>
 
-                    <div class="mt-4 flex flex-wrap items-center gap-1.5" data-dashboard-order-tabs role="tablist" aria-label="Filter tipe pesanan">
-                        <button type="button" data-order-tab="all" role="tab" aria-selected="true"
-                                class="tag rounded border-2 border-ink bg-varya-dark px-3 py-1.5 text-[12px] font-bold text-white">
-                            Semua (<span data-order-count="all">{{ count($orders) }}</span>)
-                        </button>
-                        <button type="button" data-order-tab="dine_in" role="tab" aria-selected="false"
-                                class="tag rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[12px] font-bold text-ink hover:bg-varya-light">
-                            Makan di Tempat (<span data-order-count="dine_in">{{ collect($orders)->where('type', 'dine_in')->count() }}</span>)
-                        </button>
-                        <button type="button" data-order-tab="take_away" role="tab" aria-selected="false"
-                                class="tag rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[12px] font-bold text-ink hover:bg-varya-light">
-                            Bawa Pulang (<span data-order-count="take_away">{{ collect($orders)->where('type', 'take_away')->count() }}</span>)
-                        </button>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                        <p class="font-mono text-[12px] font-bold text-ink-soft">
+                            <span data-grafik-orders>{{ $ringkasan['orders'] }}</span> pesanan tercatat
+                        </p>
+                        <p class="tag max-w-[190px] text-[12px] text-muted" data-grafik-hint>
+                            Klik batang untuk rincian
+                        </p>
                         <a href="{{ route('admin.reports') }}"
-                           class="tag ml-auto rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[12px] font-bold text-ink transition-colors hover:bg-varya-light">
-                            Lihat Semua
+                           class="tag rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[12px] font-bold text-ink transition-colors hover:bg-varya-light">
+                            Laporan Transaksi
                         </a>
                     </div>
-                </div>
-
-                <div class="overflow-x-auto xl:flex-1">
-                    <table class="w-full min-w-[680px] border-collapse text-left xl:h-full">
-                        <thead class="bg-admin-head">
-                            <tr class="border-b-2 border-ink">
-                                <th scope="col" class="tag px-4 py-2.5 text-[12px] font-bold text-ink-soft">Kode &amp; Waktu</th>
-                                <th scope="col" class="tag px-3 py-2.5 text-[12px] font-bold text-ink-soft">Pemesan / Lokasi</th>
-                                <th scope="col" class="tag px-3 py-2.5 text-[12px] font-bold text-ink-soft">Tipe</th>
-                                <th scope="col" class="tag px-3 py-2.5 text-[12px] font-bold text-ink-soft">Item</th>
-                                <th scope="col" class="tag px-3 py-2.5 text-[12px] font-bold text-ink-soft">Total Harga</th>
-                                <th scope="col" class="tag px-4 py-2.5 text-[12px] font-bold text-ink-soft">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody data-dashboard-orders class="divide-y-2 divide-line"></tbody>
-                    </table>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink bg-[#f7f5ec] px-4 py-3">
-                    <p data-dashboard-orders-record class="tag text-[12px] font-bold text-muted">Menampilkan 0 dari 0 transaksi terbaru</p>
-                    <div data-dashboard-orders-pagination class="flex flex-wrap items-center gap-1.5"></div>
                 </div>
             </section>
 

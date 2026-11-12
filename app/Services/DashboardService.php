@@ -21,14 +21,14 @@ use Carbon\CarbonImmutable;
  *   hari berjalan, sama dengan cakupan halaman Pesanan Masuk kasir.
  * - Menu terlaris memakai snapshot `order_items` dari transaksi `lunas`
  *   bulan berjalan.
- * - Transaksi terbaru tidak difilter status maupun periode, hanya urutan
- *   waktu.
+ * - Grafik penjualan memecah periode aktif menjadi batang: 24 jam untuk
+ *   `hari`, tujuh hari Senin-Minggu untuk `minggu`, dan setiap tanggal untuk
+ *   `bulan`. Pendapatan per batang hanya dari transaksi `lunas`, sedangkan
+ *   jumlah pesanan mengikuti cakupan kartu Total Pesanan.
  */
 class DashboardService
 {
     private const ZONA = 'Asia/Jakarta';
-
-    private const BATAS_TRANSAKSI = 10;
 
     private const BATAS_MENU = 5;
 
@@ -78,7 +78,7 @@ class DashboardService
                 ->where('status_pesanan', StatusPesanan::Diproses->value)
                 ->count(),
             'popular_menus' => $this->menuTerlaris($bulanIni),
-            'recent_orders' => $this->transaksiTerbaru(),
+            'grafik' => $this->grafik($periode),
             'periode' => $periode,
             'ringkasan' => $ringkasanAktif,
             'ringkasan_periode' => [
@@ -239,48 +239,150 @@ class DashboardService
     }
 
     /**
-     * Sepuluh transaksi terbaru tanpa filter status, lengkap dengan data yang
-     * dipakai tabel dashboard.
+     * Deret grafik penjualan periode aktif.
      *
+     * Batang berisi pendapatan transaksi `lunas` dan seluruh pesanan pada
+     * rentang waktu batang tersebut. Tinggi batang dihitung relatif terhadap
+     * batang tertinggi (0-100, minimal 4 untuk nilai bukan nol).
+     *
+     * @return array{periode: string, label: string, satuan: string, maks: int, batang: list<array<string, mixed>>}
+     */
+    public function grafik(string $periode = 'hari'): array
+    {
+        $periode = $this->periodeValid($periode);
+        $sekarang = CarbonImmutable::now(self::ZONA);
+
+        $batang = match ($periode) {
+            'minggu' => $this->batangMinggu($sekarang),
+            'bulan' => $this->batangBulan($sekarang),
+            default => $this->batangHari($sekarang),
+        };
+
+        $maks = 0;
+
+        foreach ($batang as $item) {
+            $maks = max($maks, $item['pendapatan']);
+        }
+
+        foreach ($batang as $index => $item) {
+            $batang[$index]['tinggi'] = $maks > 0 && $item['pendapatan'] > 0
+                ? max(4, (int) round(($item['pendapatan'] / $maks) * 100))
+                : 0;
+        }
+
+        return [
+            'periode' => $periode,
+            'label' => $this->labelPeriode($periode),
+            'satuan' => match ($periode) {
+                'minggu' => 'per hari',
+                'bulan' => 'per tanggal',
+                default => 'per jam',
+            },
+            'maks' => $maks,
+            'batang' => $batang,
+        ];
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
-    private function transaksiTerbaru(): array
+    private function batangHari(CarbonImmutable $sekarang): array
+    {
+        $mulai = $sekarang->startOfDay();
+        $data = $this->hitungPerBatang($mulai, $sekarang->endOfDay(), 'HOUR(created_at)');
+        $batang = [];
+
+        for ($jam = 0; $jam < 24; $jam++) {
+            $kunci = (string) $jam;
+            $label = str_pad($kunci, 2, '0', STR_PAD_LEFT);
+
+            $batang[] = [
+                'kunci' => $kunci,
+                'label' => $jam % 3 === 0 ? $label : '',
+                'judul' => "Pukul {$label}.00-{$label}.59 WIB",
+                'pendapatan' => $data[$kunci]['pendapatan'] ?? 0,
+                'pesanan' => $data[$kunci]['pesanan'] ?? 0,
+            ];
+        }
+
+        return $batang;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function batangMinggu(CarbonImmutable $sekarang): array
+    {
+        $mulai = $sekarang->startOfWeek(CarbonImmutable::MONDAY);
+        $data = $this->hitungPerBatang($mulai, $mulai->endOfWeek()->endOfDay(), 'DATE(created_at)');
+        $batang = [];
+
+        for ($hari = 0; $hari < 7; $hari++) {
+            $tanggal = $mulai->addDays($hari);
+            $kunci = $tanggal->toDateString();
+
+            $batang[] = [
+                'kunci' => $kunci,
+                'label' => $tanggal->locale('id')->translatedFormat('D'),
+                'judul' => $tanggal->locale('id')->translatedFormat('l, j M Y'),
+                'pendapatan' => $data[$kunci]['pendapatan'] ?? 0,
+                'pesanan' => $data[$kunci]['pesanan'] ?? 0,
+            ];
+        }
+
+        return $batang;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function batangBulan(CarbonImmutable $sekarang): array
+    {
+        $mulai = $sekarang->startOfMonth();
+        $data = $this->hitungPerBatang($mulai, $sekarang->endOfMonth()->endOfDay(), 'DAY(created_at)');
+        $batang = [];
+        $jumlahHari = $sekarang->daysInMonth;
+
+        for ($hari = 1; $hari <= $jumlahHari; $hari++) {
+            $tanggal = $mulai->addDays($hari - 1);
+            $kunci = (string) $hari;
+
+            $batang[] = [
+                'kunci' => $kunci,
+                'label' => $hari === 1 || $hari % 5 === 0 ? $kunci : '',
+                'judul' => $tanggal->locale('id')->translatedFormat('j F Y'),
+                'pendapatan' => $data[$kunci]['pendapatan'] ?? 0,
+                'pesanan' => $data[$kunci]['pesanan'] ?? 0,
+            ];
+        }
+
+        return $batang;
+    }
+
+    /**
+     * Agregasi pesanan per kunci waktu. Pendapatan hanya menghitung transaksi
+     * `lunas`; jumlah pesanan menghitung semua status seperti kartu ringkasan.
+     *
+     * @return array<string, array{pendapatan: int, pesanan: int}>
+     */
+    private function hitungPerBatang(CarbonImmutable $mulai, CarbonImmutable $akhir, string $ekspresi): array
     {
         return Order::query()
-            ->with(['items', 'payments'])
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->limit(self::BATAS_TRANSAKSI)
+            ->whereBetween('created_at', [$mulai, $akhir])
+            ->selectRaw("{$ekspresi} as kunci")
+            ->selectRaw('COUNT(*) as pesanan')
+            ->selectRaw(
+                'SUM(CASE WHEN status_pembayaran = ? THEN total ELSE 0 END) as pendapatan',
+                [StatusPembayaran::Lunas->value],
+            )
+            ->groupBy('kunci')
             ->get()
-            ->map(function (Order $order): array {
-                $pembayaran = $order->payments->sortByDesc('id')->first();
-
-                return [
-                    'id' => $order->id,
-                    'code' => $order->kode_pesanan,
-                    'queue' => $order->nomor_antrean === null
-                        ? null
-                        : str_pad((string) $order->nomor_antrean, 3, '0', STR_PAD_LEFT),
-                    'customer' => $order->nama_pelanggan,
-                    'type' => $order->tipe_pesanan->value,
-                    'type_label' => $order->tipe_pesanan->label(),
-                    'items' => $order->items->count(),
-                    'portions' => (int) $order->items->sum('jumlah'),
-                    'total' => $order->total,
-                    'status' => $order->status_pesanan->value,
-                    'status_label' => $order->status_pesanan->label(),
-                    'payment' => $order->metode_pembayaran->label(),
-                    'payment_status' => $order->status_pembayaran->value,
-                    'payment_status_label' => $order->status_pembayaran->label(),
-                    'midtrans_id' => $pembayaran?->midtrans_order_id,
-                    'time' => $order->created_at
-                        ? $order->created_at->locale('id')->diffForHumans()
-                        : '-',
-                    'datetime' => $order->created_at
-                        ? $order->created_at->locale('id')->translatedFormat('d M Y, H:i').' WIB'
-                        : '-',
-                ];
-            })
+            ->mapWithKeys(fn (Order $baris): array => [
+                (string) $baris->getAttribute('kunci') => [
+                    'pendapatan' => (int) $baris->getAttribute('pendapatan'),
+                    'pesanan' => (int) $baris->getAttribute('pesanan'),
+                ],
+            ])
             ->all();
     }
 }

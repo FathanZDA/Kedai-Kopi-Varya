@@ -51,9 +51,9 @@ class AdminController extends Controller
 
         return view('admin.dashboard', [
             'admin' => $this->admin(),
-            'orders' => $data['recent_orders'],
             'menus' => $menus,
             'popularMenus' => $data['popular_menus'],
+            'grafik' => $data['grafik'],
             'periodeAktif' => $data['periode'],
             'ringkasan' => $data['ringkasan'],
             'ringkasanPeriode' => $data['ringkasan_periode'],
@@ -72,7 +72,6 @@ class AdminController extends Controller
             'todayLabel' => $data['today_label'],
             'monthLabel' => $data['month_label'],
             'config' => [
-                'orders' => $data['recent_orders'],
                 'menus' => $menus,
             ],
         ]);

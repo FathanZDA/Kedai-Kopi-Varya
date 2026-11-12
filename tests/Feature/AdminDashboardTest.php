@@ -98,9 +98,11 @@ class AdminDashboardTest extends TestCase
 
         $response->assertOk()
             ->assertSee('Ringkasan Dashboard')
-            ->assertSee('TUNDASH1')
-            ->assertSee('QRDASH01')
+            ->assertSee('Grafik Penjualan')
             ->assertSee('November 2026')
+            ->assertSee('Rp 72.000')
+            ->assertDontSee('Pesanan Masuk Terbaru')
+            ->assertDontSee('TUNDASH1')
             ->assertDontSee('demo-order', false)
             ->assertDontSee('+14%');
 
@@ -229,21 +231,101 @@ class AdminDashboardTest extends TestCase
             ->assertDontSee('9x terjual');
     }
 
-    public function test_transaksi_terbaru_maksimal_sepuluh_urut_waktu(): void
+    public function test_grafik_penjualan_harian_memakai_24_jam_dan_hanya_lunas(): void
     {
-        foreach (range(1, 11) as $nomor) {
-            $this->buatOrder([
-                'kode_pesanan' => 'TRX'.str_pad((string) $nomor, 5, '0', STR_PAD_LEFT),
-                'dibuat_pada' => '2026-11-02 '.str_pad((string) $nomor, 2, '0', STR_PAD_LEFT).':00:00',
-            ]);
-        }
+        $this->buatOrder([
+            'kode_pesanan' => 'GRAFHAR1',
+            'total' => 30000,
+            'dibuat_pada' => '2026-11-02 09:15:00',
+        ]);
+
+        $this->buatOrder([
+            'kode_pesanan' => 'GRAFHAR2',
+            'nomor_antrean' => null,
+            'tanggal_antrean' => null,
+            'status_pesanan' => StatusPesanan::MenungguPembayaran,
+            'status_pembayaran' => StatusPembayaran::Menunggu,
+            'metode_pembayaran' => MetodePembayaran::Qris,
+            'sumber' => SumberPesanan::Qr,
+            'total' => 99000,
+            'uang_diterima' => null,
+            'kembalian' => null,
+            'waktu_lunas' => null,
+            'dibuat_pada' => '2026-11-02 09:45:00',
+        ]);
 
         $response = $this->actingAs($this->admin)->get(route('admin.dashboard'));
 
         $response->assertOk()
-            ->assertSee('TRX00011')
-            ->assertSee('TRX00002')
-            ->assertDontSee('TRX00001');
+            ->assertSee('Grafik Penjualan')
+            ->assertSee('Total Hari Ini')
+            ->assertSee('per jam')
+            ->assertDontSee('Pesanan Masuk Terbaru')
+            ->assertDontSee('GRAFHAR1');
+
+        $grafik = $response->viewData('grafik');
+
+        $this->assertSame('hari', $grafik['periode']);
+        $this->assertCount(24, $grafik['batang']);
+        $this->assertSame('09', $grafik['batang'][9]['label']);
+        $this->assertSame('Pukul 09.00-09.59 WIB', $grafik['batang'][9]['judul']);
+        $this->assertSame(30000, $grafik['batang'][9]['pendapatan']);
+        $this->assertSame(2, $grafik['batang'][9]['pesanan']);
+        $this->assertSame(100, $grafik['batang'][9]['tinggi']);
+        $this->assertSame(0, $grafik['batang'][10]['pendapatan']);
+        $this->assertSame(0, $grafik['batang'][10]['tinggi']);
+        $this->assertSame(30000, $grafik['maks']);
+    }
+
+    public function test_grafik_mingguan_memakai_tujuh_hari_senin_sampai_minggu(): void
+    {
+        $this->buatOrder(['kode_pesanan' => 'GRAFSEN1', 'total' => 22000, 'dibuat_pada' => '2026-11-02 08:00:00']);
+        $this->buatOrder(['kode_pesanan' => 'GRAFRAB1', 'total' => 50000, 'dibuat_pada' => '2026-11-04 12:00:00']);
+        // Minggu sebelumnya tidak ikut minggu berjalan.
+        $this->buatOrder(['kode_pesanan' => 'GRAFLALU', 'total' => 70000, 'dibuat_pada' => '2026-11-01 09:00:00']);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.dashboard', ['periode' => 'minggu']));
+
+        $response->assertOk()
+            ->assertSee('Grafik Penjualan')
+            ->assertSee('per hari')
+            ->assertSee('Total Minggu Ini');
+
+        $grafik = $response->viewData('grafik');
+
+        $this->assertSame('minggu', $grafik['periode']);
+        $this->assertCount(7, $grafik['batang']);
+        $this->assertSame(['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'], array_column($grafik['batang'], 'label'));
+        $this->assertSame(22000, $grafik['batang'][0]['pendapatan']);
+        $this->assertSame(50000, $grafik['batang'][2]['pendapatan']);
+        $this->assertSame(1, $grafik['batang'][2]['pesanan']);
+        $this->assertSame(0, $grafik['batang'][6]['pendapatan']);
+        $this->assertSame(50000, $grafik['maks']);
+    }
+
+    public function test_grafik_bulanan_memakai_semua_tanggal_bulan_berjalan(): void
+    {
+        $this->buatOrder(['kode_pesanan' => 'GRAFNOV1', 'total' => 22000, 'dibuat_pada' => '2026-11-02 09:00:00']);
+        $this->buatOrder(['kode_pesanan' => 'GRAFKTOB', 'total' => 99000, 'dibuat_pada' => '2026-10-20 09:00:00']);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.dashboard', ['periode' => 'bulan']));
+
+        $response->assertOk()
+            ->assertSee('per tanggal')
+            ->assertSee('Total Bulan Ini');
+
+        $grafik = $response->viewData('grafik');
+
+        $this->assertSame('bulan', $grafik['periode']);
+        $this->assertCount(30, $grafik['batang']);
+        $this->assertSame('1', $grafik['batang'][0]['label']);
+        $this->assertSame('', $grafik['batang'][1]['label']);
+        $this->assertSame('5', $grafik['batang'][4]['label']);
+        $this->assertSame(0, $grafik['batang'][0]['pendapatan']);
+        $this->assertSame(22000, $grafik['batang'][1]['pendapatan']);
+        $this->assertSame(22000, $grafik['maks']);
     }
 
     public function test_dashboard_default_memakai_periode_hari_dan_menampilkan_tiga_tautan(): void

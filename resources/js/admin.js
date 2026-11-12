@@ -320,128 +320,70 @@ function initShell() {
 /* -------------------------------------------------------------------------- */
 
 function initDashboard() {
-    const root = document.querySelector('[data-admin-dashboard]');
+    const root = document.querySelector('[data-grafik]');
     if (!root) return;
 
-    const orders = CONFIG.orders ?? [];
-    const tbody = root.querySelector('[data-dashboard-orders]');
-    const record = root.querySelector('[data-dashboard-orders-record]');
-    const pagination = root.querySelector('[data-dashboard-orders-pagination]');
-    const tabs = Array.from(root.querySelectorAll('[data-order-tab]'));
-    const pageSize = 4;
-    const state = { tab: 'all', page: 1 };
+    const bars = Array.from(root.querySelectorAll('[data-grafik-bar]'));
+    if (bars.length === 0) return;
 
-    const statusMeta = {
-        selesai: {
-            label: 'Selesai',
-            pill: 'border-varya/30 bg-varya-light text-varya-dark',
-            dot: 'bg-varya',
-        },
-        diproses: {
-            label: 'Diproses',
-            pill: 'border-[#b58a2b]/40 bg-kasir-amber-soft text-[#8a6415]',
-            dot: 'bg-[#c79225]',
-        },
-        antre: {
-            label: 'Antre',
-            pill: 'border-ink/30 bg-admin-panel text-ink',
-            dot: 'bg-ink',
-        },
-        menunggu_pembayaran: {
-            label: 'Menunggu Pembayaran',
-            pill: 'border-[#8a3b1d]/30 bg-[#fbe1de] text-[#8a3b1d]',
-            dot: 'bg-rust',
-        },
-        dibatalkan: {
-            label: 'Dibatalkan',
-            pill: 'border-line-strong bg-admin-soft text-muted',
-            dot: 'bg-muted',
-        },
+    const caption = root.querySelector('[data-grafik-caption]');
+    const revenueLabel = root.querySelector('[data-grafik-revenue]');
+    const ordersLabel = root.querySelector('[data-grafik-orders]');
+    const hint = root.querySelector('[data-grafik-hint]');
+
+    const total = {
+        label: root.dataset.grafikTotalLabel ?? 'Total',
+        revenue: Number(root.dataset.grafikTotalRevenue ?? 0),
+        orders: root.dataset.grafikTotalOrders ?? '0',
     };
 
-    const orderRow = (order) => {
-        const status = statusMeta[order.status] ?? statusMeta.selesai;
-        const typeClass = order.type === 'take_away'
-            ? 'bg-varya-dark text-white'
-            : 'bg-varya-light text-varya-dark';
-
-        return `
-            <tr class="align-top transition-colors hover:bg-varya-light/15">
-                <td class="px-4 py-6">
-                    <p class="font-mono text-[12px] leading-tight font-bold text-ink">#${escapeHtml(order.code)}</p>
-                    <p class="mt-1 flex items-center gap-1 font-serif text-[13px] text-muted">
-                        <span class="h-1.5 w-1.5 rounded-full bg-varya"></span>
-                        ${escapeHtml(order.time)}
-                    </p>
-                </td>
-                <td class="px-3 py-6">
-                    <p class="font-display text-[13px] leading-tight font-extrabold">${escapeHtml(order.customer)}</p>
-                    <p class="tag mt-1 text-[12px] text-muted">Pelanggan</p>
-                </td>
-                <td class="px-3 py-6">
-                    <span class="tag inline-block rounded border-2 border-ink px-2 py-1 text-[12px] font-bold ${typeClass}">
-                        ${escapeHtml(order.type_label)}
-                    </span>
-                </td>
-                <td class="px-3 py-6">
-                    <p class="font-serif text-[13px] font-semibold text-ink">${escapeHtml(order.items)} Menu</p>
-                    <p class="tag mt-0.5 text-[12px] text-muted">(${escapeHtml(order.portions)} porsi)</p>
-                </td>
-                <td class="px-3 py-6">
-                    <p class="font-display text-[13px] leading-tight font-bold">${rupiah(order.total)}</p>
-                    <p class="tag mt-1 text-[12px] text-muted">${escapeHtml(order.payment_status_label ?? '')} &bull; ${escapeHtml(order.payment ?? 'QRIS')}</p>
-                </td>
-                <td class="px-4 py-6">
-                    <span class="tag inline-flex items-center gap-1.5 rounded border-2 px-2 py-1 text-[12px] font-bold ${status.pill}">
-                        <span class="h-1.5 w-1.5 rounded-full ${status.dot}"></span>
-                        ${escapeHtml(order.status_label ?? status.label)}
-                    </span>
-                </td>
-            </tr>
-        `;
+    const tampilkan = (label, revenue, orders) => {
+        if (caption) caption.textContent = label;
+        if (revenueLabel) revenueLabel.textContent = rupiah(revenue);
+        if (ordersLabel) ordersLabel.textContent = orders;
     };
 
-    const render = () => {
-        const filtered = state.tab === 'all'
-            ? orders
-            : orders.filter((order) => order.type === state.tab);
-
-        const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-        state.page = Math.min(Math.max(1, state.page), totalPages);
-
-        const start = (state.page - 1) * pageSize;
-        const visible = filtered.slice(start, start + pageSize);
-
-        if (tbody) tbody.innerHTML = visible.map(orderRow).join('');
-
-        if (record) {
-            record.textContent = `Menampilkan ${visible.length} dari ${filtered.length} transaksi terbaru`;
-        }
-
-        renderPagination(pagination, totalPages, state.page, (page) => {
-            state.page = page;
-            render();
-        }, { compact: true });
-
-        tabs.forEach((button) => {
-            const active = button.dataset.orderTab === state.tab;
-            button.classList.toggle('bg-varya-dark', active);
-            button.classList.toggle('text-white', active);
-            button.classList.toggle('bg-admin-panel', !active);
-            button.classList.toggle('text-ink', !active);
-            button.setAttribute('aria-selected', active ? 'true' : 'false');
+    const reset = () => {
+        bars.forEach((bar) => {
+            bar.setAttribute('aria-pressed', 'false');
+            const batang = bar.querySelector('.grafik-bar');
+            if (!batang) return;
+            batang.classList.add('bg-varya/60');
+            batang.classList.remove('bg-varya-dark');
         });
+
+        tampilkan(total.label, total.revenue, total.orders);
+        if (hint) hint.textContent = 'Klik batang untuk rincian';
     };
 
-    tabs.forEach((button) => {
-        button.addEventListener('click', () => {
-            state.tab = button.dataset.orderTab ?? 'all';
-            state.page = 1;
-            render();
+    const pilih = (dipilih) => {
+        bars.forEach((bar) => {
+            const aktif = bar === dipilih;
+            bar.setAttribute('aria-pressed', aktif ? 'true' : 'false');
+            const batang = bar.querySelector('.grafik-bar');
+            if (!batang) return;
+            batang.classList.toggle('bg-varya-dark', aktif);
+            batang.classList.toggle('bg-varya/60', !aktif);
+        });
+
+        tampilkan(
+            dipilih.dataset.label ?? total.label,
+            Number(dipilih.dataset.revenue ?? 0),
+            dipilih.dataset.orders ?? '0',
+        );
+        if (hint) hint.textContent = 'Klik batang lagi untuk total periode';
+    };
+
+    bars.forEach((bar) => {
+        bar.addEventListener('click', () => {
+            if (bar.getAttribute('aria-pressed') === 'true') {
+                reset();
+                return;
+            }
+
+            pilih(bar);
         });
     });
-
-    render();
 }
 
 /* -------------------------------------------------------------------------- */
