@@ -225,6 +225,18 @@ class KasirOrderTest extends TestCase
             ->assertSee(route('kasir.pesanan.store'), false);
     }
 
+    public function test_halaman_buat_pesanan_meminta_konfirmasi_sebelum_mengosongkan_keranjang(): void
+    {
+        $this->actingAs($this->kasir)
+            ->get(route('kasir.pesanan.baru'))
+            ->assertOk()
+            ->assertSee('data-clear-cart', false)
+            ->assertSee('data-clear-cart-dialog', false)
+            ->assertSee('data-clear-cart-confirm', false)
+            ->assertSee('data-clear-cart-cancel', false)
+            ->assertSee('Kosongkan Pesanan?');
+    }
+
     public function test_admin_tidak_boleh_membuat_order_kasir(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin]);

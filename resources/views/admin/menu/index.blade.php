@@ -27,10 +27,10 @@
                             </svg>
                         </span>
                         <div class="min-w-0">
-                            <p class="tag text-[11px] font-bold text-muted">Total Varian</p>
+                            <p class="tag text-[12px] font-bold text-muted">Total Varian</p>
                             <p class="mt-1 font-display text-[16px] leading-none font-black">
                                 <span data-admin-menu-total>{{ $totalMenus }}</span>
-                                <span class="tag text-[11px] text-ink-soft">Menu</span>
+                                <span class="tag text-[12px] text-ink-soft">Menu</span>
                             </p>
                         </div>
                     </div>
@@ -43,10 +43,10 @@
                             </svg>
                         </span>
                         <div class="min-w-0">
-                            <p class="tag text-[11px] font-bold text-muted">Perlu Isi Ulang</p>
+                            <p class="tag text-[12px] font-bold text-muted">Perlu Isi Ulang</p>
                             <p class="mt-1 font-display text-[16px] leading-none font-black">
                                 <span data-admin-menu-unavailable>{{ $unavailableMenus }}</span>
-                                <span class="tag text-[11px] text-rust">Habis</span>
+                                <span class="tag text-[12px] text-rust">Habis</span>
                             </p>
                         </div>
                     </div>
@@ -103,7 +103,7 @@
                                     role="tab"
                                     aria-selected="{{ $loop->first ? 'true' : 'false' }}"
                                     @class([
-                                        'tag rounded-full border-2 border-ink px-3.5 py-2 text-[11px] font-bold transition-colors',
+                                        'tag rounded-full border-2 border-ink px-3.5 py-2 text-[12px] font-bold transition-colors',
                                         'bg-varya-dark text-white shadow-[2px_2px_0_0_#1b1c1d]' => $loop->first,
                                         'bg-admin-panel text-ink hover:bg-varya-light' => ! $loop->first,
                                     ])>
@@ -129,7 +129,7 @@
                     <circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>
                 </svg>
                 <p class="font-serif text-[12px] leading-relaxed text-ink-soft">
-                    Klik status <strong class="text-ink">Tersedia / Habis</strong> untuk mengubah ketersediaan, dan klik bintang <strong class="text-ink">Terlaris</strong> untuk menandai menu unggulan di katalog pelanggan. Menu yang dihapus tidak tampil untuk penjualan baru, tetapi riwayat pesanan lama tetap utuh.
+                    Klik status <strong class="text-ink">Tersedia / Habis</strong> untuk mengubah ketersediaan. Penanda <strong class="text-ink">Terlaris</strong> diatur lewat tombol <strong class="text-ink">Ubah</strong> → <strong class="text-ink">Atribut Penjualan</strong>. Menu yang dihapus tidak tampil untuk penjualan baru, tetapi riwayat pesanan lama tetap utuh.
                 </p>
             </div>
         </div>
@@ -142,26 +142,25 @@
                 <table class="w-full min-w-[1160px] border-collapse text-left">
                     <thead class="bg-admin-head">
                         <tr class="border-b-2 border-ink">
-                            <th scope="col" class="tag w-[76px] px-4 py-3 text-[11px] font-bold text-ink-soft">Foto</th>
-                            <th scope="col" class="tag px-3 py-3 text-[11px] font-bold text-ink-soft">Nama Menu &amp; Racikan</th>
-                            <th scope="col" class="tag w-[120px] px-3 py-3 text-[11px] font-bold text-ink-soft">Kategori</th>
-                            <th scope="col" class="tag w-[125px] px-3 py-3 text-[11px] font-bold text-ink-soft">Harga (Rp)</th>
-                            <th scope="col" class="tag w-[140px] px-3 py-3 text-[11px] font-bold text-ink-soft">Status Stok</th>
-                            <th scope="col" class="tag w-[115px] px-3 py-3 text-[11px] font-bold text-ink-soft">Terlaris</th>
-                            <th scope="col" class="tag w-[170px] px-4 py-3 text-right text-[11px] font-bold text-ink-soft">Aksi Admin</th>
+                            <th scope="col" class="tag w-[76px] px-4 py-3 text-[12px] font-bold text-ink-soft">Foto</th>
+                            <th scope="col" class="tag px-3 py-3 text-[12px] font-bold text-ink-soft">Nama Menu &amp; Racikan</th>
+                            <th scope="col" class="tag w-[120px] px-3 py-3 text-[12px] font-bold text-ink-soft">Kategori</th>
+                            <th scope="col" class="tag w-[125px] px-3 py-3 text-[12px] font-bold text-ink-soft">Harga (Rp)</th>
+                            <th scope="col" class="tag w-[140px] px-3 py-3 text-[12px] font-bold text-ink-soft">Status Stok</th>
+                            <th scope="col" class="tag w-[170px] px-4 py-3 text-right text-[12px] font-bold text-ink-soft">Aksi Admin</th>
                         </tr>
                     </thead>
 
                     <tbody data-admin-menu-rows class="divide-y-2 divide-line">
                         <tr>
-                            <td colspan="7" class="px-4 py-10 text-center font-serif text-sm text-muted">Memuat daftar menu...</td>
+                            <td colspan="6" class="px-4 py-10 text-center font-serif text-sm text-muted">Memuat daftar menu...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink bg-[#f7f5ec] px-4 py-3">
-                <p data-admin-menu-record class="tag text-[11px] font-bold text-muted">// Menampilkan 0 dari 0 menu</p>
+                <p data-admin-menu-record class="tag text-[12px] font-bold text-muted">// Menampilkan 0 dari 0 menu</p>
                 <div data-admin-menu-pagination class="flex flex-wrap items-center gap-1.5"></div>
             </div>
         </div>

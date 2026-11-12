@@ -82,14 +82,6 @@ class MenuCatalogService
         return $menu;
     }
 
-    /** Penanda "Terlaris" manual dari admin (F-75); tidak mengubah ketersediaan. */
-    public function aturTerlaris(Menu $menu, bool $terlaris): Menu
-    {
-        $menu->update(['terlaris' => $terlaris]);
-
-        return $menu;
-    }
-
     /**
      * Slug harus unik termasuk terhadap menu yang sudah di-soft-delete,
      * karena index unik database tetap menghitung baris `deleted_at`.

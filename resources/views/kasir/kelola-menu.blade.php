@@ -10,7 +10,7 @@
                  description="Ubah status ketersediaan menu Kedai Kopi Varya.">
     <div data-kasir-kelola-menu>
         <div>
-            <p class="tag text-[11px] font-bold text-varya-dark">// Ketersediaan Menu</p>
+            <p class="tag text-[12px] font-bold text-varya-dark">// Ketersediaan Menu</p>
             <h1 class="kasir-title mt-1 text-3xl sm:text-[38px]">Kelola Menu</h1>
         </div>
 
@@ -35,7 +35,7 @@
                             data-menu-tab="{{ $tab['key'] }}"
                             role="tab"
                             @class([
-                                'tag flex items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-bold transition-colors sm:px-4',
+                                'tag flex items-center gap-1.5 rounded-full px-3 py-2 text-[12px] font-bold transition-colors sm:px-4',
                                 'bg-varya-dark text-white' => $loop->first,
                                 'text-ink-soft hover:bg-varya-light/50' => ! $loop->first,
                             ])
@@ -43,7 +43,7 @@
                         {{ $tab['label'] }}
                         <span data-menu-tab-count="{{ $tab['key'] }}"
                               @class([
-                                  'inline-flex min-w-5 items-center justify-center rounded-full border px-1.5 py-0.5 text-[11px]',
+                                  'inline-flex min-w-5 items-center justify-center rounded-full border px-1.5 py-0.5 text-[12px]',
                                   'border-white/40 bg-white/15 text-white' => $loop->first,
                                   'border-line-strong bg-white text-ink-soft' => ! $loop->first,
                               ])>
@@ -68,10 +68,10 @@
                        data-menu-list-search-input
                        placeholder="CARI MENU..."
                        autocomplete="off"
-                       class="min-w-0 flex-1 bg-transparent font-serif text-[11px] font-semibold text-ink uppercase placeholder:text-muted focus:outline-none">
+                       class="min-w-0 flex-1 bg-transparent font-serif text-[13px] font-semibold text-ink uppercase placeholder:text-muted focus:outline-none">
 
                 <button type="submit"
-                        class="tag shrink-0 rounded-full bg-varya-dark px-4 py-2 text-[11px] font-bold text-white transition-colors hover:bg-varya">
+                        class="tag shrink-0 rounded-full bg-varya-dark px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-varya">
                     Cari
                 </button>
             </form>
@@ -82,7 +82,7 @@
                  stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-varya-dark" aria-hidden="true">
                 <circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>
             </svg>
-            <p class="font-serif text-[11px] leading-relaxed text-ink-soft">
+            <p class="font-serif text-[13px] leading-relaxed text-ink-soft">
                 Kasir hanya dapat mengubah status <strong class="text-ink">Tersedia / Habis</strong>. Nama, harga, deskripsi, foto, dan penghapusan menu hanya dapat dilakukan admin.
             </p>
         </div>
@@ -95,12 +95,12 @@
                 <table class="w-full min-w-[1000px] border-collapse text-left">
                     <thead class="bg-kasir-head">
                         <tr class="border-b-2 border-ink">
-                            <th scope="col" class="tag w-[70px] px-4 py-3 text-[11px] font-bold text-ink-soft">// No</th>
-                            <th scope="col" class="tag px-3 py-3 text-[11px] font-bold text-ink-soft">// Menu &amp; Spesifikasi</th>
-                            <th scope="col" class="tag w-[130px] px-3 py-3 text-[11px] font-bold text-ink-soft">// Kategori</th>
-                            <th scope="col" class="tag w-[130px] px-3 py-3 text-[11px] font-bold text-ink-soft">// Harga</th>
-                            <th scope="col" class="tag w-[135px] px-3 py-3 text-[11px] font-bold text-ink-soft">// Status</th>
-                            <th scope="col" class="tag w-[150px] px-4 py-3 text-right text-[11px] font-bold text-ink-soft">// Aksi Kasir</th>
+                            <th scope="col" class="tag w-[70px] px-4 py-3 text-[12px] font-bold text-ink-soft">// No</th>
+                            <th scope="col" class="tag px-3 py-3 text-[12px] font-bold text-ink-soft">// Menu &amp; Spesifikasi</th>
+                            <th scope="col" class="tag w-[130px] px-3 py-3 text-[12px] font-bold text-ink-soft">// Kategori</th>
+                            <th scope="col" class="tag w-[130px] px-3 py-3 text-[12px] font-bold text-ink-soft">// Harga</th>
+                            <th scope="col" class="tag w-[135px] px-3 py-3 text-[12px] font-bold text-ink-soft">// Status</th>
+                            <th scope="col" class="tag w-[150px] px-4 py-3 text-right text-[12px] font-bold text-ink-soft">// Aksi Kasir</th>
                         </tr>
                     </thead>
 
@@ -114,7 +114,7 @@
                                 data-menu-search="{{ \Illuminate\Support\Str::lower($menu['name'].' '.$menu['spec'].' '.$menu['category_label']) }}"
                                 data-available="{{ $menu['available'] ? '1' : '0' }}">
                                 <td class="px-4 py-3.5">
-                                    <span class="tag inline-flex min-w-9 items-center justify-center rounded border-2 border-ink bg-varya-light px-2 py-1 text-[11px] font-bold text-varya-dark">
+                                    <span class="tag inline-flex min-w-9 items-center justify-center rounded border-2 border-ink bg-varya-light px-2 py-1 text-[12px] font-bold text-varya-dark">
                                         #{{ str_pad((string) ($loop->index + 1), 2, '0', STR_PAD_LEFT) }}
                                     </span>
                                 </td>
@@ -135,19 +135,19 @@
                                                 <p class="font-display text-[14px] leading-tight font-extrabold">{{ $menu['name'] }}</p>
                                                 <span data-row-unavailable
                                                       @class([
-                                                          'tag rounded bg-brown px-1.5 py-0.5 text-[11px] font-bold text-white',
+                                                          'tag rounded bg-brown px-1.5 py-0.5 text-[12px] font-bold text-white',
                                                           'hidden' => $menu['available'],
                                                       ])>
                                                     Habis
                                                 </span>
                                             </div>
-                                            <p class="mt-1 font-serif text-[11px] leading-relaxed text-ink-soft">{{ $menu['spec'] }}</p>
+                                            <p class="mt-1 font-serif text-[13px] leading-relaxed text-ink-soft">{{ $menu['spec'] }}</p>
                                         </div>
                                     </div>
                                 </td>
 
                                 <td class="px-3 py-3.5">
-                                    <span class="tag inline-block rounded border-2 border-line-strong bg-[#f0eee3] px-2.5 py-1 text-[11px] font-bold text-ink-soft">
+                                    <span class="tag inline-block rounded border-2 border-line-strong bg-[#f0eee3] px-2.5 py-1 text-[12px] font-bold text-ink-soft">
                                         {{ $menu['category_label'] }}
                                     </span>
                                 </td>
@@ -159,7 +159,7 @@
                                 <td class="px-3 py-3.5">
                                     <span data-menu-status
                                           @class([
-                                              'tag inline-flex items-center gap-1.5 rounded border-2 px-2.5 py-1 text-[11px] font-bold',
+                                              'tag inline-flex items-center gap-1.5 rounded border-2 px-2.5 py-1 text-[12px] font-bold',
                                               'border-varya/30 bg-varya-light text-varya-dark' => $menu['available'],
                                               'border-rust/30 bg-[#fbe1de] text-rust' => ! $menu['available'],
                                           ])>
@@ -176,7 +176,7 @@
                                     <button type="button"
                                             data-toggle-menu
                                             @class([
-                                                'tag rounded border-2 border-ink px-3 py-2 text-[11px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60',
+                                                'tag rounded border-2 border-ink px-3 py-2 text-[12px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60',
                                                 'bg-kasir-panel text-rust' => $menu['available'],
                                                 'bg-varya-dark text-white' => ! $menu['available'],
                                             ])>
@@ -190,7 +190,7 @@
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink bg-[#f7f5ec] px-4 py-3">
-                <p data-menu-record class="tag text-[11px] font-bold text-muted">// Record: Menampilkan 0 dari 0 menu</p>
+                <p data-menu-record class="tag text-[12px] font-bold text-muted">// Record: Menampilkan 0 dari 0 menu</p>
                 <div data-menu-pagination class="flex flex-wrap items-center gap-1.5"></div>
             </div>
         </div>

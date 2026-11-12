@@ -12,13 +12,13 @@
     <div data-kasir-pesanan-masuk>
         <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
-                <p class="tag text-[11px] font-bold text-varya-dark">// Antrean Produksi</p>
+                <p class="tag text-[12px] font-bold text-varya-dark">// Antrean Produksi</p>
                 <h1 class="kasir-title mt-1 text-3xl sm:text-[38px]">Pesanan Masuk</h1>
             </div>
 
             <div class="flex items-center gap-2 rounded-full border-2 border-line-strong bg-kasir-panel px-3 py-2">
                 <span class="h-2 w-2 animate-pulse rounded-full bg-varya" aria-hidden="true"></span>
-                <p class="tag text-[11px] font-bold text-ink-soft">Status QRIS diperbarui otomatis</p>
+                <p class="tag text-[12px] font-bold text-ink-soft">Status QRIS diperbarui otomatis</p>
             </div>
         </div>
 
@@ -45,7 +45,7 @@
                             data-order-tab="{{ $tab['key'] }}"
                             role="tab"
                             @class([
-                                'tag flex items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-bold transition-colors sm:px-4',
+                                'tag flex items-center gap-1.5 rounded-full px-3 py-2 text-[12px] font-bold transition-colors sm:px-4',
                                 'bg-varya-dark text-white' => $loop->first,
                                 'text-ink-soft hover:bg-varya-light/50' => ! $loop->first,
                             ])
@@ -53,7 +53,7 @@
                         {{ $tab['label'] }}
                         <span data-tab-count="{{ $tab['key'] }}"
                               @class([
-                                  'inline-flex min-w-5 items-center justify-center rounded-full border px-1.5 py-0.5 text-[11px]',
+                                  'inline-flex min-w-5 items-center justify-center rounded-full border px-1.5 py-0.5 text-[12px]',
                                   'border-white/40 bg-white/15 text-white' => $loop->first,
                                   'border-line-strong bg-white text-ink-soft' => ! $loop->first,
                               ])>
@@ -78,10 +78,10 @@
                        data-order-search-input
                        placeholder="CARI PESANAN..."
                        autocomplete="off"
-                       class="min-w-0 flex-1 bg-transparent font-serif text-[11px] font-semibold text-ink uppercase placeholder:text-muted focus:outline-none">
+                       class="min-w-0 flex-1 bg-transparent font-serif text-[13px] font-semibold text-ink uppercase placeholder:text-muted focus:outline-none">
 
                 <button type="submit"
-                        class="tag shrink-0 rounded-full bg-varya-dark px-4 py-2 text-[11px] font-bold text-white transition-colors hover:bg-varya">
+                        class="tag shrink-0 rounded-full bg-varya-dark px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-varya">
                     Cari
                 </button>
             </form>
@@ -95,12 +95,12 @@
                 <table class="w-full min-w-[1060px] border-collapse text-left">
                     <thead class="bg-kasir-head">
                         <tr class="border-b-2 border-ink">
-                            <th scope="col" class="tag w-[80px] px-4 py-3 text-[11px] font-bold text-ink-soft">// No. Urut</th>
-                            <th scope="col" class="tag w-[120px] px-3 py-3 text-[11px] font-bold text-ink-soft">// Status Order</th>
-                            <th scope="col" class="tag w-[150px] px-3 py-3 text-[11px] font-bold text-ink-soft">// Pelanggan</th>
-                            <th scope="col" class="tag px-3 py-3 text-[11px] font-bold text-ink-soft">// Item Pesanan</th>
-                            <th scope="col" class="tag w-[150px] px-3 py-3 text-[11px] font-bold text-ink-soft">// Pembayaran</th>
-                            <th scope="col" class="tag w-[240px] px-4 py-3 text-right text-[11px] font-bold text-ink-soft">// Aksi Kasir</th>
+                            <th scope="col" class="tag w-[80px] px-4 py-3 text-[12px] font-bold text-ink-soft">// No. Urut</th>
+                            <th scope="col" class="tag w-[120px] px-3 py-3 text-[12px] font-bold text-ink-soft">// Status Order</th>
+                            <th scope="col" class="tag w-[150px] px-3 py-3 text-[12px] font-bold text-ink-soft">// Pelanggan</th>
+                            <th scope="col" class="tag px-3 py-3 text-[12px] font-bold text-ink-soft">// Item Pesanan</th>
+                            <th scope="col" class="tag w-[150px] px-3 py-3 text-[12px] font-bold text-ink-soft">// Pembayaran</th>
+                            <th scope="col" class="tag w-[240px] px-4 py-3 text-right text-[12px] font-bold text-ink-soft">// Aksi Kasir</th>
                         </tr>
                     </thead>
 
@@ -111,7 +111,7 @@
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink bg-[#f7f5ec] px-4 py-3">
-                <p data-order-record class="tag text-[11px] font-bold text-muted">// Record: Menampilkan 0 dari 0 pesanan</p>
+                <p data-order-record class="tag text-[12px] font-bold text-muted">// Record: Menampilkan 0 dari 0 pesanan</p>
                 <div data-order-pagination class="flex flex-wrap items-center gap-1.5"></div>
             </div>
         </div>
@@ -139,57 +139,57 @@
 
                 <div class="kasir-dialog-scroll">
                     <div class="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-line bg-[#f1f0e6] px-5 py-3">
-                        <p class="tag text-[11px] text-muted">No. Urut: <span data-detail-queue class="ml-1 inline-block rounded border-2 border-ink bg-kasir-panel px-2 py-0.5 text-[11px] font-bold text-ink">—</span></p>
-                        <span data-detail-type class="tag inline-block rounded border-2 border-ink bg-ink px-2.5 py-1 text-[11px] font-bold text-white">Dine In</span>
-                        <p class="tag text-[11px] text-muted">Pelanggan: <span data-detail-customer class="ml-1 font-bold text-ink">—</span></p>
-                        <span data-detail-status class="tag ml-auto inline-block rounded border-2 border-ink bg-varya-light px-2.5 py-1 text-[11px] font-bold text-varya-dark">Antrean</span>
+                        <p class="tag text-[12px] text-muted">No. Urut: <span data-detail-queue class="ml-1 inline-block rounded border-2 border-ink bg-kasir-panel px-2 py-0.5 text-[12px] font-bold text-ink">—</span></p>
+                        <span data-detail-type class="tag inline-block rounded border-2 border-ink bg-ink px-2.5 py-1 text-[12px] font-bold text-white">Dine In</span>
+                        <p class="tag text-[12px] text-muted">Pelanggan: <span data-detail-customer class="ml-1 font-bold text-ink">—</span></p>
+                        <span data-detail-status class="tag ml-auto inline-block rounded border-2 border-ink bg-varya-light px-2.5 py-1 text-[12px] font-bold text-varya-dark">Antrean</span>
                     </div>
 
                     <div class="px-5 py-4">
                         <div class="flex items-center justify-between gap-2">
-                            <p class="tag text-[11px] font-bold text-muted">// Daftar Item Pesanan (<span data-detail-item-count>0</span> Item)</p>
-                            <span data-detail-time class="tag text-[11px] text-muted">—</span>
+                            <p class="tag text-[12px] font-bold text-muted">// Daftar Item Pesanan (<span data-detail-item-count>0</span> Item)</p>
+                            <span data-detail-time class="tag text-[12px] text-muted">—</span>
                         </div>
 
                         <div data-detail-items class="mt-3 space-y-2.5"></div>
 
                         <div data-detail-notes-wrap hidden class="mt-3 rounded-md border-2 border-dashed border-line-strong bg-[#f7f5ec] px-3 py-2.5">
-                            <p class="tag text-[11px] font-bold text-muted">// Catatan Pesanan</p>
+                            <p class="tag text-[12px] font-bold text-muted">// Catatan Pesanan</p>
                             <p data-detail-notes class="mt-1 font-serif text-[12px] text-ink-soft">—</p>
                         </div>
 
                         <div class="mt-4 grid gap-3 sm:grid-cols-2">
                             <div class="rounded-md border-2 border-ink bg-[#f7f5ec] px-3 py-2.5">
-                                <p class="tag text-[11px] font-bold text-muted">Pembayaran</p>
+                                <p class="tag text-[12px] font-bold text-muted">Pembayaran</p>
                                 <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
-                                    <span data-detail-payment class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-kasir-panel px-2 py-1 text-[11px] font-bold">QRIS BCA</span>
-                                    <span data-detail-payment-status class="tag rounded border border-varya/30 bg-varya-light px-2 py-1 text-[11px] font-bold text-varya-dark">Lunas / Verified</span>
+                                    <span data-detail-payment class="tag inline-flex items-center gap-1 rounded border-2 border-ink bg-kasir-panel px-2 py-1 text-[12px] font-bold">QRIS BCA</span>
+                                    <span data-detail-payment-status class="tag rounded border border-varya/30 bg-varya-light px-2 py-1 text-[12px] font-bold text-varya-dark">Lunas / Verified</span>
                                 </div>
                             </div>
 
                             <div class="rounded-md border-2 border-ink bg-[#f7f5ec] px-3 py-2.5">
-                                <p class="tag text-[11px] font-bold text-muted">Total Bayar</p>
+                                <p class="tag text-[12px] font-bold text-muted">Total Bayar</p>
                                 <p data-detail-total class="mt-1 font-display text-[20px] leading-none font-black text-varya-dark">Rp 0</p>
                             </div>
                         </div>
 
                         <div data-detail-cash-wrap hidden class="mt-3 grid gap-2 rounded-md border-2 border-line-strong bg-[#f7f5ec] px-3 py-2.5 sm:grid-cols-2">
-                            <p class="tag text-[11px] text-muted">Uang Diterima: <span data-detail-cash class="ml-1 font-bold text-ink">—</span></p>
-                            <p class="tag text-[11px] text-muted sm:text-right">Kembalian: <span data-detail-change class="ml-1 font-bold text-varya-dark">—</span></p>
+                            <p class="tag text-[12px] text-muted">Uang Diterima: <span data-detail-cash class="ml-1 font-bold text-ink">—</span></p>
+                            <p class="tag text-[12px] text-muted sm:text-right">Kembalian: <span data-detail-change class="ml-1 font-bold text-varya-dark">—</span></p>
                         </div>
 
                         <div class="mt-3 grid gap-2 rounded-md border border-line-strong bg-white px-3 py-2.5 sm:grid-cols-2">
-                            <p class="tag text-[11px] text-muted">Kode Pesanan: <span data-detail-code class="ml-1 font-bold text-ink">—</span></p>
-                            <p class="tag text-[11px] text-muted sm:text-right">Sumber: <span data-detail-source class="ml-1 font-bold text-ink">—</span></p>
-                            <p data-detail-midtrans-wrap class="tag text-[11px] text-muted sm:col-span-2">ID Midtrans: <span data-detail-midtrans class="ml-1 font-mono text-[11px] font-bold break-all text-ink">—</span></p>
-                            <p data-detail-expires-wrap hidden class="tag text-[11px] text-muted sm:col-span-2">Batas Pembayaran: <span data-detail-expires class="ml-1 font-bold text-rust">—</span></p>
+                            <p class="tag text-[12px] text-muted">Kode Pesanan: <span data-detail-code class="ml-1 font-bold text-ink">—</span></p>
+                            <p class="tag text-[12px] text-muted sm:text-right">Sumber: <span data-detail-source class="ml-1 font-bold text-ink">—</span></p>
+                            <p data-detail-midtrans-wrap class="tag text-[12px] text-muted sm:col-span-2">ID Midtrans: <span data-detail-midtrans class="ml-1 font-mono text-[12px] font-bold break-all text-ink">—</span></p>
+                            <p data-detail-expires-wrap hidden class="tag text-[12px] text-muted sm:col-span-2">Batas Pembayaran: <span data-detail-expires class="ml-1 font-bold text-rust">—</span></p>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex flex-wrap items-center justify-between gap-2 border-t-2 border-ink bg-[#f7f5ec] px-5 py-3.5">
                     <button type="button" data-order-detail-close
-                            class="tag rounded border-2 border-ink bg-kasir-panel px-4 py-2.5 text-[11px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                            class="tag rounded border-2 border-ink bg-kasir-panel px-4 py-2.5 text-[12px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
                         Tutup
                     </button>
 
@@ -218,11 +218,11 @@
 
                     <div class="mt-5 grid grid-cols-2 gap-2">
                         <button type="button" data-confirm-cancel
-                                class="tag rounded border-2 border-ink bg-kasir-panel px-4 py-3 text-[11px] font-bold shadow-[2px_2px_0_0_#1b1c1d]">
+                                class="tag rounded border-2 border-ink bg-kasir-panel px-4 py-3 text-[12px] font-bold shadow-[2px_2px_0_0_#1b1c1d]">
                             Kembali
                         </button>
                         <button type="button" data-confirm-ok
-                                class="tag rounded border-2 border-ink bg-rust px-4 py-3 text-[11px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d]">
+                                class="tag rounded border-2 border-ink bg-rust px-4 py-3 text-[12px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d]">
                             Ya, Batalkan
                         </button>
                     </div>

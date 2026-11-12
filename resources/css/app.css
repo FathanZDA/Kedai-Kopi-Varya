@@ -87,6 +87,30 @@
     h3 {
         font-family: var(--font-display);
     }
+
+    /*
+    | Semua kontrol yang bisa diklik memakai kursor tangan. Preflight
+    | Tailwind 4 tidak mengatur kursor <button>, sehingga tanpa aturan ini
+    | tombol tampil dengan kursor panah bawaan browser.
+    */
+    button:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    summary,
+    select:not(:disabled),
+    label[for],
+    label:has(> input[type='checkbox']),
+    label:has(> input[type='radio']),
+    input[type='checkbox']:not(:disabled),
+    input[type='radio']:not(:disabled) {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    select:disabled,
+    input:disabled,
+    [aria-disabled='true'] {
+        cursor: not-allowed;
+    }
 }
 
 @layer components {
@@ -350,7 +374,7 @@
     .admin-label {
         display: block;
         font-family: var(--font-mono);
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.08em;
         line-height: 1.35;
@@ -369,7 +393,7 @@
         border-radius: 6px;
         padding: 0.7rem 1rem;
         font-family: var(--font-mono);
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.06em;
         line-height: 1.1;
@@ -511,7 +535,7 @@
         align-items: center;
         gap: 0.5rem;
         font-family: var(--font-serif);
-        font-size: 12px;
+        font-size: 13px;
         color: var(--color-ink-soft);
     }
 

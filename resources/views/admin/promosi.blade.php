@@ -14,7 +14,7 @@
                  description="Kelola slider banner dan konten promosi Kedai Kopi Varya.">
     <div data-admin-promotions data-admin-flash="{{ session('status') }}">
         <div class="max-w-3xl">
-            <p class="tag text-[11px] font-bold text-varya-dark">// Konten Landing Page</p>
+            <p class="tag text-[12px] font-bold text-varya-dark">// Konten Landing Page</p>
             <h1 class="admin-title mt-2 text-[34px] sm:text-[44px]">
                 Manajemen Iklan &amp; Promosi<br class="hidden sm:block"> Toko
             </h1>
@@ -25,8 +25,8 @@
 
         @if ($errors->any())
             <div class="mt-4 rounded-md border-2 border-rust bg-[#fbe1de] px-4 py-3" role="alert">
-                <p class="tag text-[11px] font-bold text-rust">Periksa kembali data promosi:</p>
-                <ul class="mt-2 list-disc space-y-0.5 pl-4 font-serif text-[11px] leading-relaxed text-rust">
+                <p class="tag text-[12px] font-bold text-rust">Periksa kembali data promosi:</p>
+                <ul class="mt-2 list-disc space-y-0.5 pl-4 font-serif text-[13px] leading-relaxed text-rust">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -48,21 +48,21 @@
                         <h2 id="promo-slider-title" class="font-display text-[18px] leading-tight font-black uppercase">
                             Slider Banner Utama Beranda
                         </h2>
-                        <span class="tag rounded border-2 border-varya-dark bg-varya-dark px-2.5 py-1 text-[11px] font-bold text-white">
+                        <span class="tag rounded border-2 border-varya-dark bg-varya-dark px-2.5 py-1 text-[12px] font-bold text-white">
                             Aktif di Website
                         </span>
-                        <span class="tag text-[11px] font-bold text-varya-dark">Penempatan: Slider Hero Landing Page</span>
+                        <span class="tag text-[12px] font-bold text-varya-dark">Penempatan: Slider Hero Landing Page</span>
                     </div>
 
                     <div class="p-4 sm:p-5">
                         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line-strong pb-3">
                             <div>
                                 <p class="font-display text-[16px] leading-tight font-extrabold">Kelola Slide Foto Banner Utama</p>
-                                <p class="mt-1 font-serif text-[11px] text-muted">Nomor urut menentukan posisi slide; angka lebih besar tampil belakangan. Nomor tidak harus 1-4 dan tidak boleh sama dengan promosi lain. Promosi nonaktif tidak tampil di landing page.</p>
+                                <p class="mt-1 font-serif text-[13px] text-muted">Nomor urut menentukan posisi slide; angka lebih besar tampil belakangan. Nomor tidak harus 1-4 dan tidak boleh sama dengan promosi lain. Promosi nonaktif tidak tampil di landing page.</p>
                             </div>
 
                             <button type="button" data-promo-new
-                                    class="inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-3 py-2 font-mono text-[11px] font-bold tracking-wide uppercase shadow-[2px_2px_0_0_#1b1c1d] transition-colors hover:bg-varya-light">
+                                    class="inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-3 py-2 font-mono text-[12px] font-bold tracking-wide uppercase shadow-[2px_2px_0_0_#1b1c1d] transition-colors hover:bg-varya-light">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2.7" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
                                 Tambah Slide
@@ -93,21 +93,21 @@
                         <h2 id="about-photo-title" class="font-display text-[18px] leading-tight font-black uppercase">
                             Foto Tentang Kami
                         </h2>
-                        <span class="tag rounded border-2 border-varya-dark bg-varya-dark px-2.5 py-1 text-[11px] font-bold text-white">
+                        <span class="tag rounded border-2 border-varya-dark bg-varya-dark px-2.5 py-1 text-[12px] font-bold text-white">
                             Aktif di Website
                         </span>
-                        <span class="tag text-[11px] font-bold text-varya-dark">Penempatan: Sebelah Tentang Kami</span>
+                        <span class="tag text-[12px] font-bold text-varya-dark">Penempatan: Sebelah Tentang Kami</span>
                     </div>
 
                     <div class="p-4 sm:p-5">
                         <p class="font-display text-[16px] leading-tight font-extrabold">Galeri Foto Tentang Kami</p>
-                        <p class="mt-1 font-serif text-[11px] text-muted">Satu foto akan dipotong otomatis mengikuti bingkai desktop dan mobile.</p>
+                        <p class="mt-1 font-serif text-[13px] text-muted">Satu foto akan dipotong otomatis mengikuti bingkai desktop dan mobile.</p>
 
                         <div class="mt-4 grid gap-3 sm:grid-cols-[1.2fr_1fr]">
                             <figure>
                                 <div class="flex items-center justify-between gap-2 border-2 border-b-0 border-ink bg-[#303031] px-3 py-1.5 text-white">
-                                    <span class="tag text-[11px] font-bold">Versi Desktop</span>
-                                    <span class="tag rounded bg-varya-dark px-1.5 py-0.5 text-[11px] font-bold">3:2 &bull; 1200 x 800 px</span>
+                                    <span class="tag text-[12px] font-bold">Versi Desktop</span>
+                                    <span class="tag rounded bg-varya-dark px-1.5 py-0.5 text-[12px] font-bold">3:2 &bull; 1200 x 800 px</span>
                                 </div>
                                 <div class="admin-preview-frame aspect-[3/2] rounded-b-md">
                                     <img data-about-desktop
@@ -119,8 +119,8 @@
 
                             <figure>
                                 <div class="flex items-center justify-between gap-2 border-2 border-b-0 border-ink bg-[#303031] px-3 py-1.5 text-white">
-                                    <span class="tag text-[11px] font-bold">Versi Mobile</span>
-                                    <span class="tag rounded bg-varya-light px-1.5 py-0.5 text-[11px] font-bold text-ink">16:9 &bull; 1080 x 608 px</span>
+                                    <span class="tag text-[12px] font-bold">Versi Mobile</span>
+                                    <span class="tag rounded bg-varya-light px-1.5 py-0.5 text-[12px] font-bold text-ink">16:9 &bull; 1080 x 608 px</span>
                                 </div>
                                 <div class="admin-preview-frame aspect-video rounded-b-md">
                                     <img data-about-mobile
@@ -133,7 +133,7 @@
 
                         <div class="mt-3 flex flex-wrap items-center gap-2">
                             <button type="button" data-about-edit
-                                    class="inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-3 py-2 font-mono text-[11px] font-bold tracking-wide uppercase shadow-[2px_2px_0_0_#1b1c1d] transition-colors hover:bg-varya-light">
+                                    class="inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-3 py-2 font-mono text-[12px] font-bold tracking-wide uppercase shadow-[2px_2px_0_0_#1b1c1d] transition-colors hover:bg-varya-light">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="m4 20 4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20Z"/><path d="m13.5 7.5 3 3"/>
@@ -144,7 +144,7 @@
                             <button type="button" data-about-delete
                                     data-about-delete-url="{{ route('admin.store.foto-tentang.destroy') }}"
                                     @if (! $hasAboutImage) disabled @endif
-                                    class="inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-3 py-2 font-mono text-[11px] font-bold tracking-wide uppercase shadow-[2px_2px_0_0_#1b1c1d] transition-colors hover:bg-[#fbe1de] hover:text-rust disabled:cursor-not-allowed disabled:opacity-40">
+                                    class="inline-flex items-center gap-1.5 rounded border-2 border-ink bg-admin-panel px-3 py-2 font-mono text-[12px] font-bold tracking-wide uppercase shadow-[2px_2px_0_0_#1b1c1d] transition-colors hover:bg-[#fbe1de] hover:text-rust disabled:cursor-not-allowed disabled:opacity-40">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v5M14 11v5"/>
@@ -152,7 +152,7 @@
                                 Hapus
                             </button>
 
-                            <span class="tag ml-auto text-[11px] text-muted">Status: <span data-about-status class="text-varya-dark">{{ $hasAboutImage ? 'Tampil' : 'Tidak Tampil' }}</span></span>
+                            <span class="tag ml-auto text-[12px] text-muted">Status: <span data-about-status class="text-varya-dark">{{ $hasAboutImage ? 'Tampil' : 'Tidak Tampil' }}</span></span>
                         </div>
                     </div>
                 </section>
@@ -183,7 +183,7 @@
                                 {{ $editPromoId ? 'Edit Promosi' : 'Editor Promosi Baru' }}
                             </h2>
                         </div>
-                        <span class="tag rounded border border-line-strong bg-white px-2 py-1 text-[11px] font-bold text-ink-soft">Formulir Input</span>
+                        <span class="tag rounded border border-line-strong bg-white px-2 py-1 text-[12px] font-bold text-ink-soft">Formulir Input</span>
                     </div>
 
                     <div class="space-y-4 p-4">
@@ -198,7 +198,7 @@
                                    class="admin-input mt-2"
                                    maxlength="80"
                                    autocomplete="off">
-                            <p data-promo-error="title" @if (! $errors->has('judul')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('judul') }}</p>
+                            <p data-promo-error="title" @if (! $errors->has('judul')) hidden @endif class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $errors->first('judul') }}</p>
                         </div>
 
                         <div>
@@ -210,7 +210,7 @@
                                       maxlength="220"
                                       placeholder="Jelaskan penawaran atau suasana promo..."
                                       class="admin-textarea mt-2 resize-y">{{ old('deskripsi', '') }}</textarea>
-                            <p data-promo-error="description" @if (! $errors->has('deskripsi')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('deskripsi') }}</p>
+                            <p data-promo-error="description" @if (! $errors->has('deskripsi')) hidden @endif class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $errors->first('deskripsi') }}</p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
@@ -224,8 +224,8 @@
                                        max="999"
                                        value="{{ old('urutan', $urutanBerikutnya) }}"
                                        class="admin-input mt-2">
-                                <p class="mt-1 font-serif text-[11px] leading-relaxed text-muted">Contoh: urutan 5 tampil setelah urutan 4. Nomor tidak boleh dipakai promosi lain.</p>
-                                <p data-promo-error="order" @if (! $errors->has('urutan')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('urutan') }}</p>
+                                <p class="mt-1 font-serif text-[13px] leading-relaxed text-muted">Contoh: urutan 5 tampil setelah urutan 4. Nomor tidak boleh dipakai promosi lain.</p>
+                                <p data-promo-error="order" @if (! $errors->has('urutan')) hidden @endif class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $errors->first('urutan') }}</p>
                             </div>
 
                             <label class="mt-6 flex cursor-pointer items-center gap-2 rounded-md border-2 border-line-strong bg-admin-soft px-3 py-2.5">
@@ -236,7 +236,7 @@
                                        data-promo-field="active"
                                        class="h-4 w-4 accent-varya-dark"
                                        @checked((string) old('aktif', '1') === '1')>
-                                <span class="tag text-[11px] font-bold">Tampilkan</span>
+                                <span class="tag text-[12px] font-bold">Tampilkan</span>
                             </label>
                         </div>
 
@@ -258,14 +258,14 @@
                                        value="{{ old('berakhir', '') }}"
                                        data-promo-field="period_end"
                                        class="admin-input mt-2">
-                                <p data-promo-error="period" @if (! $errors->has('berakhir')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('berakhir') }}</p>
+                                <p data-promo-error="period" @if (! $errors->has('berakhir')) hidden @endif class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $errors->first('berakhir') }}</p>
                             </div>
                         </div>
 
                         <div>
                             <div class="flex items-center justify-between gap-2">
                                 <p class="admin-label">Upload Gambar</p>
-                                <span class="tag text-[11px] text-muted">Maks. 3 MB</span>
+                                <span class="tag text-[12px] text-muted">Maks. 3 MB</span>
                             </div>
 
                             <div data-promo-dropzone
@@ -275,15 +275,15 @@
                                     <path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>
                                 </svg>
                                 <p class="mt-1.5 font-display text-[12px] leading-tight font-black uppercase">Tarik &amp; lepas foto di sini</p>
-                                <p class="mt-1 font-serif text-[11px] text-muted">Format JPG, PNG, WEBP</p>
+                                <p class="mt-1 font-serif text-[13px] text-muted">Format JPG, PNG, WEBP</p>
                                 <label for="promo-image-input"
-                                       class="mt-2 inline-flex cursor-pointer items-center justify-center rounded border-2 border-ink bg-white px-3 py-1.5 font-mono text-[11px] font-bold uppercase shadow-[2px_2px_0_0_#1b1c1d]">
+                                       class="mt-2 inline-flex cursor-pointer items-center justify-center rounded border-2 border-ink bg-white px-3 py-1.5 font-mono text-[12px] font-bold uppercase shadow-[2px_2px_0_0_#1b1c1d]">
                                     Pilih dari Komputer
                                 </label>
                                 <input id="promo-image-input" type="file" name="gambar" data-promo-image-input accept="image/jpeg,image/png,image/webp" class="sr-only">
-                                <p data-promo-image-name class="mt-1.5 max-w-full truncate font-mono text-[11px] text-muted">Belum ada file dipilih</p>
+                                <p data-promo-image-name class="mt-1.5 max-w-full truncate font-mono text-[12px] text-muted">Belum ada file dipilih</p>
                             </div>
-                            <p data-promo-error="image" @if (! $errors->has('gambar')) hidden @endif class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $errors->first('gambar') }}</p>
+                            <p data-promo-error="image" @if (! $errors->has('gambar')) hidden @endif class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $errors->first('gambar') }}</p>
                         </div>
 
                         <div>
@@ -291,8 +291,8 @@
                             <div class="mt-2 grid grid-cols-[1.3fr_1fr] gap-2">
                                 <figure>
                                     <div class="flex items-center justify-between border-2 border-b-0 border-ink bg-[#303031] px-2 py-1 text-white">
-                                        <span class="tag text-[11px] font-bold">Desktop</span>
-                                        <span class="tag rounded bg-varya-dark px-1 py-0.5 text-[11px] font-bold">16:9</span>
+                                        <span class="tag text-[12px] font-bold">Desktop</span>
+                                        <span class="tag rounded bg-varya-dark px-1 py-0.5 text-[12px] font-bold">16:9</span>
                                     </div>
                                     <div class="admin-preview-frame aspect-video rounded-b-md">
                                         <img data-promo-editor-desktop src="{{ $previewPromoImage }}" alt="Pratinjau banner desktop" class="h-full w-full object-cover">
@@ -301,15 +301,15 @@
 
                                 <figure>
                                     <div class="flex items-center justify-between border-2 border-b-0 border-ink bg-[#303031] px-2 py-1 text-white">
-                                        <span class="tag text-[11px] font-bold">Mobile</span>
-                                        <span class="tag rounded bg-varya-light px-1 py-0.5 text-[11px] font-bold text-ink">1:1</span>
+                                        <span class="tag text-[12px] font-bold">Mobile</span>
+                                        <span class="tag rounded bg-varya-light px-1 py-0.5 text-[12px] font-bold text-ink">1:1</span>
                                     </div>
                                     <div class="admin-preview-frame aspect-square rounded-b-md">
                                         <img data-promo-editor-mobile src="{{ $previewPromoImage }}" alt="Pratinjau banner mobile" class="h-full w-full object-cover">
                                     </div>
                                 </figure>
                             </div>
-                            <p class="mt-1.5 font-serif text-[11px] leading-relaxed text-muted">
+                            <p class="mt-1.5 font-serif text-[13px] leading-relaxed text-muted">
                                 Satu gambar dipakai untuk desktop dan mobile. Area tengah otomatis menjadi fokus.
                             </p>
                         </div>
@@ -343,7 +343,7 @@
             @csrf
             <div class="flex items-start justify-between gap-4 border-b-2 border-ink bg-[#f3f1e7] px-5 py-4">
                 <div>
-                    <p class="tag text-[11px] font-bold text-varya-dark">// Foto Tentang Kami</p>
+                    <p class="tag text-[12px] font-bold text-varya-dark">// Foto Tentang Kami</p>
                     <h2 class="mt-1 font-display text-xl leading-tight font-black uppercase">Ubah Foto Halaman Tentang</h2>
                 </div>
 
@@ -362,19 +362,19 @@
                         <path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>
                     </svg>
                     <p class="mt-2 font-display text-[14px] font-black uppercase">Tarik &amp; lepas foto di sini</p>
-                    <p class="mt-1 font-serif text-[11px] text-muted">Format JPG, PNG, WEBP (Maks. 3 MB)</p>
+                    <p class="mt-1 font-serif text-[13px] text-muted">Format JPG, PNG, WEBP (Maks. 3 MB)</p>
                     <label for="about-image-input"
-                           class="mt-3 inline-flex cursor-pointer items-center justify-center rounded border-2 border-ink bg-white px-3 py-1.5 font-mono text-[11px] font-bold uppercase shadow-[2px_2px_0_0_#1b1c1d]">
+                           class="mt-3 inline-flex cursor-pointer items-center justify-center rounded border-2 border-ink bg-white px-3 py-1.5 font-mono text-[12px] font-bold uppercase shadow-[2px_2px_0_0_#1b1c1d]">
                         Pilih dari Komputer
                     </label>
                     <input id="about-image-input" type="file" name="foto" data-about-image-input accept="image/jpeg,image/png,image/webp" class="sr-only">
-                    <p data-about-image-name class="mt-1.5 truncate font-mono text-[11px] text-muted">Belum ada file dipilih</p>
+                    <p data-about-image-name class="mt-1.5 truncate font-mono text-[12px] text-muted">Belum ada file dipilih</p>
                 </div>
 
                 <div class="mt-4 grid grid-cols-[1.2fr_1fr] gap-3">
                     <figure>
                         <div class="border-2 border-b-0 border-ink bg-[#303031] px-2 py-1 text-center">
-                            <span class="tag text-[11px] font-bold text-white">Desktop 3:2</span>
+                            <span class="tag text-[12px] font-bold text-white">Desktop 3:2</span>
                         </div>
                         <div class="admin-preview-frame aspect-[3/2] rounded-b-md">
                             <img data-about-dialog-desktop src="{{ $aboutImage }}" alt="Pratinjau foto tentang desktop" class="h-full w-full object-cover">
@@ -382,7 +382,7 @@
                     </figure>
                     <figure>
                         <div class="border-2 border-b-0 border-ink bg-[#303031] px-2 py-1 text-center">
-                            <span class="tag text-[11px] font-bold text-white">Mobile 16:9</span>
+                            <span class="tag text-[12px] font-bold text-white">Mobile 16:9</span>
                         </div>
                         <div class="admin-preview-frame aspect-video rounded-b-md">
                             <img data-about-dialog-mobile src="{{ $aboutImage }}" alt="Pratinjau foto tentang mobile" class="h-full w-full object-cover">
@@ -391,10 +391,10 @@
                 </div>
 
                 @error('foto')
-                    <p class="mt-2 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                    <p class="mt-2 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                 @enderror
 
-                <p data-about-error hidden class="mt-2 font-mono text-[11px] font-bold text-rust"></p>
+                <p data-about-error hidden class="mt-2 font-mono text-[12px] font-bold text-rust"></p>
 
                 <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                     <button type="button" data-about-close class="admin-btn-secondary">Batal</button>

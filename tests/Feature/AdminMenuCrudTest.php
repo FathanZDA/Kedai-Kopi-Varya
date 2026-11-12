@@ -313,36 +313,6 @@ class AdminMenuCrudTest extends TestCase
         $this->get(route('admin.menu.create'))->assertRedirect(route('login'));
     }
 
-    public function test_admin_dapat_menandai_dan_melepas_terlaris_dari_tabel(): void
-    {
-        $this->assertFalse($this->menu->refresh()->terlaris);
-
-        $this->actingAs($this->admin)
-            ->patchJson(route('admin.menu.terlaris', $this->menu), ['terlaris' => true])
-            ->assertOk()
-            ->assertJsonPath('data.id', $this->menu->id)
-            ->assertJsonPath('data.terlaris', true);
-
-        $this->assertTrue($this->menu->refresh()->terlaris);
-
-        $this->actingAs($this->admin)
-            ->patchJson(route('admin.menu.terlaris', $this->menu), ['terlaris' => false])
-            ->assertOk()
-            ->assertJsonPath('data.terlaris', false);
-
-        $this->assertFalse($this->menu->refresh()->terlaris);
-    }
-
-    public function test_penanda_terlaris_ditolak_bila_nilainya_tidak_valid(): void
-    {
-        $this->actingAs($this->admin)
-            ->patchJson(route('admin.menu.terlaris', $this->menu), ['terlaris' => 'mungkin'])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['terlaris']);
-
-        $this->assertFalse($this->menu->refresh()->terlaris);
-    }
-
     public function test_penanda_terlaris_tersimpan_lewat_form_menu(): void
     {
         $payload = [
@@ -363,17 +333,6 @@ class AdminMenuCrudTest extends TestCase
         $this->actingAs($this->admin)
             ->put(route('admin.menu.update', $this->menu), $payload + ['terlaris' => '0'])
             ->assertRedirect(route('admin.menu.index'));
-
-        $this->assertFalse($this->menu->refresh()->terlaris);
-    }
-
-    public function test_kasir_tidak_dapat_menandai_terlaris(): void
-    {
-        $kasir = User::factory()->create(['role' => UserRole::Kasir]);
-
-        $this->actingAs($kasir)
-            ->patchJson(route('admin.menu.terlaris', $this->menu), ['terlaris' => true])
-            ->assertForbidden();
 
         $this->assertFalse($this->menu->refresh()->terlaris);
     }

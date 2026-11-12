@@ -18,8 +18,8 @@
 
             <div class="flex items-center gap-3 rounded-md border-2 border-ink bg-admin-panel px-4 py-2.5 shadow-[3px_3px_0_0_#1b1c1d]">
                 <div class="text-right">
-                    <p class="tag text-[11px] text-muted">Terakhir diperbarui</p>
-                    <p data-store-last-updated class="tag mt-1 text-[11px] font-bold text-ink">{{ $store['last_updated'] }}</p>
+                    <p class="tag text-[12px] text-muted">Terakhir diperbarui</p>
+                    <p data-store-last-updated class="tag mt-1 text-[12px] font-bold text-ink">{{ $store['last_updated'] }}</p>
                 </div>
                 <span class="grid h-9 w-9 place-items-center rounded border-2 border-ink bg-varya-light text-varya-dark">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -33,8 +33,8 @@
 
         @if ($errors->any())
             <div class="mt-4 rounded-md border-2 border-rust bg-[#fbe1de] px-4 py-3" role="alert">
-                <p class="tag text-[11px] font-bold text-rust">Periksa kembali informasi toko:</p>
-                <ul class="mt-2 list-disc space-y-0.5 pl-4 font-serif text-[11px] leading-relaxed text-rust">
+                <p class="tag text-[12px] font-bold text-rust">Periksa kembali informasi toko:</p>
+                <ul class="mt-2 list-disc space-y-0.5 pl-4 font-serif text-[13px] leading-relaxed text-rust">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -51,10 +51,10 @@
                 <section class="admin-card overflow-hidden">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line-strong bg-admin-panel px-4 py-3">
                         <div class="flex items-center gap-2.5">
-                            <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[11px] font-bold text-white">01</span>
+                            <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[12px] font-bold text-white">01</span>
                             <h2 class="font-display text-[18px] leading-tight font-black uppercase">Profil &amp; Identitas Kedai</h2>
                         </div>
-                        <span class="tag text-[11px] font-bold text-muted">Identitas Publik</span>
+                        <span class="tag text-[12px] font-bold text-muted">Identitas Publik</span>
                     </div>
 
                     <div class="space-y-4 p-4 sm:p-5">
@@ -63,7 +63,7 @@
                                 <label for="store-nama-toko" class="admin-label">Nama Kedai Kopi <span class="text-rust">*</span></label>
                                 <input id="store-nama-toko" name="nama_toko" type="text" data-store-field="nama_toko" value="{{ old('nama_toko', $store['name']) }}" class="admin-input mt-2" autocomplete="off">
                                 @error('nama_toko')
-                                    <p class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                                    <p class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                                 @enderror
                             </div>
 
@@ -71,7 +71,7 @@
                                 <label for="store-whatsapp" class="admin-label">Nomor WhatsApp</label>
                                 <input id="store-whatsapp" name="whatsapp" type="tel" data-store-field="whatsapp" value="{{ old('whatsapp', $store['whatsapp']) }}" class="admin-input mt-2" autocomplete="tel">
                                 @error('whatsapp')
-                                    <p class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                                    <p class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
@@ -80,19 +80,19 @@
                             <label for="store-tagline" class="admin-label">Tagline</label>
                             <input id="store-tagline" name="tagline" type="text" data-store-field="tagline" value="{{ old('tagline', $store['tagline']) }}" class="admin-input mt-2" autocomplete="off">
                             @error('tagline')
-                                <p class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                                <p class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
                             <div class="flex items-center justify-between gap-2">
                                 <label for="store-sejarah" class="admin-label">Deskripsi Singkat / Tentang Kami</label>
-                                <span class="tag text-[11px] text-muted"><span data-store-description-count>0</span> / 5000 Karakter</span>
+                                <span class="tag text-[12px] text-muted"><span data-store-description-count>0</span> / 5000 Karakter</span>
                             </div>
                             <textarea id="store-sejarah" name="sejarah" data-store-field="sejarah" rows="6" maxlength="5000" class="admin-textarea mt-2 resize-y">{{ old('sejarah', $store['description']) }}</textarea>
-                            <p class="mt-1.5 font-serif text-[11px] text-muted">Teks ini tampil di deskripsi tentang kami website.</p>
+                            <p class="mt-1.5 font-serif text-[13px] text-muted">Teks ini tampil di deskripsi tentang kami website.</p>
                             @error('sejarah')
-                                <p class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                                <p class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -102,11 +102,11 @@
                                 @foreach ($store['points'] as $point)
                                     <div class="rounded-md border-2 border-line-strong bg-admin-soft p-3 text-center shadow-[2px_2px_0_0_#1b1c1d]">
                                         <p class="font-display text-[16px] leading-none font-black">{{ $point['value'] }}</p>
-                                        <p class="tag mt-1.5 text-[11px] leading-tight text-muted">{{ $point['label'] }}</p>
+                                        <p class="tag mt-1.5 text-[12px] leading-tight text-muted">{{ $point['label'] }}</p>
                                     </div>
                                 @endforeach
                             </div>
-                            <p class="mt-1.5 font-serif text-[11px] text-muted">
+                            <p class="mt-1.5 font-serif text-[13px] text-muted">
                                 Poin statistik mengikuti tampilan publik dan tidak dapat diubah dari form ini.
                             </p>
                         </div>
@@ -117,7 +117,7 @@
                 <section class="admin-card overflow-hidden">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line-strong bg-admin-panel px-4 py-3">
                         <div class="flex items-center gap-2.5">
-                            <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[11px] font-bold text-white">02</span>
+                            <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[12px] font-bold text-white">02</span>
                             <h2 class="font-display text-[18px] leading-tight font-black uppercase">Alamat Fisik &amp; Titik Lokasi Google Maps</h2>
                         </div>
                     </div>
@@ -127,7 +127,7 @@
                             <label for="store-alamat" class="admin-label">Alamat Lengkap Kedai</label>
                             <textarea id="store-alamat" name="alamat" data-store-field="alamat" rows="3" class="admin-textarea mt-2 resize-y">{{ old('alamat', $store['address']) }}</textarea>
                             @error('alamat')
-                                <p class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                                <p class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -140,7 +140,7 @@
                                         <path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.2 1.2"/>
                                         <path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.2-1.2"/>
                                     </svg>
-                                    <input id="store-maps-url" name="maps_url" type="url" data-store-field="maps_url" value="{{ old('maps_url', $store['maps_url']) }}" class="min-w-0 flex-1 bg-transparent font-serif text-[11px] text-ink placeholder:text-muted focus:outline-none" autocomplete="off">
+                                    <input id="store-maps-url" name="maps_url" type="url" data-store-field="maps_url" value="{{ old('maps_url', $store['maps_url']) }}" class="min-w-0 flex-1 bg-transparent font-serif text-[13px] text-ink placeholder:text-muted focus:outline-none" autocomplete="off">
                                 </div>
 
                                 <a href="{{ old('maps_url', $store['maps_url']) }}" target="_blank" rel="noopener noreferrer" data-store-map-link class="admin-btn-secondary shrink-0">
@@ -152,16 +152,16 @@
                                 </a>
                             </div>
                             @error('maps_url')
-                                <p class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                                <p class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
                             <label for="store-maps-embed" class="admin-label">URL Sematan Peta (Embed)</label>
                             <input id="store-maps-embed" name="maps_embed" type="url" data-store-field="maps_embed" value="{{ old('maps_embed', $store['maps_embed']) }}" class="admin-input mt-2" autocomplete="off" placeholder="https://www.google.com/maps/embed?...">
-                            <p class="mt-1.5 font-serif text-[11px] text-muted">Dipakai untuk iframe peta di halaman lokasi. Kosongkan untuk memakai peta bawaan.</p>
+                            <p class="mt-1.5 font-serif text-[13px] text-muted">Dipakai untuk iframe peta di halaman lokasi. Kosongkan untuk memakai peta bawaan.</p>
                             @error('maps_embed')
-                                <p class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                                <p class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
@@ -171,7 +171,7 @@
                 <section class="admin-card overflow-hidden">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line-strong bg-admin-panel px-4 py-3">
                         <div class="flex items-center gap-2.5">
-                            <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[11px] font-bold text-white">03</span>
+                            <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[12px] font-bold text-white">03</span>
                             <h2 class="font-display text-[18px] leading-tight font-black uppercase">Media Sosial &amp; Jam Operasional</h2>
                         </div>
                     </div>
@@ -182,7 +182,7 @@
                                 <label for="store-telepon" class="admin-label">Nomor Telepon</label>
                                 <input id="store-telepon" name="telepon" type="tel" data-store-field="telepon" value="{{ old('telepon', $store['phone']) }}" class="admin-input mt-2" autocomplete="tel">
                                 @error('telepon')
-                                    <p class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                                    <p class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                                 @enderror
                             </div>
 
@@ -190,10 +190,10 @@
                                 <label for="store-instagram" class="admin-label">Akun Instagram Resmi</label>
                                 <div class="mt-2 flex items-center gap-2 rounded-md border-2 border-ink bg-white px-3 py-2">
                                     <span class="font-mono text-[12px] font-bold text-varya-dark">@</span>
-                                    <input id="store-instagram" name="instagram" type="text" data-store-field="instagram" value="{{ old('instagram', ltrim($store['instagram'], '@')) }}" class="min-w-0 flex-1 bg-transparent font-serif text-[11px] text-ink placeholder:text-muted focus:outline-none" autocomplete="off">
+                                    <input id="store-instagram" name="instagram" type="text" data-store-field="instagram" value="{{ old('instagram', ltrim($store['instagram'], '@')) }}" class="min-w-0 flex-1 bg-transparent font-serif text-[13px] text-ink placeholder:text-muted focus:outline-none" autocomplete="off">
                                 </div>
                                 @error('instagram')
-                                    <p class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                                    <p class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
@@ -201,7 +201,7 @@
                         <div class="border-t border-line-strong pt-4">
                             <div class="flex flex-wrap items-center justify-between gap-2">
                                 <p class="admin-label">Jam Operasional</p>
-                                <p class="tag text-[11px] text-muted">Format waktu 24 jam</p>
+                                <p class="tag text-[12px] text-muted">Format waktu 24 jam</p>
                             </div>
 
                             <div class="mt-2 rounded-md border-2 border-ink bg-white px-3 py-3">
@@ -210,15 +210,15 @@
                                 </p>
                             </div>
 
-                            <p class="mt-3 font-mono text-[11px] font-bold text-ink-soft">Jadwal per hari</p>
-                            <p class="mt-1 font-serif text-[11px] text-muted">
+                            <p class="mt-3 font-mono text-[12px] font-bold text-ink-soft">Jadwal per hari</p>
+                            <p class="mt-1 font-serif text-[13px] text-muted">
                                 Pilih jam dan menit lewat daftar di tiap hari. Tandai <strong>Libur</strong> untuk hari yang tutup.
                             </p>
 
                             <div class="mt-2 hidden gap-2 px-3 sm:grid sm:grid-cols-[90px_1fr_1fr_auto]">
-                                <p class="tag text-[11px] font-bold text-muted">Hari</p>
-                                <p class="tag text-[11px] font-bold text-muted">Jam Buka</p>
-                                <p class="tag text-[11px] font-bold text-muted">Jam Tutup</p>
+                                <p class="tag text-[12px] font-bold text-muted">Hari</p>
+                                <p class="tag text-[12px] font-bold text-muted">Jam Buka</p>
+                                <p class="tag text-[12px] font-bold text-muted">Jam Tutup</p>
                                 <span class="w-[54px]" aria-hidden="true"></span>
                             </div>
 
@@ -235,24 +235,24 @@
                                          data-day-key="{{ $hour['key'] }}"
                                          data-day-label="{{ $hour['day'] }}"
                                          class="grid items-center gap-2 rounded-md border-2 border-line-strong bg-admin-soft px-3 py-2 sm:grid-cols-[90px_1fr_1fr_auto]">
-                                        <p class="tag text-[11px] font-bold text-ink">{{ $hour['day'] }}</p>
+                                        <p class="tag text-[12px] font-bold text-ink">{{ $hour['day'] }}</p>
 
                                         <div class="flex flex-col gap-1">
-                                            <p class="tag text-[11px] font-bold text-muted sm:hidden">Jam Buka</p>
+                                            <p class="tag text-[12px] font-bold text-muted sm:hidden">Jam Buka</p>
                                             <div class="flex items-center gap-1.5">
                                                 <select name="jam[{{ $hari }}][buka_jam]"
                                                         data-hour-open-jam
                                                         aria-label="Jam buka {{ $hour['day'] }}"
-                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[11px] disabled:cursor-not-allowed disabled:opacity-50">
+                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[12px] disabled:cursor-not-allowed disabled:opacity-50">
                                                     @for ($jam = 0; $jam < 24; $jam++)
                                                         <option value="{{ sprintf('%02d', $jam) }}" @selected((string) $bukaJam === sprintf('%02d', $jam))>{{ sprintf('%02d', $jam) }}</option>
                                                     @endfor
                                                 </select>
-                                                <span class="font-mono text-[11px] font-bold text-ink-soft">:</span>
+                                                <span class="font-mono text-[12px] font-bold text-ink-soft">:</span>
                                                 <select name="jam[{{ $hari }}][buka_menit]"
                                                         data-hour-open-menit
                                                         aria-label="Menit buka {{ $hour['day'] }}"
-                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[11px] disabled:cursor-not-allowed disabled:opacity-50">
+                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[12px] disabled:cursor-not-allowed disabled:opacity-50">
                                                     @for ($menit = 0; $menit < 60; $menit++)
                                                         <option value="{{ sprintf('%02d', $menit) }}" @selected((string) $bukaMenit === sprintf('%02d', $menit))>{{ sprintf('%02d', $menit) }}</option>
                                                     @endfor
@@ -261,21 +261,21 @@
                                         </div>
 
                                         <div class="flex flex-col gap-1">
-                                            <p class="tag text-[11px] font-bold text-muted sm:hidden">Jam Tutup</p>
+                                            <p class="tag text-[12px] font-bold text-muted sm:hidden">Jam Tutup</p>
                                             <div class="flex items-center gap-1.5">
                                                 <select name="jam[{{ $hari }}][tutup_jam]"
                                                         data-hour-close-jam
                                                         aria-label="Jam tutup {{ $hour['day'] }}"
-                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[11px] disabled:cursor-not-allowed disabled:opacity-50">
+                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[12px] disabled:cursor-not-allowed disabled:opacity-50">
                                                     @for ($jam = 0; $jam < 24; $jam++)
                                                         <option value="{{ sprintf('%02d', $jam) }}" @selected((string) $tutupJam === sprintf('%02d', $jam))>{{ sprintf('%02d', $jam) }}</option>
                                                     @endfor
                                                 </select>
-                                                <span class="font-mono text-[11px] font-bold text-ink-soft">:</span>
+                                                <span class="font-mono text-[12px] font-bold text-ink-soft">:</span>
                                                 <select name="jam[{{ $hari }}][tutup_menit]"
                                                         data-hour-close-menit
                                                         aria-label="Menit tutup {{ $hour['day'] }}"
-                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[11px] disabled:cursor-not-allowed disabled:opacity-50">
+                                                        class="admin-select min-w-0 flex-1 py-1.5 pr-6 pl-2 font-mono text-[12px] disabled:cursor-not-allowed disabled:opacity-50">
                                                     @for ($menit = 0; $menit < 60; $menit++)
                                                         <option value="{{ sprintf('%02d', $menit) }}" @selected((string) $tutupMenit === sprintf('%02d', $menit))>{{ sprintf('%02d', $menit) }}</option>
                                                     @endfor
@@ -292,13 +292,13 @@
                                             Libur
                                         </label>
                                         @error('jam.'.$hari.'.buka_jam')
-                                            <p class="font-mono text-[11px] font-bold text-rust sm:col-span-4">{{ $message }}</p>
+                                            <p class="font-mono text-[12px] font-bold text-rust sm:col-span-4">{{ $message }}</p>
                                         @enderror
                                     </div>
                                 @endforeach
                             </div>
 
-                            <p class="mt-2 font-serif text-[11px] leading-relaxed text-muted">
+                            <p class="mt-2 font-serif text-[13px] leading-relaxed text-muted">
                                 Hari yang ditandai libur tidak menampilkan jam buka pada halaman publik.
                             </p>
                         </div>
@@ -309,23 +309,23 @@
                 <section class="admin-card overflow-hidden">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line-strong bg-admin-panel px-4 py-3">
                         <div class="flex items-center gap-2.5">
-                            <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[11px] font-bold text-white">04</span>
+                            <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark font-mono text-[12px] font-bold text-white">04</span>
                             <h2 class="font-display text-[18px] leading-tight font-black uppercase">Fasilitas Kedai</h2>
                         </div>
-                        <span class="tag text-[11px] font-bold text-muted">Tampil di Publik</span>
+                        <span class="tag text-[12px] font-bold text-muted">Tampil di Publik</span>
                     </div>
 
                     <div class="p-4 sm:p-5">
                         <label for="store-fasilitas" class="admin-label">Daftar Fasilitas</label>
                         <textarea id="store-fasilitas" name="fasilitas" data-store-field="fasilitas" rows="3" class="admin-textarea mt-2 resize-y" placeholder="WiFi Cepat, Colokan Listrik, Area Outdoor">{{ old('fasilitas', implode(', ', $store['facilities'])) }}</textarea>
-                        <p class="mt-1.5 font-serif text-[11px] text-muted">Pisahkan setiap fasilitas dengan koma.</p>
+                        <p class="mt-1.5 font-serif text-[13px] text-muted">Pisahkan setiap fasilitas dengan koma.</p>
                         @error('fasilitas')
-                            <p class="mt-1.5 font-mono text-[11px] font-bold text-rust">{{ $message }}</p>
+                            <p class="mt-1.5 font-mono text-[12px] font-bold text-rust">{{ $message }}</p>
                         @enderror
 
                         <div data-store-facilities-preview class="mt-3 flex flex-wrap gap-1.5">
                             @foreach ($store['facilities'] as $facility)
-                                <span class="tag rounded border border-line-strong bg-white px-2 py-1 text-[11px] text-ink-soft">{{ $facility }}</span>
+                                <span class="tag rounded border border-line-strong bg-white px-2 py-1 text-[12px] text-ink-soft">{{ $facility }}</span>
                             @endforeach
                         </div>
                     </div>
@@ -353,25 +353,25 @@
                             <span class="h-2.5 w-2.5 rounded-full border border-white/40 bg-[#ff6b6b]"></span>
                             <span class="h-2.5 w-2.5 rounded-full border border-white/40 bg-[#f2c66d]"></span>
                             <span class="h-2.5 w-2.5 rounded-full border border-white/40 bg-[#7fc08d]"></span>
-                            <p class="tag ml-1 text-[11px] font-bold text-ink-soft">Pratinjau Langsung (Tampilan Publik)</p>
+                            <p class="tag ml-1 text-[12px] font-bold text-ink-soft">Pratinjau Langsung (Tampilan Publik)</p>
                         </div>
-                        <span class="tag rounded border border-line-strong bg-white px-2 py-1 text-[11px] font-bold text-ink-soft">Tampilan Publik</span>
+                        <span class="tag rounded border border-line-strong bg-white px-2 py-1 text-[12px] font-bold text-ink-soft">Tampilan Publik</span>
                     </div>
 
                     <div class="p-4">
                         <div class="rounded-md border-2 border-ink bg-white p-4">
                             <div class="flex items-center justify-between gap-2 border-b border-line-strong pb-2">
-                                <p class="tag flex items-center gap-1.5 text-[11px] font-bold text-ink">
+                                <p class="tag flex items-center gap-1.5 text-[12px] font-bold text-ink">
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>
                                     </svg>
                                     Tentang Kami
                                 </p>
-                                <p class="tag text-[11px] text-muted">Landing Preview</p>
+                                <p class="tag text-[12px] text-muted">Landing Preview</p>
                             </div>
 
-                            <p data-store-preview-description class="mt-3 line-clamp-[9] font-serif text-[11px] leading-relaxed text-ink-soft">
+                            <p data-store-preview-description class="mt-3 line-clamp-[9] font-serif text-[13px] leading-relaxed text-ink-soft">
                                 {{ old('sejarah', $store['description']) }}
                             </p>
 
@@ -379,7 +379,7 @@
                                 @foreach ($store['points'] as $point)
                                     <div class="rounded border-2 border-line-strong bg-admin-soft px-2 py-2 text-center">
                                         <p class="font-display text-[15px] leading-none font-black">{{ $point['value'] }}</p>
-                                        <p class="tag mt-1 text-[11px] leading-tight text-muted">{{ $point['label'] }}</p>
+                                        <p class="tag mt-1 text-[12px] leading-tight text-muted">{{ $point['label'] }}</p>
                                     </div>
                                 @endforeach
                             </div>
@@ -389,7 +389,7 @@
                                      alt="Peta lokasi Kedai Kopi Varya di Wonokromo, Surabaya"
                                      class="h-[190px] w-full object-cover">
                                 <div class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                    <span class="inline-flex items-center gap-1.5 rounded border-2 border-ink bg-white px-2.5 py-1.5 font-mono text-[11px] font-bold shadow-[2px_2px_0_0_#1b1c1d]">
+                                    <span class="inline-flex items-center gap-1.5 rounded border-2 border-ink bg-white px-2.5 py-1.5 font-mono text-[12px] font-bold shadow-[2px_2px_0_0_#1b1c1d]">
                                         <span class="h-2 w-2 rounded-full bg-varya-dark"></span>
                                         <span data-store-preview-map-name>{{ old('nama_toko', $store['name']) }}</span>
                                     </span>
@@ -397,14 +397,14 @@
                                 <a href="https://www.openstreetmap.org/copyright"
                                    target="_blank"
                                    rel="noreferrer"
-                                   class="absolute right-1 bottom-1 rounded bg-white/90 px-1 py-0.5 font-mono text-[11px] text-ink-soft hover:text-ink">
+                                   class="absolute right-1 bottom-1 rounded bg-white/90 px-1 py-0.5 font-mono text-[12px] text-ink-soft hover:text-ink">
                                     © OpenStreetMap
                                 </a>
                             </div>
 
                             <div class="mt-2 flex items-center justify-between gap-2">
-                                <span class="tag text-[11px] font-bold text-muted">SURABAYA SELATAN / 60243</span>
-                                <a href="{{ old('maps_url', $store['maps_url']) }}" target="_blank" rel="noopener noreferrer" data-store-preview-map-link class="tag text-[11px] font-bold text-varya-dark underline underline-offset-2">Petunjuk Rute</a>
+                                <span class="tag text-[12px] font-bold text-muted">SURABAYA SELATAN / 60243</span>
+                                <a href="{{ old('maps_url', $store['maps_url']) }}" target="_blank" rel="noopener noreferrer" data-store-preview-map-link class="tag text-[12px] font-bold text-varya-dark underline underline-offset-2">Petunjuk Rute</a>
                             </div>
 
                             <div class="mt-3 border-t border-line-strong pt-2.5">
@@ -414,9 +414,9 @@
                                         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
                                     </svg>
                                     <div>
-                                        <p class="tag text-[11px] font-bold text-muted">Alamat Presisi</p>
-                                        <p data-store-preview-address class="mt-1 font-serif text-[11px] leading-relaxed font-semibold text-ink">{{ old('alamat', $store['address']) }}</p>
-                                        <p data-store-preview-whatsapp class="mt-1 font-serif text-[11px] leading-relaxed text-muted">WA {{ old('whatsapp', $store['whatsapp']) }}</p>
+                                        <p class="tag text-[12px] font-bold text-muted">Alamat Presisi</p>
+                                        <p data-store-preview-address class="mt-1 font-serif text-[13px] leading-relaxed font-semibold text-ink">{{ old('alamat', $store['address']) }}</p>
+                                        <p data-store-preview-whatsapp class="mt-1 font-serif text-[13px] leading-relaxed text-muted">WA {{ old('whatsapp', $store['whatsapp']) }}</p>
                                     </div>
                                 </div>
                             </div>

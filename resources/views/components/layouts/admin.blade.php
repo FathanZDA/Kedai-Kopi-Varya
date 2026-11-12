@@ -14,7 +14,6 @@
             'menuCreate' => route('admin.menu.create'),
             'menuEditBase' => url('/admin/menu'),
             'menuAvailabilityBase' => url('/admin/menu'),
-            'menuTerlarisBase' => url('/admin/menu'),
             'reports' => route('admin.reports'),
             'reportOrderBase' => url('/admin/laporan'),
             'promos' => route('admin.promos'),
@@ -68,14 +67,14 @@
          hidden
          role="status"
          aria-live="polite"
-         class="fixed bottom-5 left-1/2 z-[80] w-[calc(100%-2.5rem)] max-w-md -translate-x-1/2 rounded-lg border-[3px] border-ink bg-varya-dark px-5 py-3.5 text-center font-mono text-[11px] font-bold tracking-wide text-white uppercase shadow-[5px_5px_0_0_#1b1c1d]"></div>
+         class="fixed bottom-5 left-1/2 z-[80] w-[calc(100%-2.5rem)] max-w-md -translate-x-1/2 rounded-lg border-[3px] border-ink bg-varya-dark px-5 py-3.5 text-center font-mono text-[12px] font-bold tracking-wide text-white uppercase shadow-[5px_5px_0_0_#1b1c1d]"></div>
 
     {{-- Dialog konfirmasi generik (hapus menu, promosi, foto, dll.). --}}
     <dialog data-admin-confirm-dialog class="admin-dialog">
         <div class="admin-dialog-card">
             <div class="flex items-start justify-between gap-4 border-b-2 border-ink bg-[#f1eee4] px-5 py-4">
                 <div>
-                    <p class="tag text-[11px] font-bold text-rust">// Konfirmasi</p>
+                    <p class="tag text-[12px] font-bold text-rust">// Konfirmasi</p>
                     <h2 data-confirm-title class="mt-1 font-display text-xl leading-tight font-black text-ink uppercase">
                         Konfirmasi tindakan
                     </h2>

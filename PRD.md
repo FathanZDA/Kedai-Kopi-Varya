@@ -359,7 +359,7 @@ Admin hanya memiliki **lima fitur utama** berikut.
 * **[AD-02c] Ubah menu:** Mengubah seluruh data menu, termasuk harga, ketersediaan, dan penanda Terlaris.
 * **[AD-02d] Hapus menu:** Menghapus menu dengan *soft delete* setelah konfirmasi. Menu yang dihapus tidak tampil di halaman pelanggan dan kasir, tetapi riwayat pesanan lama tetap utuh.
 * **[AD-02e] Kategori:** Kategori menggunakan daftar tetap yang sudah di-*seed*: **Kopi, Bukan Kopi, Makanan & Camilan**. Tidak ada CRUD kategori terpisah pada versi ini.
-* **[AD-02f] Tandai terlaris:** Admin dapat menandai atau melepas penanda **Terlaris** pada sebuah menu langsung dari tabel Kelola Menu (tombol bintang) maupun dari form menu. Penanda ini hanya label tampilan: badge bintang “Terlaris” muncul di katalog Pelanggan A/B, halaman detail produk, dan kartu Buat Pesanan kasir, tanpa mengubah harga, stok, urutan katalog, atau nomor antrean. Angka penjualan tetap dihitung dari transaksi lunas (AD-01).
+* **[AD-02f] Tandai terlaris:** Admin dapat menandai atau melepas penanda **Terlaris** pada sebuah menu dari form menu (**Ubah → 03 Atribut Penjualan**); tabel Kelola Menu hanya menampilkan badge bintang sebagai informasi. Penanda ini hanya label tampilan: badge bintang “Terlaris” muncul di katalog Pelanggan A/B, halaman detail produk, dan kartu Buat Pesanan kasir, tanpa mengubah harga, stok, urutan katalog, atau nomor antrean. Angka penjualan tetap dihitung dari transaksi lunas (AD-01).
 
 ##### [AD-03] Laporan Transaksi *(Prioritas: Must)*
 
