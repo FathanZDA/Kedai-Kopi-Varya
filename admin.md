@@ -70,7 +70,7 @@ Admin tidak memiliki fitur rekonsiliasi pembayaran, refund, atau manajemen akun 
    * Jumlah pesanan sedang diproses.
    * Perbandingan pendapatan QRIS dan tunai (hanya transaksi lunas).
    * Kartu keempat ringkasan: nama menu terlaris bulan berjalan dan jumlah terjual (tanpa gambar), berganti otomatis tiap 2 detik; rotasi berhenti saat kursor/fokus di kartu dan dapat dijeda lewat tombol **Jeda**. Grafik penjualan memakai lebar penuh di bawah kartu.
-   * Grafik penjualan: batang pendapatan lunas dan jumlah pesanan per jam (Hari Ini), per hari (Minggu Ini), atau per tanggal (Bulan Ini). Total periode tampil di atas grafik; klik satu batang menampilkan rincian batang itu, klik lagi untuk kembali ke total.
+   * Grafik penjualan: grafik garis pendapatan lunas dan jumlah pesanan per jam (Hari Ini), per hari (Minggu Ini), atau per tanggal (Bulan Ini). Total periode tampil di atas grafik; klik satu titik menampilkan rincian titik itu, klik lagi untuk kembali ke total.
    * Pilihan periode **Hari Ini** (default), **Minggu Ini** (Senin–Minggu), dan **Bulan Ini** untuk ringkasan pendapatan/pesanan dan grafik; menu terlaris serta pesanan menunggu/diproses tidak ikut berubah. Tidak ada daftar transaksi terbaru di dashboard; gunakan Laporan Transaksi.
 
 4. Admin memilih salah satu fitur lain pada menu: Kelola Menu, Laporan Transaksi, Iklan & Promosi, atau Informasi Toko.

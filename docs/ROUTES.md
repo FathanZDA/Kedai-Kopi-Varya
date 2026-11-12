@@ -892,16 +892,16 @@ Data yang dikirim ke halaman:
 | Pesanan menunggu pembayaran | order hari ini dengan `status_pembayaran = menunggu` |
 | Pesanan diproses | order hari ini dengan `status_pesanan = diproses` |
 | Perbandingan QRIS:tunai | persentase dari pendapatan lunas periode aktif |
-| Menu terlaris | 5 menu dengan `SUM(order_items.jumlah)` terbesar dari transaksi `lunas` bulan berjalan, grup per `nama_menu` |
-| Grafik penjualan | 24 batang jam (`hari`), 7 batang Senin-Minggu (`minggu`), atau satu batang per tanggal (`bulan`); pendapatan per batang hanya `lunas`, jumlah pesanan semua status; tinggi relatif terhadap batang tertinggi |
+| Menu terlaris | 4 menu dengan `SUM(order_items.jumlah)` terbesar dari transaksi `lunas` bulan berjalan, grup per `nama_menu` |
+| Grafik penjualan | 24 titik jam (`hari`), 7 titik Senin-Minggu (`minggu`), atau satu titik per tanggal (`bulan`); pendapatan per titik hanya `lunas`, jumlah pesanan semua status; tinggi relatif terhadap titik tertinggi (`DashboardService::grafik()` mengirim `x` dan `garis`) |
 
 Aturan:
 
-- Hanya transaksi `lunas` yang masuk pendapatan (PRD §8.8.1), termasuk pendapatan per batang grafik; pesanan belum lunas hanya menambah jumlah pesanan pada batangnya, bukan pendapatan.
+- Hanya transaksi `lunas` yang masuk pendapatan (PRD §8.8.1), termasuk pendapatan per titik grafik; pesanan belum lunas hanya menambah jumlah pesanan pada titiknya, bukan pendapatan.
 - Perbandingan jumlah pesanan memakai periode sebelumnya (`created_at` kemarin, minggu lalu, atau bulan lalu; semua status); bila periode sebelumnya tidak punya pesanan, persentase ditampilkan sebagai teks tanpa pembanding.
 - Rentang periode: `hari` = hari berjalan, `minggu` = Senin 00:00 sampai sekarang, `bulan` = awal sampai akhir bulan berjalan. Nilai `periode` selain tiga itu jatuh ke `hari`.
 - Menu terlaris memakai snapshot `order_items.nama_menu`; harga, kategori, dan foto diambil dari baris `menus` terbaru (termasuk yang sudah di-soft-delete). Menu yang sudah hilang permanen tetap tampil dengan foto bawaan.
-- Grafik dirender server sebagai deretan `<button data-grafik-bar>` dengan tinggi batang relatif; `admin.js` hanya menangani klik batang (menampilkan rincian `data-label`/`data-revenue`/`data-orders`, klik ulang mengembalikan total periode). Tidak ada library chart, tidak ada request data tambahan. Daftar transaksi terbaru dan filter tab Dine In/Take Away di dashboard dihapus; rincian transaksi ada di Laporan Transaksi.
+- Grafik dirender server sebagai **grafik garis SVG** (`<polyline>` + area `<polygon>`) dengan titik `<button data-grafik-bar>` yang diposisikan lewat `x`/`tinggi`; `admin.js` hanya menangani klik titik (menampilkan rincian `data-label`/`data-revenue`/`data-orders`, klik ulang mengembalikan total periode) dan tampilan terpilih memakai `aria-pressed`. Tidak ada library chart, tidak ada request data tambahan. Daftar transaksi terbaru dan filter tab Dine In/Take Away di dashboard dihapus; rincian transaksi ada di Laporan Transaksi.
 - Tidak ada route JSON baru; filter periode memakai query string pada route `GET` yang sama.
 - Error penting: `401` tamu (redirect `/login`), `403` bukan admin.
 - Status 3 Nov 2026: **sudah diimplementasikan** di `AdminController@dashboard` + `App\Services\DashboardService`; seluruh data contoh dashboard (`recentOrders()`, `popularMenus()`, `transactions()`, `makeTransaction()`, `summarizeMonth()`, `kodePesanan()`, `menuKanonik()`) dihapus dari `AdminController`.
