@@ -65,7 +65,7 @@ Temuan dari permintaan user di `docs/HANDOFF.md` §9 (“Prompt saya”), dikerj
 | Banyak teks sangat kecil (`6px`–`10px`) dan abu-abu samar | **Selesai** | T1; 392 kemunculan dinaikkan ke lantai 11px, `--color-muted` `#63646a` (≈5:1), `--color-varya-muted` `#5f6f5c`, ukuran komponen CSS dinaikkan |
 | Banner promo: label jauh dari judul, deskripsi tanpa latar | **Selesai** | T2; label “Promo” menempel di atas judul, jarak dirapatkan, deskripsi memakai blok hijau `bg-varya-dark` + border |
 | Login: garis hijau diagonal mengganggu, tanpa garis terasa kosong | **Selesai** | T3; gradien radial lembut + watermark logo + panel informasi tiga poin; satu bar `admin-stripes` di kartu |
-| Fitur baru: admin menandai menu “Terlaris”, badge tampil di pelanggan | **Selesai** | T4/F-75; `menus.terlaris`, toggle `PATCH /admin/menu/{menu}/terlaris`, checkbox form, badge di katalog A/B + detail produk + kasir; test `AdminMenuCrudTest` |
+| Fitur baru: admin menandai menu “Terlaris”, badge tampil di pelanggan | **Selesai** | T4/F-75; `menus.terlaris`, checkbox form (**Ubah → Atribut Penjualan**; tombol/kolom tabel & endpoint `PATCH .../terlaris` dihapus pada R4), badge di katalog A/B + detail produk + kasir; test `AdminMenuCrudTest` |
 | Istilah “Menu Terlaris” dashboard bentrok dengan penanda manual | **Selesai** | Judul dashboard menjadi “Paling Banyak Terjual” (tetap dihitung dari `order_items`) |
 
 ---
@@ -82,4 +82,17 @@ Koreksi atas slice T1–T4 setelah user membandingkan hasil dengan folder `desig
 | Tentang Kami masih terasa portrait, bukan landscape | **Selesai** | T6; grid `lg:grid-cols-2` + `items-stretch`, foto `object-cover` absolut setinggi panel teks |
 | Ukuran Tentang Kami jadi terlalu kecil | **Selesai** | T7; ukuran semula dikembalikan (`max-w-1280`, `p-8`, paragraf 15–16px/1.9, statistik `py-5`) dengan struktur landscape tetap |
 | Bayangan Tentang Kami kabur seperti halo, desain memakai bayangan tegas | **Selesai** | T6; `.about-shadow` → `8px 8px 0 0 rgb(27 28 29 / 90%)`, tanpa border |
+
+---
+
+## Status tindak lanjut — 12 Nov 2026 (revisi dashboard, kasir, admin)
+
+Rencana lengkap R1–R7 ada di `docs/HANDOFF.md` §5.25. Tiga slice pertama dan R3 sudah selesai dan diverifikasi `php artisan test` (243 passed), `pint --test`, dan `npm.cmd run build`.
+
+| Temuan | Status | Bukti / irisan |
+|---|---|---|
+| Mengosongkan keranjang kasir langsung menghapus tanpa peringatan | **Selesai** | R5; dialog `<dialog data-clear-cart-dialog>` + tombol Batal/Ya, Kosongkan; test `KasirOrderTest` |
+| Tombol/kolom Terlaris di tabel Kelola Menu membingungkan | **Selesai** | R4; kolom, tombol bintang, handler, route/service/request dihapus; penanda hanya di **Ubah → Atribut Penjualan**; badge ★ tetap sebagai informasi |
+| Elemen yang bisa diklik tidak selalu memakai kursor tangan | **Selesai** | R6; aturan dasar `cursor: pointer` di `app.css` + `cursor-pointer` pada kartu promosi; nonaktif tetap `not-allowed` |
+| Font kasir/admin masih 11px dan sulit dibaca | **Selesai** | R3; 388 `text-[11px]` → 12px, paragraf isi → 13px, `.admin-label`/`.admin-btn-*` → 12px, `.admin-checkbox` → 13px |
 | Kapsul indikator slide memutih setelah pindah slide | **Selesai** | T8; `pelanggan-a.js` men-toggle `w-7`/`bg-varya-dark` dan `w-2.5`/`bg-white/80`, sama dengan markup Blade |

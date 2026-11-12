@@ -50,7 +50,6 @@ Route publik (Pelanggan A/B) tetap terbuka. Route kasir dan admin sudah dilindun
 | PUT/PATCH | `/admin/menu/{menu}` | `admin.menu.update` | `AdminController@updateMenu` | `auth` + `role:admin`; multipart + foto |
 | DELETE | `/admin/menu/{menu}` | `admin.menu.destroy` | `AdminController@destroyMenu` | `auth` + `role:admin`; soft delete |
 | PATCH | `/admin/menu/{menu}/availability` | `admin.menu.availability` | `AdminController@updateMenuAvailability` | `auth` + `role:admin`; JSON; hanya `tersedia` |
-| PATCH | `/admin/menu/{menu}/terlaris` | `admin.menu.terlaris` | `AdminController@updateMenuBestSeller` | `auth` + `role:admin`; JSON; hanya `terlaris` (F-75) |
 | GET | `/admin/laporan` | `admin.reports` | `AdminController@reports` | `auth` + `role:admin`; filter `bulan`, data dari DB |
 | GET | `/admin/laporan/{order}` | `admin.reports.show` | `AdminController@showReportOrder` | `auth` + `role:admin`; JSON rincian transaksi |
 | GET | `/admin/promosi` | `admin.promos` | `AdminController@promos` | `auth` + `role:admin`; daftar + editor |

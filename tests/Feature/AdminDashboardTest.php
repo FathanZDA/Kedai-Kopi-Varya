@@ -219,7 +219,7 @@ class AdminDashboardTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('admin.dashboard'));
 
         $response->assertOk()
-            ->assertSee('Menu Terlaris Bulan Ini')
+            ->assertSee('Paling Banyak Terjual')
             ->assertSee('Varya Signature')
             ->assertSee('3x terjual')
             ->assertSee('Matcha Creamy')
