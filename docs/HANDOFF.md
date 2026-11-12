@@ -2,7 +2,7 @@
 
 Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap aturan kerja utama dan `PRD.md` tetap sumber kebenaran. File ini hanya menjawab tiga hal: *di mana kita sekarang*, *apa yang belum*, dan *apa langkah berikutnya*.
 
-**Terakhir diperbarui:** 12 Nov 2026, rencana revisi dashboard/kasir/admin (R1–R7) disetujui user dan dicatat di §5.25. R5, R4, R6, dan R3 sudah di-commit di branch `perbaikan-revisi-ui-r3-r6` (dua commit: kode + dokumen); **R1 grafik penjualan** sudah di-commit di branch `perbaikan-r1-grafik-penjualan` (dua commit: kode + dokumen); **R2 kartu terlaris selesai dan sudah di-commit** di branch `perbaikan-r2-kartu-terlaris` (dua commit: kode + dokumen) setelah direvisi sesuai Prompt 3 (kartu keempat tanpa gambar, slide 2 detik, grafik lebar penuh); **R1 direvisi menjadi grafik garis** dengan tinggi 300/360px di branch `perbaikan-grafik-garis` dan **belum di-commit** — tersisa R7. Sebelumnya: slice `perbaikan-ui-terlaris` (T1–T8) dikerjakan di atas `main` (PR #1 `perbaikan-s8-regression-dokumen` sudah di-merge). Slice ini **belum di-commit** dan mencakup: keterbacaan tipografi/kontras, banner promo (foto tetap terlihat, label “Wajib Coba! 🔥” berjarak di samping chip jam, judul tinta, indikator slide hijau), latar login tanpa garis diagonal, penanda **Terlaris** manual (`menus.terlaris`, F-75) beserta badge-nya, dan Tentang Kami dua panel **landscape** dengan bayangan keras kanan-bawah. S1–S8 tetap seperti sebelumnya; dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
+**Terakhir diperbarui:** 12 Nov 2026, rencana revisi dashboard/kasir/admin (R1–R7) disetujui user dan dicatat di §5.25. R5, R4, R6, dan R3 sudah di-commit di branch `perbaikan-revisi-ui-r3-r6` (dua commit: kode + dokumen); **R1 grafik penjualan** sudah di-commit di branch `perbaikan-r1-grafik-penjualan` (dua commit: kode + dokumen); **R2 kartu terlaris selesai dan sudah di-commit** di branch `perbaikan-r2-kartu-terlaris` (dua commit: kode + dokumen) setelah direvisi sesuai Prompt 3 (kartu keempat tanpa gambar, slide 2 detik, grafik lebar penuh); **R1 direvisi menjadi grafik garis** dengan tinggi 300/360px dan sudah di-commit di branch `perbaikan-r1-grafik-garis` (`a01c0c6` kode, `b398806` dokumen) — tersisa R7. Sebelumnya: slice `perbaikan-ui-terlaris` (T1–T8) **sudah di-commit** di branch `perbaikan-pelanggan-dan-fitur-terlaris` (`34d5035`), di atas `main` yang memuat PR #1 `perbaikan-s8-regression-dokumen`. Slice ini mencakup: keterbacaan tipografi/kontras, banner promo (foto tetap terlihat, label “Wajib Coba! 🔥” berjarak di samping chip jam, judul tinta, indikator slide hijau), latar login tanpa garis diagonal, penanda **Terlaris** manual (`menus.terlaris`, F-75) beserta badge-nya, dan Tentang Kami dua panel **landscape** dengan bayangan keras kanan-bawah. S1–S8 tetap seperti sebelumnya; dashboard memakai periode default hari, minggu Senin-Minggu; navbar Pelanggan A mengikuti pola responsif Pelanggan B (`lg`); urutan promo memakai nomor unik dan form memakai `max(urutan) + 1`.
 
 ---
 
@@ -10,8 +10,8 @@ Dokumen ini adalah **ringkasan serah-terima antar sesi**. `AGENTS.md` tetap atur
 
 | Item | Nilai |
 |---|---|
-| Branch aktif | `perbaikan-pelanggan-dan-fitur-terlaris` (`34d5035`, memuat T1–T8 + perbaikan tampilan); slice revisi R4/R5/R6 ada di working tree dan **belum di-commit** |
-| Baseline test | `php artisan test` → **243 passed** (1317 assertions) setelah R4/R5/R6 pada 12 Nov 2026 (sebelumnya 245; 3 test toggle terlaris dihapus, 1 test dialog keranjang ditambah) |
+| Branch aktif | `perbaikan-r1-grafik-garis` (`b398806`, sudah di-push ke `origin`); memuat revisi R1 grafik garis di atas R2 dan R3–R6. Working tree bersih; sisanya hanya file untracked (`docs/DOKUMENTASI-FITUR.md`, `design/perlu-perbaikan/`, gambar unggahan uji) |
+| Baseline test | `php artisan test` → **247 passed** (1385 assertions) pada 12 Nov 2026 setelah R1 (revisi grafik garis) dan R2; sebelumnya 243 setelah R4/R5/R6 (R1 menambah 3 test grafik, R2 menambah 2 test kartu terlaris, 3 test toggle terlaris dihapus di R4) |
 | Pint | `php vendor/bin/pint --test` → passed |
 | Build frontend | `npm.cmd run build` → berhasil |
 | Database aplikasi | `kedai_varya` (MySQL, berisi data uji user); migration kategori tiga baris (7 Nov 2026) dan `menus.terlaris` (10 Nov 2026) sudah dijalankan |
@@ -49,7 +49,11 @@ Tumpukan branch bersifat **linear**. Branch baru selalu dipotong dari ujung terb
 | `perbaikan-s6-periode-dashboard` | `9cfe908` | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (sudah di-commit) |
 | `perbaikan-s7-urutan-promo` | `483770c` | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max(urutan)+1` (sudah di-commit) |
 | `perbaikan-s8-regression-dokumen` | `ad1e377` | S8 regression final, penutupan status temuan, dan dokumentasi rilis (sudah di-merge ke `main` lewat PR #1) |
-| `perbaikan-ui-terlaris` (working tree `main`) | *working tree* | T1 tipografi/kontras, T2 banner promo, T3 latar login, T4 penanda Terlaris manual (F-75), T5–T8 revisi tampilan dari `design/perlu-perbaikan` (banner, Tentang Kami landscape, bayangan, jarak label, indikator slide) — belum di-commit |
+| `perbaikan-pelanggan-dan-fitur-terlaris` | `34d5035` | T1–T8: tipografi/kontras, banner promo, latar login, penanda Terlaris manual + badge, Tentang Kami landscape |
+| `perbaikan-revisi-ui-r3-r6` | `18b21c6` | R3–R6: font kasir/admin lantai 12px, Terlaris hanya lewat form, konfirmasi kosongkan keranjang, cursor pointer |
+| `perbaikan-r1-grafik-penjualan` | `c59c566` | R1: tabel Pesanan Masuk Terbaru diganti grafik penjualan |
+| `perbaikan-r2-kartu-terlaris` | `a646e37` | R2: kartu “Paling Banyak Terjual” jadi kartu keempat tanpa gambar, bergilir 2 detik, grafik lebar penuh |
+| `perbaikan-r1-grafik-garis` | `b398806` | Revisi R1: grafik batang diganti grafik garis SVG, area plot 300px/360px |
 
 ---
 
@@ -306,7 +310,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.8 `admin-reports`
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+**Status:** selesai dan sudah di-commit (hash di §10).
 
 **Kontrak:** PRD AD-03, §8.8; F-14, F-19; `docs/DECISIONS.md` F-65; `docs/ROUTES.md` §4.15.
 
@@ -332,7 +336,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.9 `admin-dashboard`
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+**Status:** selesai dan sudah di-commit (hash di §10).
 
 **Kontrak:** PRD AD-01; `admin.md` §A; `docs/DECISIONS.md` F-66; `docs/ROUTES.md` §4.16.
 
@@ -349,6 +353,8 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 9. Test baru: `tests/Feature/AdminDashboardTest.php` (7 test, 40 assertions): ringkasan dari DB, hanya lunas dihitung, hitungan menunggu/diproses hari ini, perbandingan kemarin, menu terlaris dari snapshot, maksimal 10 transaksi terbaru, proteksi role.
 10. Baseline setelah slice ini **194 passed** (1000 assertions); Pint bersih; `npm.cmd run build` berhasil.
 
+**Catatan:** angka “lima menu terlaris” dan “sepuluh transaksi terbaru” di atas adalah keadaan slice ini. Sejak R1/R2 dashboard memakai empat menu di kartu keempat ringkasan dan grafik penjualan berbentuk garis, tanpa daftar transaksi terbaru (§5.25).
+
 **Perilaku penting:**
 
 - Hanya transaksi lunas yang masuk angka pendapatan; pesanan belum lunas tetap tampil di tabel transaksi terbaru sebagai informasi.
@@ -358,7 +364,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.10 `kasir-pesanan-detail`
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+**Status:** selesai dan sudah di-commit (hash di §10).
 
 **Kontrak:** PRD K-02c; `docs/DECISIONS.md` F-67; `docs/ROUTES.md` §4.17.
 
@@ -379,7 +385,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.11 `docs-readme`
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+**Status:** selesai dan sudah di-commit (hash di §10).
 
 **Kontrak:** AGENTS §11; F-44; `docs/DECISIONS.md` F-68.
 
@@ -398,7 +404,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.12 `pelanggan-b-cart-policy` (A1)
 
-**Status:** sudah diimplementasikan di working tree, **belum di-commit**.
+**Status:** selesai dan sudah di-commit (hash di §10).
 
 **Kontrak:** PRD B-04; `docs/DECISIONS.md` F-29, F-69; `docs/ROUTES.md` §1/§2.3.
 
@@ -527,7 +533,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.20 `perbaikan-s6-periode-dashboard` (S6)
 
-**Status:** selesai dikerjakan 8 Nov 2026 di branch `perbaikan-s6-periode-dashboard`, **belum di-commit**; QA browser tiga kotak periode masih perlu.
+**Status:** selesai dikerjakan 8 Nov 2026 di branch `perbaikan-s6-periode-dashboard` (`9cfe908`), sudah di-commit; QA browser tiga kotak periode masih perlu.
 
 - `DashboardService` menambah `periodeValid()` + `ringkasan()`; `data($periode)` mengembalikan ringkasan aktif dan `ringkasan_periode` untuk tiga kotak.
 - Periode: `hari` default, `minggu` Senin 00:00 s/d sekarang, `bulan` awal s/d akhir bulan; nilai tidak valid jatuh ke `hari`.
@@ -550,7 +556,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ### 5.22 `perbaikan-s8-regression-dokumen` (S8)
 
-**Status:** selesai dikerjakan 8 Nov 2026 di branch `perbaikan-s8-regression-dokumen`, **belum di-commit**. Ini slice dokumentasi/regression; tidak ada perubahan kode aplikasi.
+**Status:** selesai dikerjakan 8 Nov 2026 di branch `perbaikan-s8-regression-dokumen` (`ad1e377`), sudah di-merge ke `main` lewat PR #1. Ini slice dokumentasi/regression; tidak ada perubahan kode aplikasi.
 
 - `php artisan test` → **240 passed** (1299 assertions); `php vendor/bin/pint --test` → passed; `npm.cmd run build` → berhasil; `git diff --check` → bersih.
 - `docs/TEST-FITUR.md` diberi tabel status tindak lanjut: seluruh temuan fungsional S1–S7 ditutup; item yang tersisa hanya checklist QA manual, ekspor PDF/Excel Fase 2, kredensial Midtrans produksi, dan keranjang server-side.
@@ -560,7 +566,7 @@ Acceptance criteria terpenuhi: lunas + nomor antrean, notifikasi ganda, nominal 
 
 ## 5.23 `perbaikan-ui-terlaris` (T1–T8)
 
-**Status:** selesai dikerjakan 10–11 Nov 2026 di working tree `main`, **belum di-commit**. Delapan irisan: empat permintaan user pada §9 (T1–T4) dan empat koreksi tampilan dari `design/perlu-perbaikan` (T5–T8).
+**Status:** selesai dikerjakan 10–11 Nov 2026 dan **sudah di-commit** di branch `perbaikan-pelanggan-dan-fitur-terlaris` (`34d5035`); sebagian tampilannya kemudian direvisi R3–R6. Delapan irisan: empat permintaan user pada §9 (T1–T4) dan empat koreksi tampilan dari `design/perlu-perbaikan` (T5–T8).
 
 - **T1 Tipografi & kontras.** Semua `text-[6px]`–`text-[10px]` (392 kemunculan di Blade + `admin.js`/`kasir.js`/`pelanggan-b.js`) dinaikkan ke lantai **11px**; teks isi pelanggan 12–13px menjadi 13–14px. `app.css`: `--color-muted` `#8d8d8e` → `#63646a` (≈5,0:1), `--color-varya-muted` `#869582` → `#5f6f5c`; `.admin-label`/`.admin-btn-*`/`.auth-label` 9px → 11px, `.admin-input` 12→13px, `.auth-submit` 10→12px. `min-w` tabel admin/kasir dinaikkan agar teks tidak terpotong.
 - **T2 Banner promo** (`components/pelanggan-a/partials/hero.blade.php`, dipakai Pelanggan A dan B): label “Promo” dipindah dari pojok kanan atas ke kolom konten tepat di atas judul, jarak antar elemen `gap-5` → `gap-2.5/3.5`, deskripsi mendapat blok `bg-varya-dark` + border + bayangan, overlay foto `bg-ink/35` → `bg-ink/45`, dan slide memakai `min-h` + padding agar tidak terpotong di mobile (revisi tampilan 11 Nov 2026 ada di T5).
@@ -580,16 +586,16 @@ Slice S1–S8 sudah selesai. Pekerjaan operasional lain:
 
 | # | Topik | Catatan | Acuan |
 |---|---|---|---|
-| 0 | Commit + merge ke `main` + deploy | S1–S8 sudah masuk `main` lewat PR #1; yang belum di-commit hanya slice `perbaikan-ui-terlaris` (T1–T8) di working tree | README; `docs/HANDOFF.md` §5.22–5.23 |
+| 0 | Commit + merge ke `main` + deploy | S1–S8 sudah masuk `main` lewat PR #1; slice `perbaikan-ui-terlaris` (T1–T8) dan revisi R1–R6 sudah di-commit di tumpukan branch masing-masing, tinggal R7 lalu merge bertahap ke `main` | README; `docs/HANDOFF.md` §5.22–5.25 |
 | 1 | Ekspor laporan PDF/Excel | Fase 2, belum masuk scope | F-19; PRD AD-03 |
 | 2 | Akun/kredensial Midtrans produksi | Operasional, butuh akun dan URL publik | O-16; `docs/MIDTRANS-SETUP.md` |
 | 3 | Keranjang server-side | Hanya relevan bila Pelanggan B kelak punya akun | F-69 |
 
 ## 5.25 Rencana revisi dashboard, kasir, dan admin (R1–R7)
 
-**Status:** rencana disetujui user 12 Nov 2026. Dikerjakan bertahap, satu slice per langkah, di branch `perbaikan-pelanggan-dan-fitur-terlaris`. Baseline sebelum slice: `php artisan test` → **245 passed** (1325 assertions), Pint bersih, build berhasil.
+**Status:** rencana disetujui user 12 Nov 2026. Dikerjakan bertahap, satu slice per langkah, dan **satu branch per slice** yang dipotong dari ujung branch terbaru (bukan dari `main`). Baseline sebelum slice: `php artisan test` → **245 passed** (1325 assertions), Pint bersih, build berhasil.
 
-**Progres 12 Nov 2026:** R5, R4, R6, dan **R3 selesai** dan sudah di-commit (`perbaikan-revisi-ui-r3-r6`). **R1 grafik penjualan** sudah di-commit di `perbaikan-r1-grafik-penjualan` (dua commit: kode + dokumen). **R2 kartu terlaris selesai dan sudah di-commit** di `perbaikan-r2-kartu-terlaris`, termasuk revisi Prompt 3 (§5.25.5). **R1 direvisi menjadi grafik garis** dengan area plot lebih tinggi (§5.25.6), dikerjakan di branch `perbaikan-grafik-garis` dan belum di-commit. Slice terakhir yang tersisa: **R7** (regression + dokumen).
+**Progres 12 Nov 2026:** R5, R4, R6, dan **R3 selesai** dan sudah di-commit (`perbaikan-revisi-ui-r3-r6`). **R1 grafik penjualan** sudah di-commit di `perbaikan-r1-grafik-penjualan` (dua commit: kode + dokumen). **R2 kartu terlaris selesai dan sudah di-commit** di `perbaikan-r2-kartu-terlaris`, termasuk revisi Prompt 3 (§5.25.5). **R1 direvisi menjadi grafik garis** dengan area plot lebih tinggi (§5.25.6), sudah di-commit di branch `perbaikan-r1-grafik-garis` (`a01c0c6` kode, `b398806` dokumen). Baseline setelah revisi: `php artisan test` → **247 passed** (1385 assertions), Pint bersih, build berhasil. Slice terakhir yang tersisa: **R7** (regression + dokumen).
 
 Sumber permintaan: §9 “Prompt saya 2”. Tujuh revisi user diringkas menjadi R1–R7. Aturan tetap: tanpa dependency chart baru (grafik digambar CSS/SVG), tanpa `localStorage` baru, tanpa simulasi pembayaran, dokumentasi diperbarui dalam commit yang sama.
 
@@ -597,9 +603,9 @@ Sumber permintaan: §9 “Prompt saya 2”. Tujuh revisi user diringkas menjadi 
 
 | Topik | Keputusan |
 |---|---|
-| Grafik (R1) | Klik satu batang menampilkan **total pendapatan dan total pesanan batang itu**; total seluruh periode selalu terlihat di atas grafik. |
+| Grafik (R1) | Klik satu titik menampilkan **total pendapatan dan total pesanan titik itu**; total seluruh periode selalu terlihat di atas grafik. Setelah revisi (§5.25.6) grafik berbentuk **garis**, bukan batang. |
 | Nasib “Pesanan Masuk Terbaru” | **Dihapus** dari dashboard; daftar transaksi tetap tersedia di Laporan Transaksi. PRD AD-01 dan F-66 harus diperbarui. |
-| Kartu terlaris (R2) | Panel **4 kartu kecil (2×2)** di kolom kanan dashboard, bergiliran disorot otomatis tiap 4 detik; data **4 menu** teratas (bukan 5). PRD/F-66 diperbarui. |
+| Kartu terlaris (R2) | Semula direncanakan panel **4 kartu kecil (2×2)** di kolom kanan; pelaksanaannya direvisi user menjadi **kartu keempat** baris statistik tanpa gambar, bergilir tiap **2 detik** (§5.25.5); data **4 menu** teratas (bukan 5). PRD/F-66 diperbarui. |
 | Terlaris (R4) | Kolom **Terlaris** dan tombol bintang di tabel Kelola Menu **dihapus**; penanda hanya lewat **Ubah → 03 Atribut Penjualan**. Endpoint `PATCH /admin/menu/{menu}/terlaris`, method service, dan test-nya dihapus. F-75, ROUTES §4.12, dan PRD AD-02f diperbarui. |
 | Font (R3) | Lantai **12px** untuk label/badge/header tabel admin & kasir, teks isi **13px**; angka display tidak diubah. |
 
@@ -759,11 +765,13 @@ sebelum lanjut ke slice berikutnya saya akan jelaskan dengan lebih rinci dan jel
 | 8 Nov 2026 | `perbaikan-s5-pil-aktif-pelanggan-b` | `3d1a812` | S5 pil aktif Pelanggan B + responsive navbar A mengikuti B |
 | 8 Nov 2026 | `perbaikan-s6-periode-dashboard` | `9cfe908` | S6 dashboard tiga periode: Hari Ini/Minggu Ini/Bulan Ini (F-66) |
 | 8 Nov 2026 | `perbaikan-s7-urutan-promo` | `483770c` | S7 urutan promo 5+: diagnosis, UI posisi/urutan, validasi unik, default `max+1` (F-63) |
-| 8 Nov 2026 | `perbaikan-s8-regression-dokumen` | *belum di-commit* | S8 regression final, status temuan, dan dokumentasi rilis |
-| 10 Nov 2026 | `perbaikan-ui-terlaris` (working tree `main`) | *belum di-commit* | T1 tipografi/kontras, T2 banner promo, T3 latar login, T4 penanda Terlaris manual + badge (F-75) |
-| 11 Nov 2026 | `perbaikan-ui-terlaris` (working tree `main`) | *belum di-commit* | T5–T8 revisi tampilan: banner tidak samar, label “Wajib Coba! 🔥” berjarak, Tentang Kami landscape ukuran semula, `.about-shadow` keras kanan-bawah, indikator slide selalu hijau |
+| 8 Nov 2026 | `perbaikan-s8-regression-dokumen` | `ad1e377` | S8 regression final, status temuan, dan dokumentasi rilis (di-merge ke `main` lewat PR #1) |
+| 10 Nov 2026 | `perbaikan-ui-terlaris` | `34d5035` | T1 tipografi/kontras, T2 banner promo, T3 latar login, T4 penanda Terlaris manual + badge (F-75) |
+| 11 Nov 2026 | `perbaikan-ui-terlaris` | `34d5035` | T5–T8 revisi tampilan: banner tidak samar, label “Wajib Coba! 🔥” berjarak, Tentang Kami landscape ukuran semula, `.about-shadow` keras kanan-bawah, indikator slide selalu hijau |
 | 12 Nov 2026 | `perbaikan-revisi-ui-r3-r6` | `18b21c6` | R5 konfirmasi kosongkan keranjang kasir, R4 penanda Terlaris hanya lewat form (kolom/tombol/endpoint dihapus), R6 cursor pointer global, R3 font kasir/admin naik ke lantai 12px |
-| 12 Nov 2026 | `perbaikan-r1-grafik-penjualan` | *belum di-commit* | R1 grafik penjualan menggantikan tabel Pesanan Masuk Terbaru |
+| 12 Nov 2026 | `perbaikan-r1-grafik-penjualan` | `c59c566` | R1 grafik penjualan menggantikan tabel Pesanan Masuk Terbaru |
+| 12 Nov 2026 | `perbaikan-r2-kartu-terlaris` | `a646e37` | R2 kartu “Paling Banyak Terjual” menjadi kartu keempat tanpa gambar, bergilir 2 detik, grafik lebar penuh |
+| 12 Nov 2026 | `perbaikan-r1-grafik-garis` | `b398806` | Revisi R1: grafik batang diganti grafik garis SVG dengan area plot 300px/360px |
 
 ---
 
