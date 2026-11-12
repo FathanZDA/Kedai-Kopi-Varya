@@ -30,7 +30,7 @@ class DashboardService
 {
     private const ZONA = 'Asia/Jakarta';
 
-    private const BATAS_MENU = 5;
+    private const BATAS_MENU = 4;
 
     /** @var list<string> */
     private const PERIODE = ['hari', 'minggu', 'bulan'];
@@ -197,9 +197,10 @@ class DashboardService
     }
 
     /**
-     * Lima menu terlaris bulan berjalan berdasarkan jumlah item terjual pada
-     * transaksi lunas. Nama, harga, dan foto mengikuti data menu terkini;
-     * jumlah terjual tetap dari snapshot `order_items`.
+     * Empat menu terlaris bulan berjalan berdasarkan jumlah item terjual pada
+     * transaksi lunas. Empat baris ini mengisi panel 2x2 dashboard. Nama,
+     * harga, dan foto mengikuti data menu terkini; jumlah terjual tetap dari
+     * snapshot `order_items`.
      *
      * @param  array{0: CarbonImmutable, 1: CarbonImmutable}  $rentang
      * @return list<array<string, mixed>>

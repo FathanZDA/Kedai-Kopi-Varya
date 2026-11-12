@@ -387,6 +387,137 @@ function initDashboard() {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Sorotan kartu "Paling Banyak Terjual"                                      */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Kartu "Paling Banyak Terjual" menampilkan satu menu pada satu waktu; nama
+ * dan jumlah terjual berganti tiap 2 detik tanpa gambar. Rotasi berhenti saat
+ * kursor/fokus berada di kartu, saat tab tidak aktif, dan saat pengguna
+ * menekan tombol Jeda. `prefers-reduced-motion` membuat rotasi tidak dimulai
+ * otomatis.
+ */
+function initPopularRotator() {
+    const root = document.querySelector('[data-rotator]');
+    if (!root) return;
+
+    const slides = Array.from(root.querySelectorAll('[data-rotator-slide]'));
+    if (slides.length < 2) return;
+
+    const dots = Array.from(root.querySelectorAll('[data-rotator-dot]'));
+    const toggle = root.querySelector('[data-rotator-toggle]');
+    const status = root.querySelector('[data-rotator-status]');
+    const jeda = Math.max(1000, Number(root.dataset.rotatorInterval ?? 2000));
+    const kurangiGerak = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    let aktif = 0;
+    let putar = !kurangiGerak.matches;
+    let ditahan = false;
+    let timer = null;
+
+    const sorot = (index) => {
+        aktif = (index + slides.length) % slides.length;
+
+        slides.forEach((slide, urutan) => {
+            const nyala = urutan === aktif;
+            slide.dataset.aktif = nyala ? 'true' : 'false';
+            slide.classList.toggle('is-aktif', nyala);
+        });
+
+        dots.forEach((dot, urutan) => {
+            dot.dataset.aktif = urutan === aktif ? 'true' : 'false';
+        });
+
+        if (!status) return;
+
+        const slide = slides[aktif];
+        status.textContent = `Menyorot ${slide.dataset.nama ?? ''}, ${slide.dataset.terjual ?? ''}.`;
+    };
+
+    const perbaruiTombol = () => {
+        if (!toggle) return;
+
+        toggle.setAttribute('aria-pressed', putar ? 'true' : 'false');
+        toggle.textContent = putar ? 'Jeda' : 'Putar';
+    };
+
+    const hentikan = () => {
+        if (timer === null) return;
+
+        window.clearInterval(timer);
+        timer = null;
+    };
+
+    const mulai = () => {
+        hentikan();
+
+        if (!putar || ditahan || document.hidden) return;
+
+        timer = window.setInterval(() => sorot(aktif + 1), jeda);
+    };
+
+    toggle?.addEventListener('click', () => {
+        putar = !putar;
+        perbaruiTombol();
+
+        if (putar) {
+            sorot(aktif + 1);
+            mulai();
+            return;
+        }
+
+        hentikan();
+    });
+
+    root.addEventListener('mouseenter', () => {
+        ditahan = true;
+        hentikan();
+    });
+
+    root.addEventListener('mouseleave', () => {
+        ditahan = false;
+        mulai();
+    });
+
+    root.addEventListener('focusin', () => {
+        ditahan = true;
+        hentikan();
+    });
+
+    root.addEventListener('focusout', (event) => {
+        if (root.contains(event.relatedTarget)) return;
+
+        ditahan = false;
+        mulai();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            hentikan();
+            return;
+        }
+
+        mulai();
+    });
+
+    kurangiGerak.addEventListener('change', (event) => {
+        putar = !event.matches;
+        perbaruiTombol();
+
+        if (putar) {
+            sorot(aktif + 1);
+            mulai();
+            return;
+        }
+
+        hentikan();
+    });
+
+    perbaruiTombol();
+    mulai();
+}
+
+/* -------------------------------------------------------------------------- */
 /* Data menu bersama                                                          */
 /* -------------------------------------------------------------------------- */
 
@@ -1806,6 +1937,7 @@ function init() {
     initConfirmDialog();
     initShell();
     initDashboard();
+    initPopularRotator();
     initMenuList();
     initMenuForm();
     initReports();

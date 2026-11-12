@@ -57,7 +57,7 @@
         </section>
 
         {{-- Kartu statistik --}}
-        <div class="mt-5 grid gap-4 md:grid-cols-3">
+        <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <article class="admin-card flex flex-col p-4 sm:p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
@@ -155,11 +155,74 @@
                     </p>
                 </div>
             </article>
+
+            <article class="admin-card flex flex-col p-4 sm:p-5"
+                     data-rotator
+                     data-rotator-interval="2000">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="tag text-[12px] font-bold text-ink">Paling Banyak Terjual</p>
+                        <p class="mt-1 font-serif text-[13px] text-muted">Transaksi lunas &bull; Bulan ini</p>
+                    </div>
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-md border-2 border-ink bg-varya-dark text-white">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9L12 3Z"/>
+                        </svg>
+                    </span>
+                </div>
+
+                @if (count($popularMenus) === 0)
+                    <p class="mt-5 font-serif text-[13px] leading-relaxed text-ink-soft">
+                        Belum ada transaksi lunas bulan ini.
+                    </p>
+                @else
+                    <div class="relative mt-5 min-h-[72px]">
+                        @foreach ($popularMenus as $index => $menu)
+                            <div data-rotator-slide
+                                 data-nama="{{ $menu['name'] }}"
+                                 data-terjual="{{ $menu['sales'] }}"
+                                 data-aktif="{{ $index === 0 ? 'true' : 'false' }}"
+                                 class="popular-slide {{ $index === 0 ? 'is-aktif' : '' }}">
+                                <p class="font-display text-[21px] leading-tight font-black text-varya-dark line-clamp-2">
+                                    {{ $menu['name'] }}
+                                </p>
+                                <p class="mt-1 font-mono text-[12px] leading-none font-bold text-ink-soft">
+                                    {{ $menu['sales'] }}
+                                </p>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if (count($popularMenus) > 1)
+                        <div class="mt-auto flex items-center justify-between gap-2 border-t border-line-strong/70 pt-3">
+                            <div class="flex items-center gap-1.5" aria-hidden="true">
+                                @foreach ($popularMenus as $index => $menu)
+                                    <span data-rotator-dot
+                                          data-aktif="{{ $index === 0 ? 'true' : 'false' }}"
+                                          class="popular-dot"></span>
+                                @endforeach
+                            </div>
+
+                            <button type="button"
+                                    data-rotator-toggle
+                                    aria-pressed="true"
+                                    class="tag rounded border-2 border-ink bg-admin-soft px-2 py-1 text-[12px] font-bold text-ink transition-colors hover:bg-varya-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-varya-dark">
+                                Jeda
+                            </button>
+                        </div>
+
+                        <p class="sr-only" aria-live="polite" aria-atomic="true" data-rotator-status>
+                            Menyorot {{ $popularMenus[0]['name'] }}, {{ $popularMenus[0]['sales'] }}.
+                        </p>
+                    @endif
+                @endif
+            </article>
         </div>
 
-        {{-- Grafik penjualan + kolom kanan --}}
-        <div class="mt-5 grid items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_300px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
-            <section class="admin-card overflow-hidden xl:flex xl:flex-col"
+        {{-- Grafik penjualan (lebar penuh) --}}
+        <div class="mt-5">
+            <section class="admin-card overflow-hidden"
                      aria-labelledby="grafik-title"
                      data-grafik
                      data-grafik-total-label="Total {{ $ringkasan['label'] }}"
@@ -252,49 +315,6 @@
                     </div>
                 </div>
             </section>
-
-            <div class="space-y-4">
-                <section class="admin-card overflow-hidden" aria-labelledby="popular-menus-title">
-                    <div class="flex items-center gap-2 border-b-2 border-ink bg-[#f3f1e7] px-4 py-3">
-                        <span class="grid h-6 w-6 place-items-center rounded-sm bg-varya-dark text-white">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M5 8h14v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8Z"/>
-                                <path d="M8 8V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3M9 13h6"/>
-                            </svg>
-                        </span>
-                        <h2 id="popular-menus-title" class="font-display text-[17px] leading-tight font-black uppercase">
-                            Paling Banyak Terjual
-                        </h2>
-
-                        <span class="tag ml-auto text-[12px] text-ink-soft">Bulan ini</span>
-                    </div>
-
-                    <div class="divide-y-2 divide-line">
-                        @foreach ($popularMenus as $menu)
-                            <div class="flex items-center gap-2.5 px-4 py-2.5">
-                                <img src="{{ $menu['image'] }}"
-                                     alt="{{ $menu['name'] }}"
-                                     loading="lazy"
-                                     class="h-12 w-12 shrink-0 rounded border-2 border-ink object-cover">
-
-                                <div class="min-w-0 flex-1">
-                                    <p class="font-display text-[12px] leading-tight font-extrabold">{{ $menu['name'] }}</p>
-                                    <p class="mt-0.5 font-serif text-[13px] leading-snug text-ink-soft">
-                                        {{ $formatRupiah($menu['price']) }} &bull; {{ $menu['note'] }}
-                                    </p>
-                                    <p class="tag mt-0.5 text-[12px] text-muted">{{ $menu['tag'] }}</p>
-                                </div>
-
-                                <span class="tag shrink-0 rounded bg-varya-dark px-2 py-1 text-[12px] font-bold text-white">
-                                    {{ $menu['sales'] }}
-                                </span>
-                            </div>
-                        @endforeach
-                    </div>
-                </section>
-
-            </div>
         </div>
     </div>
 </x-layouts.admin>

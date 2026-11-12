@@ -231,6 +231,57 @@ class AdminDashboardTest extends TestCase
             ->assertDontSee('9x terjual');
     }
 
+    public function test_kartu_terlaris_menampilkan_empat_menu_teratas_secara_bergiliran(): void
+    {
+        $order = $this->buatOrder(['kode_pesanan' => 'MENU4DSH']);
+        $this->tambahItem($order, 'Varya Signature', 22000, 5);
+        $this->tambahItem($order, 'Matcha Creamy', 24000, 4);
+        $this->tambahItem($order, 'Cold Brew Grit', 30000, 3);
+        $this->tambahItem($order, 'Truffle Fries', 25000, 2);
+        $this->tambahItem($order, 'Menu Kelima', 18000, 1);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.dashboard'));
+
+        $response->assertOk()
+            ->assertSeeInOrder(['Total Pesanan', 'Total Pendapatan', 'Daftar Menu Aktif', 'Paling Banyak Terjual'])
+            ->assertSeeInOrder(['Varya Signature', '5x terjual', 'Matcha Creamy', '4x terjual'])
+            ->assertDontSee('Menu Kelima')
+            ->assertSee('data-rotator', false)
+            ->assertSee('data-rotator-interval="2000"', false)
+            ->assertSee('data-rotator-toggle', false)
+            ->assertSee('data-rotator-status', false)
+            ->assertSee('aria-live="polite"', false)
+            ->assertSee('data-nama="Varya Signature"', false)
+            ->assertSee('data-terjual="5x terjual"', false)
+            ->assertDontSee('xl:grid-cols-[minmax(0,1fr)_300px]', false);
+
+        $konten = $response->getContent();
+        $this->assertCount(4, $response->viewData('popularMenus'));
+        $this->assertSame(4, substr_count($konten, 'data-rotator-slide'));
+        $this->assertSame(4, substr_count($konten, 'data-rotator-dot'));
+
+        // Kartu terlaris tidak memakai gambar: hanya nama menu dan jumlah terjual.
+        $mulai = (int) strpos($konten, 'Paling Banyak Terjual');
+        $akhir = (int) strpos($konten, '</article>', $mulai);
+        $kartu = substr($konten, $mulai, $akhir - $mulai);
+
+        $this->assertStringNotContainsString('<img', $kartu);
+        $this->assertStringNotContainsString('data-rotator-card', $konten);
+    }
+
+    public function test_kartu_terlaris_memberi_placeholder_tanpa_transaksi_lunas(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.dashboard'));
+
+        $response->assertOk()
+            ->assertSee('Paling Banyak Terjual')
+            ->assertSee('Belum ada transaksi lunas bulan ini')
+            ->assertDontSee('data-rotator-slide', false)
+            ->assertDontSee('data-rotator-toggle', false);
+
+        $this->assertCount(0, $response->viewData('popularMenus'));
+    }
+
     public function test_grafik_penjualan_harian_memakai_24_jam_dan_hanya_lunas(): void
     {
         $this->buatOrder([

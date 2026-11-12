@@ -320,6 +320,48 @@
         text-transform: uppercase;
     }
 
+    /*
+    | Kartu "Paling Banyak Terjual" di dashboard: nama menu dan jumlah
+    | terjual berganti tiap 2 detik. Slide ditumpuk absolut di dalam wadah
+    | ber-tinggi tetap agar kartu tidak berubah tinggi (tanpa layout shift).
+    */
+    .popular-slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(4px);
+        transition: opacity 220ms ease, transform 220ms ease, visibility 220ms ease;
+    }
+
+    .popular-slide.is-aktif {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+    }
+
+    .popular-dot {
+        height: 6px;
+        width: 6px;
+        border-radius: 9999px;
+        background-color: var(--color-line-strong);
+        transition: transform 200ms ease, background-color 200ms ease;
+    }
+
+    .popular-dot[data-aktif='true'] {
+        background-color: var(--color-varya-dark);
+        transform: scale(1.6);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .popular-slide,
+        .popular-dot {
+            transition: none;
+        }
+    }
+
     .admin-stripes {
     background-image: repeating-linear-gradient(
         45deg,
