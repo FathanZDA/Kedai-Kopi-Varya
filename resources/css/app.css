@@ -355,9 +355,33 @@
         transform: scale(1.6);
     }
 
+    /*
+    | Titik grafik garis dashboard. Tampilan terpilih mengikuti aria-pressed
+    | pada tombolnya, jadi admin.js tidak perlu menukar kelas Tailwind.
+    */
+    .grafik-point {
+        display: block;
+        height: 10px;
+        width: 10px;
+        border: 2px solid var(--color-ink);
+        border-radius: 9999px;
+        background-color: #ffffff;
+        transition: transform 150ms ease, background-color 150ms ease;
+    }
+
+    [data-grafik-bar]:hover .grafik-point {
+        background-color: var(--color-varya-light);
+    }
+
+    [data-grafik-bar][aria-pressed='true'] .grafik-point {
+        background-color: var(--color-varya-dark);
+        transform: scale(1.7);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         .popular-slide,
-        .popular-dot {
+        .popular-dot,
+        .grafik-point {
             transition: none;
         }
     }

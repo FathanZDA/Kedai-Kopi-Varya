@@ -344,26 +344,15 @@ function initDashboard() {
     };
 
     const reset = () => {
-        bars.forEach((bar) => {
-            bar.setAttribute('aria-pressed', 'false');
-            const batang = bar.querySelector('.grafik-bar');
-            if (!batang) return;
-            batang.classList.add('bg-varya/60');
-            batang.classList.remove('bg-varya-dark');
-        });
+        bars.forEach((bar) => bar.setAttribute('aria-pressed', 'false'));
 
         tampilkan(total.label, total.revenue, total.orders);
-        if (hint) hint.textContent = 'Klik batang untuk rincian';
+        if (hint) hint.textContent = 'Klik titik untuk rincian';
     };
 
     const pilih = (dipilih) => {
         bars.forEach((bar) => {
-            const aktif = bar === dipilih;
-            bar.setAttribute('aria-pressed', aktif ? 'true' : 'false');
-            const batang = bar.querySelector('.grafik-bar');
-            if (!batang) return;
-            batang.classList.toggle('bg-varya-dark', aktif);
-            batang.classList.toggle('bg-varya/60', !aktif);
+            bar.setAttribute('aria-pressed', bar === dipilih ? 'true' : 'false');
         });
 
         tampilkan(
@@ -371,7 +360,7 @@ function initDashboard() {
             Number(dipilih.dataset.revenue ?? 0),
             dipilih.dataset.orders ?? '0',
         );
-        if (hint) hint.textContent = 'Klik batang lagi untuk total periode';
+        if (hint) hint.textContent = 'Klik titik lagi untuk total periode';
     };
 
     bars.forEach((bar) => {

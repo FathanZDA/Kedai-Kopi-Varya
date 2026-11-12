@@ -311,6 +311,9 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Grafik Penjualan')
             ->assertSee('Total Hari Ini')
             ->assertSee('per jam')
+            ->assertSee('<polyline', false)
+            ->assertSee('grafik-point', false)
+            ->assertDontSee('class="grafik-bar', false)
             ->assertDontSee('Pesanan Masuk Terbaru')
             ->assertDontSee('GRAFHAR1');
 
@@ -326,6 +329,10 @@ class AdminDashboardTest extends TestCase
         $this->assertSame(0, $grafik['batang'][10]['pendapatan']);
         $this->assertSame(0, $grafik['batang'][10]['tinggi']);
         $this->assertSame(30000, $grafik['maks']);
+        $this->assertSame(2.083, $grafik['batang'][0]['x']);
+        $this->assertSame(39.583, $grafik['batang'][9]['x']);
+        $this->assertStringContainsString('39.583,0', $grafik['garis']);
+        $this->assertCount(24, explode(' ', $grafik['garis']));
     }
 
     public function test_grafik_mingguan_memakai_tujuh_hari_senin_sampai_minggu(): void
@@ -353,6 +360,7 @@ class AdminDashboardTest extends TestCase
         $this->assertSame(1, $grafik['batang'][2]['pesanan']);
         $this->assertSame(0, $grafik['batang'][6]['pendapatan']);
         $this->assertSame(50000, $grafik['maks']);
+        $this->assertSame(7.143, $grafik['batang'][0]['x']);
     }
 
     public function test_grafik_bulanan_memakai_semua_tanggal_bulan_berjalan(): void

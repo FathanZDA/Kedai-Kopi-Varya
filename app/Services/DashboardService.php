@@ -244,9 +244,11 @@ class DashboardService
      *
      * Batang berisi pendapatan transaksi `lunas` dan seluruh pesanan pada
      * rentang waktu batang tersebut. Tinggi batang dihitung relatif terhadap
-     * batang tertinggi (0-100, minimal 4 untuk nilai bukan nol).
+     * batang tertinggi (0-100, minimal 4 untuk nilai bukan nol). `x` adalah
+     * posisi titik (0-100, tengah kolom) dan `garis` adalah rangkaian
+     * `x,y` untuk grafik garis yang dirender server.
      *
-     * @return array{periode: string, label: string, satuan: string, maks: int, batang: list<array<string, mixed>>}
+     * @return array{periode: string, label: string, satuan: string, maks: int, batang: list<array<string, mixed>>, garis: string}
      */
     public function grafik(string $periode = 'hari'): array
     {
@@ -271,6 +273,14 @@ class DashboardService
                 : 0;
         }
 
+        // Titik garis ditempatkan di tengah lebar kolom tiap batang (0-100),
+        // sehingga garis tidak menempel di tepi kiri/kanan area grafik.
+        $langkah = 100 / max(1, count($batang));
+
+        foreach ($batang as $index => $item) {
+            $batang[$index]['x'] = round(($index + 0.5) * $langkah, 3);
+        }
+
         return [
             'periode' => $periode,
             'label' => $this->labelPeriode($periode),
@@ -281,7 +291,22 @@ class DashboardService
             },
             'maks' => $maks,
             'batang' => $batang,
+            'garis' => $this->titikGaris($batang),
         ];
+    }
+
+    /**
+     * Rangkaian titik untuk `<polyline>`/`<polygon>` grafik garis dalam ruang
+     * 0-100 (x = posisi kolom, y = 100 - tinggi).
+     *
+     * @param  list<array<string, mixed>>  $batang
+     */
+    private function titikGaris(array $batang): string
+    {
+        return implode(' ', array_map(
+            static fn (array $item): string => $item['x'].','.round(100 - $item['tinggi'], 3),
+            $batang,
+        ));
     }
 
     /**

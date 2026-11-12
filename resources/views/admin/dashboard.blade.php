@@ -16,7 +16,7 @@
         {{-- Hero ringkasan --}}
         <section class="admin-card overflow-hidden">
             <div class="flex flex-col gap-1 border-b-2 border-ink px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <p class="tag text-[12px] font-bold text-varya-dark">// Ringkasan Aktivitas Toko</p>
+                <p class="tag text-[12px] font-bold text-varya-dark">Ringkasan Aktivitas Toko</p>
                 <p class="tag flex items-center gap-1.5 text-[12px] text-muted">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -261,7 +261,7 @@
                     </div>
                 </div>
 
-                <div class="px-3 pt-4 pb-2 sm:px-4">
+                <div class="px-3 pt-5 pb-3 sm:px-4">
                     @if ($grafik['maks'] === 0)
                         <p class="mb-2 rounded border border-line-strong bg-admin-soft px-3 py-2 font-serif text-[13px] text-ink-soft">
                             Belum ada transaksi lunas {{ mb_strtolower($grafik['label']) }}. Grafik akan terisi setelah pembayaran pertama.
@@ -269,26 +269,51 @@
                     @endif
 
                     <div class="overflow-x-auto pb-1">
-                        <div class="flex items-stretch gap-[3px]"
-                             style="min-width: {{ max(260, count($grafik['batang']) * 26) }}px;">
-                            @foreach ($grafik['batang'] as $batang)
-                                <button type="button"
-                                        data-grafik-bar
-                                        aria-pressed="false"
-                                        aria-label="{{ $batang['judul'] }}: Rp {{ number_format($batang['pendapatan'], 0, ',', '.') }}, {{ $batang['pesanan'] }} pesanan"
-                                        data-label="{{ $batang['judul'] }}"
-                                        data-revenue="{{ $batang['pendapatan'] }}"
-                                        data-orders="{{ $batang['pesanan'] }}"
-                                        class="group flex h-[200px] min-w-0 flex-1 flex-col justify-end rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-varya-dark">
-                                    <span class="relative flex-1">
-                                        <span class="grafik-bar absolute inset-x-0 bottom-0 rounded-t-[3px] border border-ink bg-varya/60 transition-colors group-hover:bg-varya-dark"
-                                              style="height: {{ $batang['tinggi'] }}%"></span>
-                                    </span>
-                                    <span class="mt-1 h-4 shrink-0 text-center font-mono text-[12px] leading-none font-bold text-muted">
+                        <div class="relative" style="min-width: {{ max(260, count($grafik['batang']) * 26) }}px;">
+                            <div class="relative h-[300px] sm:h-[360px]">
+                                {{-- Garis bantu horizontal (0/33/66/100%) --}}
+                                <div class="pointer-events-none absolute inset-0 flex flex-col justify-between" aria-hidden="true">
+                                    @for ($garisBantu = 0; $garisBantu < 4; $garisBantu++)
+                                        <span class="border-t border-dashed border-line-strong/80"></span>
+                                    @endfor
+                                </div>
+
+                                {{-- Area + garis pendapatan (ruang 0-100 agar ikut lebar & tinggi wadah) --}}
+                                <svg class="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+                                     viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                                    <polygon points="0,100 {{ $grafik['garis'] }} 100,100"
+                                             fill="rgb(46 107 71 / 10%)" />
+                                    <polyline points="{{ $grafik['garis'] }}"
+                                              fill="none"
+                                              stroke="#115231"
+                                              stroke-width="2.5"
+                                              stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                              vector-effect="non-scaling-stroke" />
+                                </svg>
+
+                                @foreach ($grafik['batang'] as $batang)
+                                    <button type="button"
+                                            data-grafik-bar
+                                            aria-pressed="false"
+                                            aria-label="{{ $batang['judul'] }}: Rp {{ number_format($batang['pendapatan'], 0, ',', '.') }}, {{ $batang['pesanan'] }} pesanan"
+                                            data-label="{{ $batang['judul'] }}"
+                                            data-revenue="{{ $batang['pendapatan'] }}"
+                                            data-orders="{{ $batang['pesanan'] }}"
+                                            class="group absolute z-10 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-varya-dark"
+                                            style="left: {{ $batang['x'] }}%; top: {{ 100 - $batang['tinggi'] }}%;">
+                                        <span class="grafik-point"></span>
+                                    </button>
+                                @endforeach
+                            </div>
+
+                            <div class="mt-2 flex" aria-hidden="true">
+                                @foreach ($grafik['batang'] as $batang)
+                                    <span class="min-w-0 flex-1 text-center font-mono text-[12px] leading-none font-bold text-muted">
                                         {{ $batang['label'] }}
                                     </span>
-                                </button>
-                            @endforeach
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -306,7 +331,7 @@
                             <span data-grafik-orders>{{ $ringkasan['orders'] }}</span> pesanan tercatat
                         </p>
                         <p class="tag max-w-[190px] text-[12px] text-muted" data-grafik-hint>
-                            Klik batang untuk rincian
+                            Klik titik untuk rincian
                         </p>
                         <a href="{{ route('admin.reports') }}"
                            class="tag rounded border-2 border-ink bg-admin-panel px-3 py-1.5 text-[12px] font-bold text-ink transition-colors hover:bg-varya-light">
