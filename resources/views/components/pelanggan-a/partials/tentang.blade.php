@@ -16,7 +16,7 @@
     {{-- Dua panel landscape (lebar > tinggi) dengan tinggi sama, tanpa border dan hanya bayangan kanan-bawah (desain). --}}
     <div class="mt-8 grid gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-8">
         {{-- Kolom teks --}}
-        <div class="about-shadow flex flex-col justify-between gap-8 bg-surface p-6 sm:p-8">
+        <div class="about-shadow flex flex-col justify-between gap-8 bg-surface p-6 sm:p-8" data-reveal data-reveal-delay="80">
             <div>
                 <p class="font-display text-sm font-bold tracking-wide text-varya-dark uppercase">
                     Sejak. 2024 <span class="mx-1 opacity-50">•</span> Kedai Varya
@@ -40,7 +40,7 @@
         </div>
 
         {{-- Kolom foto: rasio landscape, tinggi mengikuti panel teks --}}
-        <div class="about-shadow relative h-[280px] overflow-hidden bg-surface sm:h-[340px] lg:h-auto lg:min-h-[380px]">
+        <div class="about-shadow relative h-[280px] overflow-hidden bg-surface sm:h-[340px] lg:h-auto lg:min-h-[380px]" data-reveal data-reveal-delay="160">
             <span class="tag absolute top-0 left-0 z-10 bg-ink/70 px-4 py-1.5 text-[11px] text-white">
                 <span class="opacity-50">//</span> Kedai Varya
             </span>

@@ -81,6 +81,30 @@
         -webkit-font-smoothing: antialiased;
     }
 
+    /*
+    | Kursor sebagai penanda interaktif:
+    | elemen yang bisa diklik memakai pointer, elemen nonaktif memakai not-allowed.
+    */
+    a[href],
+    area[href],
+    button:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    summary,
+    label[for],
+    select:not(:disabled),
+    input[type='checkbox']:not(:disabled),
+    input[type='radio']:not(:disabled) {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    input:disabled,
+    select:disabled,
+    textarea:disabled,
+    [aria-disabled='true'] {
+        cursor: not-allowed;
+    }
+
     /* Judul section memakai display font */
     h1,
     h2,
@@ -742,5 +766,124 @@
     .auth-submit:focus-visible {
         outline: 3px solid var(--color-varya);
         outline-offset: 3px;
+    }
+}
+
+@layer components {
+    /*
+    |--------------------------------------------------------------------------
+    | Animasi editorial beranda Pelanggan A/B
+    |--------------------------------------------------------------------------
+    | Semua aturan dibatasi [data-landing-animations] supaya halaman publik
+    | lain (menu, tentang, lokasi) tidak ikut beranimasi atau tersembunyi.
+    */
+
+    [data-landing-animations] {
+        --hero-autoplay: 6000ms;
+    }
+
+    /* Reveal halus saat section masuk viewport. */
+    html.reveal-ready [data-landing-animations] [data-reveal] {
+        opacity: 0;
+        transform: translateY(14px);
+        transition:
+            opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+            transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+        transition-delay: var(--reveal-delay, 0ms);
+    }
+
+    html.reveal-ready [data-landing-animations] [data-reveal].is-revealed {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Zoom halus pada foto kartu menu saat kursor di atas kartu. */
+    [data-landing-animations] [data-menu-card] img {
+        transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        [data-landing-animations] [data-menu-card]:hover img {
+            transform: scale(1.045);
+        }
+    }
+
+    /* Hero: slide ditumpuk absolut dan berganti lewat crossfade. */
+    [data-landing-animations] [data-hero-slide] {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(1.015);
+        transition:
+            opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+            transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
+            visibility 0s linear 700ms;
+    }
+
+    [data-landing-animations] [data-hero-slide].is-active {
+        z-index: 1;
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1);
+        transition-delay: 0s;
+    }
+
+    [data-landing-animations] [data-hero-slide].is-active img {
+        animation: hero-ken-burns 7000ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    /* Progress bar 6 detik, sejalan dengan AUTOPLAY_DELAY di pelanggan-a.js. */
+    [data-landing-animations] [data-hero-progress-bar] {
+        display: block;
+        height: 100%;
+        width: 0;
+        background-color: var(--color-varya-light);
+    }
+
+    [data-landing-animations] [data-hero-progress-bar].is-running {
+        animation: hero-progress var(--hero-autoplay, 6000ms) linear forwards;
+    }
+
+    @keyframes hero-ken-burns {
+        from {
+            transform: scale(1);
+        }
+        to {
+            transform: scale(1.06);
+        }
+    }
+
+    @keyframes hero-progress {
+        from {
+            width: 0;
+        }
+        to {
+            width: 100%;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html.reveal-ready [data-landing-animations] [data-reveal],
+        [data-landing-animations] [data-hero-slide],
+        [data-landing-animations] [data-hero-slide].is-active {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+
+        [data-landing-animations] [data-hero-slide]:not(.is-active) {
+            opacity: 0;
+        }
+
+        [data-landing-animations] [data-hero-slide].is-active img,
+        [data-landing-animations] [data-hero-progress-bar].is-running {
+            animation: none;
+        }
+
+        [data-landing-animations] [data-hero-progress] {
+            display: none;
+        }
     }
 }

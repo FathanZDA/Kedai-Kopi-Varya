@@ -12,6 +12,42 @@
     <meta name="description" content="{{ $description }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <script>
+        // Saat halaman di-refresh, mulai lagi dari hero/banner promosi.
+        // Deep link seperti /pesan#menu dari halaman lain tetap dihormati.
+        (() => {
+            const navigation = performance.getEntriesByType('navigation')[0];
+            const isReload = navigation ? navigation.type === 'reload' : false;
+
+            if (!isReload) return;
+
+            if ('scrollRestoration' in history) {
+                history.scrollRestoration = 'manual';
+            }
+
+            if (window.location.hash !== '') {
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+
+            const kembaliKeAtas = () => {
+                const root = document.documentElement;
+                const previous = root.style.scrollBehavior;
+
+                root.style.scrollBehavior = 'auto';
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                root.style.scrollBehavior = previous;
+            };
+
+            document.addEventListener('DOMContentLoaded', kembaliKeAtas, { once: true });
+            window.addEventListener('load', () => {
+                // Ulangi setelah semua aset selesai agar tidak tertimpa
+                // pemulihan posisi bawaan browser.
+                kembaliKeAtas();
+                window.requestAnimationFrame(kembaliKeAtas);
+            }, { once: true });
+        })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Playfair+Display:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -38,6 +74,7 @@
         'resources/js/app.js',
         'resources/js/pelanggan-a.js',
         'resources/js/pelanggan-b.js',
+        'resources/js/landing-animations.js',
     ])
 </head>
 <body class="min-h-screen bg-canvas font-serif text-ink antialiased">

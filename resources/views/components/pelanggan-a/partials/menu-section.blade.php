@@ -5,11 +5,11 @@
 ])
 
 <section id="menu" class="mx-auto max-w-[1280px] px-5 pt-16 sm:px-8 sm:pt-20">
-    <x-section-heading title="Menu" align="center" />
+    <x-section-heading title="Menu" align="center" data-reveal />
 
     {{-- Pencarian --}}
     <form data-menu-search class="mx-auto mt-7 flex max-w-2xl items-center gap-3"
-          role="search" onsubmit="return false">
+          role="search" onsubmit="return false" data-reveal data-reveal-delay="60">
         <div class="brut flex flex-1 items-center gap-3 rounded-full bg-surface px-5 py-2.5">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2.5" stroke-linecap="round" class="shrink-0 text-ink" aria-hidden="true">
@@ -30,7 +30,7 @@
     </form>
 
     {{-- Filter kategori --}}
-    <div data-menu-filters class="mt-6 flex flex-wrap justify-center gap-2.5">
+    <div data-menu-filters class="mt-6 flex flex-wrap justify-center gap-2.5" data-reveal data-reveal-delay="100">
         <button type="button"
                 data-filter="all"
                 class="brut-sm tag bg-varya-dark px-6 py-2.5 text-[11px] font-bold text-white transition-transform hover:-translate-y-0.5">
@@ -56,6 +56,8 @@
                  data-menu-index="{{ $loop->index }}"
                  data-category="{{ \App\Support\MenuGroup::forSlug($menu->category?->slug) }}"
                  data-name="{{ \Illuminate\Support\Str::lower($menu->nama.' '.$menu->deskripsi) }}"
+                 data-reveal
+                 data-reveal-delay="{{ ($loop->index % 4) * 70 }}"
                  class="w-[calc(50%_-_0.5rem)] sm:w-[calc(50%_-_0.625rem)] lg:w-[calc(25%_-_1.125rem)]">
                 <x-menu-card :menu="$menu" />
             </div>

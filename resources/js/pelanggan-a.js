@@ -1,6 +1,7 @@
 // Interaksi khusus halaman Pelanggan A: carousel hero dan filter menu.
 
 const AUTOPLAY_DELAY = 6000;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 /** Carousel slide promo di hero. */
 function initHeroCarousel() {
@@ -8,14 +9,20 @@ function initHeroCarousel() {
     if (slides.length < 2) return;
 
     const dots = Array.from(document.querySelectorAll('[data-hero-dot]'));
-    let current = 0;
+    const progressBar = document.querySelector('[data-hero-progress-bar]');
+    const root = slides[0].closest('[data-hero-root]');
+
+    let current = slides.findIndex((slide) => slide.classList.contains('is-active'));
+    if (current < 0) current = 0;
     let timer = null;
 
     const render = (next) => {
         current = (next + slides.length) % slides.length;
 
         slides.forEach((slide, i) => {
-            slide.classList.toggle('hidden', i !== current);
+            const active = i === current;
+            slide.classList.toggle('is-active', active);
+            slide.setAttribute('aria-hidden', active ? 'false' : 'true');
         });
 
         // Kelas harus sama persis dengan markup Blade agar kapsul aktif tetap hijau di slide mana pun.
@@ -23,19 +30,44 @@ function initHeroCarousel() {
             const active = i === current;
             dot.classList.toggle('w-7', active);
             dot.classList.toggle('w-2.5', !active);
+            // Warna kapsul mengikuti T8: hijau saat aktif, putih transparan saat tidak.
             dot.classList.toggle('bg-varya-dark', active);
             dot.classList.toggle('bg-white/80', !active);
+
+            if (active) {
+                dot.setAttribute('aria-current', 'true');
+            } else {
+                dot.removeAttribute('aria-current');
+            }
         });
+    };
+
+    const restartProgress = () => {
+        if (!progressBar) return;
+
+        progressBar.classList.remove('is-running');
+        // Baca offsetWidth memaksa reflow agar animasi CSS dimulai dari awal.
+        void progressBar.offsetWidth;
+        progressBar.classList.add('is-running');
+    };
+
+    const stop = () => {
+        if (timer) clearTimeout(timer);
+        timer = null;
+        progressBar?.classList.remove('is-running');
     };
 
     const start = () => {
         stop();
-        timer = setInterval(() => render(current + 1), AUTOPLAY_DELAY);
-    };
 
-    const stop = () => {
-        if (timer) clearInterval(timer);
-        timer = null;
+        // Hormati preferensi reduced motion: slide hanya berganti lewat navigasi.
+        if (reduceMotion.matches) return;
+
+        restartProgress();
+        timer = setTimeout(() => {
+            render(current + 1);
+            start();
+        }, AUTOPLAY_DELAY);
     };
 
     document.querySelector('[data-hero-prev]')?.addEventListener('click', () => {
@@ -56,11 +88,11 @@ function initHeroCarousel() {
     });
 
     // Jeda autoplay saat kursor di atas hero atau tab tidak aktif.
-    const root = slides[0].closest('.brut');
     root?.addEventListener('mouseenter', stop);
     root?.addEventListener('mouseleave', start);
     document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
 
+    render(current);
     start();
 }
 

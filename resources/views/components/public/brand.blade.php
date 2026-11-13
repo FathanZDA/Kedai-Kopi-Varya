@@ -4,18 +4,16 @@
 ])
 
 @php
-    $markClasses = $variant === 'light'
-        ? 'bg-footer text-white border-white/30'
-        : 'bg-white text-ink border-ink';
+    $markClasses = $variant === 'light' ? 'brightness-0 invert' : '';
     $nameClasses = $variant === 'light' ? 'text-white' : 'text-ink';
 @endphp
 
 <a href="{{ $href }}" class="group inline-flex items-center gap-3">
-    {{-- Logo mark. Ganti dengan <img> bila file logo asli sudah tersedia. --}}
-    <span class="flex h-12 w-12 flex-col items-center justify-center rounded-md border-2 {{ $markClasses }}">
-        <span class="font-display text-xl leading-none font-black">V</span>
-        <span class="tag text-[11px] leading-tight opacity-70">Varya</span>
-    </span>
+    <img src="{{ asset('images/brand/varya-mark.png') }}"
+         alt=""
+         width="228"
+         height="240"
+         class="h-11 w-auto shrink-0 object-contain sm:h-12 {{ $markClasses }}">
 
     <span class="font-display text-xl font-black tracking-tight uppercase {{ $nameClasses }}">
         Kedai Varya
