@@ -769,6 +769,68 @@ function mulaiHitungMundur(root) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Konfirmasi keranjang (dialog gaya kasir)                                   */
+/* -------------------------------------------------------------------------- */
+
+let cartConfirmAction = null;
+
+function initCartConfirm() {
+    const dialog = document.querySelector('[data-cart-confirm]');
+    if (!dialog) return;
+
+    dialog.querySelectorAll('[data-cart-confirm-cancel]').forEach((button) => {
+        button.addEventListener('click', () => {
+            cartConfirmAction = null;
+            dialog.close();
+        });
+    });
+
+    dialog.querySelector('[data-cart-confirm-ok]')?.addEventListener('click', () => {
+        const action = cartConfirmAction;
+
+        cartConfirmAction = null;
+        dialog.close();
+        action?.();
+    });
+
+    dialog.addEventListener('cancel', (event) => {
+        event.preventDefault();
+        cartConfirmAction = null;
+        dialog.close();
+    });
+}
+
+/**
+ * Tampilkan peringatan sebelum menghapus item atau mengosongkan keranjang.
+ * Halaman lain (katalog, detail produk) tidak punya dialog ini, jadi aksi
+ * langsung dijalankan seperti sebelumnya.
+ */
+function askCartConfirm({ title, message, label, onConfirm }) {
+    const dialog = document.querySelector('[data-cart-confirm]');
+
+    if (!dialog || typeof dialog.showModal !== 'function') {
+        onConfirm();
+        return;
+    }
+
+    const titleEl = dialog.querySelector('[data-cart-confirm-title]');
+    const messageEl = dialog.querySelector('[data-cart-confirm-message]');
+    const labelEl = dialog.querySelector('[data-cart-confirm-label]');
+
+    if (titleEl) titleEl.textContent = title;
+    if (messageEl) messageEl.textContent = message;
+    if (labelEl) labelEl.textContent = label;
+
+    cartConfirmAction = onConfirm;
+
+    if (dialog.open) {
+        dialog.close();
+    }
+
+    dialog.showModal();
+}
+
+/* -------------------------------------------------------------------------- */
 /* Event delegation                                                           */
 /* -------------------------------------------------------------------------- */
 
@@ -836,7 +898,21 @@ function handleClick(event) {
         if (!card) return;
 
         const item = getCart().find((entry) => entry.id === Number(card.dataset.cartItem));
-        setQty(Number(card.dataset.cartItem), (item?.qty ?? 0) - 1);
+        const id = Number(card.dataset.cartItem);
+
+        // Mengurangi jumlah dari 1 berarti menghapus item, jadi minta konfirmasi dulu.
+        if (!item || item.qty <= 1) {
+            askCartConfirm({
+                title: 'Hapus Menu Ini?',
+                message: `${item?.name ?? 'Menu ini'} akan dihapus dari keranjang. Tindakan ini tidak bisa dibatalkan.`,
+                label: 'Ya, Hapus',
+                onConfirm: () => removeItem(id),
+            });
+
+            return;
+        }
+
+        setQty(id, item.qty - 1);
 
         return;
     }
@@ -845,15 +921,34 @@ function handleClick(event) {
 
     if (removeButton) {
         const card = removeButton.closest('[data-cart-item]');
-        if (card) removeItem(Number(card.dataset.cartItem));
+        if (!card) return;
+
+        const id = Number(card.dataset.cartItem);
+        const item = getCart().find((entry) => entry.id === id);
+
+        askCartConfirm({
+            title: 'Hapus Menu Ini?',
+            message: `${item?.name ?? 'Menu ini'} akan dihapus dari keranjang. Tindakan ini tidak bisa dibatalkan.`,
+            label: 'Ya, Hapus',
+            onConfirm: () => removeItem(id),
+        });
 
         return;
     }
 
     if (event.target.closest('[data-clear-cart]')) {
-        if (getCart().length > 0 && window.confirm('Kosongkan semua item di keranjang?')) {
-            clearCart();
-        }
+        const cart = getCart();
+
+        if (cart.length === 0) return;
+
+        const totalItem = cart.reduce((sum, item) => sum + Number(item.qty), 0);
+
+        askCartConfirm({
+            title: 'Kosongkan Keranjang?',
+            message: `${cart.length} jenis menu (${totalItem} item) akan dihapus dari keranjang. Tindakan ini tidak bisa dibatalkan.`,
+            label: 'Ya, Kosongkan',
+            onConfirm: clearCart,
+        });
 
         return;
     }
@@ -902,6 +997,7 @@ function handleClick(event) {
 
 document.addEventListener('DOMContentLoaded', () => {
     syncAll();
+    initCartConfirm();
     initProductDetail();
     initCheckout();
     initPesananStatus();

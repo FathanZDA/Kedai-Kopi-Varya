@@ -76,5 +76,48 @@
                 </x-pelanggan-b.order-summary>
             </div>
         </div>
+
+        {{-- Konfirmasi hapus item / kosongkan keranjang (tampilan sama dengan kasir). --}}
+        <dialog data-cart-confirm class="kasir-dialog" aria-labelledby="cart-confirm-title">
+            <div class="kasir-dialog-card">
+                <div class="kasir-stripes h-3" aria-hidden="true"></div>
+
+                <div class="p-5">
+                    <div class="flex items-start gap-3">
+                        <span class="grid h-11 w-11 shrink-0 place-items-center rounded border-2 border-ink bg-[#f8d8a6] text-ink">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M4 7h16"/><path d="M9 7V5h6v2"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v5M14 11v5"/>
+                            </svg>
+                        </span>
+
+                        <div class="min-w-0 flex-1">
+                            <p class="tag text-[11px] font-bold text-muted">// Konfirmasi</p>
+                            <h2 id="cart-confirm-title" data-cart-confirm-title
+                                class="mt-1 font-display text-xl leading-tight font-black uppercase">
+                                Hapus Menu Ini?
+                            </h2>
+                            <p data-cart-confirm-message class="mt-2 font-serif text-[13px] leading-relaxed text-ink-soft">
+                                Menu ini akan dihapus dari keranjang. Tindakan ini tidak bisa dibatalkan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-end gap-2 border-t-2 border-ink p-4">
+                    <button type="button" data-cart-confirm-cancel
+                            class="tag rounded border-2 border-ink bg-surface px-4 py-2.5 text-[11px] font-bold shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                        // Batal
+                    </button>
+
+                    <button type="button" data-cart-confirm-ok
+                            class="tag flex items-center gap-1.5 rounded border-2 border-ink bg-rust px-4 py-2.5 text-[11px] font-bold text-white shadow-[2px_2px_0_0_#1b1c1d] transition-transform hover:-translate-y-0.5">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M6 7l1 13h10l1-13"/></svg>
+                        <span data-cart-confirm-label>Ya, Hapus</span>
+                    </button>
+                </div>
+            </div>
+        </dialog>
     </div>
 </x-layouts.pelanggan-b>

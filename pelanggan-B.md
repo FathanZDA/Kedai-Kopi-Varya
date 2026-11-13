@@ -59,7 +59,7 @@ Pelanggan B **tidak memiliki fitur Cek Pesanan atau pelacakan pesanan**. Setelah
 
 4. Sistem menampilkan keranjang belanja (di sisi kanan pada layar desktop, panel bawah pada layar HP).
 
-5. Jika ingin menambah item, pelanggan kembali mengatur jumlah produk. Jika tidak, pelanggan menekan tombol **Pesan**.
+5. Jika ingin menambah item, pelanggan kembali mengatur jumlah produk. Jika tidak, pelanggan menekan tombol **Pesan**. Menghapus item (tombol × atau tanda − saat jumlah tinggal 1) dan menekan **Kosongkan Keranjang** selalu memunculkan dialog konfirmasi bergaya kasir (label `// Konfirmasi`, rincian jumlah item, tombol `// Batal` dan `Ya, Hapus`/`Ya, Kosongkan`) sebelum isi keranjang benar-benar dihapus.
 
 6. Sistem menampilkan form pesanan.
 
